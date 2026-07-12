@@ -1,0 +1,41 @@
+{
+  "user": {
+    "id": "user_123",
+    "displayName": "AethroPlayer",
+    "avatarUrl": "https://cdn.playaethro.com/avatars/user_123.png"
+  },
+  "hero": {
+    "imageUrl": "https://cdn.playaethro.com/launcher/hero-card.jpg",
+    "title": "Play Aethro",
+    "subtitle": "Choose your world."
+  },
+  "news": [
+    {
+      "id": "news_001",
+      "title": "Shadows of Aethro Update",
+      "summary": "New modpack changes, fixes, and goblin nonsense.",
+      "publishedAt": "2026-07-08T12:00:00-07:00",
+      "url": "https://playaethro.com/news/shadows-update"
+    }
+  ],
+  "games": [
+    {
+      "id": "shadows",
+      "title": "Shadows of Aethro",
+      "description": "Fabric 1.21.1 modded Minecraft adventure.",
+      "status": "online",
+      "actionLabel": "Play Shadows"
+    },
+    {
+      "id": "aethro-online",
+      "title": "Aethro Online",
+      "description": "A text-based fantasy MUD in Kalismor.",
+      "status": "online",
+      "actionLabel": "Play Aethro Online"
+    }
+  ],
+  "links": {
+    "website": "https://playaethro.com",
+    "discord": "https://discord.gg/your-code"
+  }
+}

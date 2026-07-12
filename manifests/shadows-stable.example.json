@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "gameId": "shadows",
+  "channel": "stable",
+  "displayName": "Shadows of Aethro",
+  "minecraft": {
+    "version": "1.21.1",
+    "loader": "fabric",
+    "javaMajor": 21
+  },
+  "files": [
+    {
+      "path": "mods/example-mod.jar",
+      "url": "https://cdn.playaethro.com/shadows/stable/mods/example-mod.jar",
+      "sha256": "replace-with-real-sha256",
+      "sizeBytes": 123456,
+      "required": true
+    },
+    {
+      "path": "config/example.json",
+      "url": "https://cdn.playaethro.com/shadows/stable/config/example.json",
+      "sha256": "replace-with-real-sha256",
+      "sizeBytes": 1234,
+      "required": true
+    }
+  ],
+  "removeExtraFilesUnder": [
+    "mods"
+  ],
+  "launch": {
+    "mainClass": "net.fabricmc.loader.impl.launch.knot.KnotClient",
+    "jvmArgs": ["-Xmx6G", "-Xms2G"],
+    "gameArgs": ["--quickPlayMultiplayer", "shadows.playaethro.com"]
+  }
+}

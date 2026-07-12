@@ -1,0 +1,1 @@
+Create a public/hero-card-placeholder.svg if you want Vite to serve the placeholder path directly.
