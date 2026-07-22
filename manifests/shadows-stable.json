@@ -1,0 +1,768 @@
+{
+  "schemaVersion": 1,
+  "gameId": "shadows",
+  "channel": "stable",
+  "displayName": "Shadows of Aethro",
+  "minecraft": {
+    "version": "1.21.1",
+    "loader": "fabric",
+    "javaMajor": 21
+  },
+  "files": [
+    {
+      "path": "mods/accessories-fabric-1.1.0-beta.53+1.21.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/accessories-fabric-1.1.0-beta.53%2B1.21.1.jar",
+      "sha256": "51e6f6d52cb2523199ad36e5bc04802230f86904c35ac3dbf36e59c86b2c30d1",
+      "sizeBytes": 1095802,
+      "required": true
+    },
+    {
+      "path": "mods/aether-1.21.1-1.5.11-fabric.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/aether-1.21.1-1.5.11-fabric.jar",
+      "sha256": "5909f195eb995f3760de5acff197e4c32029c5941d32320bc4a84c90bee79faf",
+      "sizeBytes": 40931095,
+      "required": true
+    },
+    {
+      "path": "mods/architectury-13.0.8-fabric.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/architectury-13.0.8-fabric.jar",
+      "sha256": "10cbbb6f5f96a2f1853b0cc68428424cec8903409517b299ff02350756b6399d",
+      "sizeBytes": 600915,
+      "required": true
+    },
+    {
+      "path": "mods/artifacts-7.1.1+fabric.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/artifacts-7.1.1%2Bfabric.jar",
+      "sha256": "d41ea594c2b6e7e2d394c6d3f7cb2117435678ebd690ad2bfa3a73bc175e87c2",
+      "sizeBytes": 599880,
+      "required": true
+    },
+    {
+      "path": "mods/artifacts-fabric-13.2.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/artifacts-fabric-13.2.1.jar",
+      "sha256": "b6701cbc14b43e0c2d1b90b121c04ade492dd813502d856a49dbf01f00201b29",
+      "sizeBytes": 1430493,
+      "required": true
+    },
+    {
+      "path": "mods/artifacts-merging-1.0.2+1.21.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/artifacts-merging-1.0.2%2B1.21.1.jar",
+      "sha256": "dfca7c47455ae3a2358d02e2e64062b65894da3c350aead30bc7f614bd2de445",
+      "sizeBytes": 25079,
+      "required": true
+    },
+    {
+      "path": "mods/athena-fabric-1.21.1-4.0.6.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/athena-fabric-1.21.1-4.0.6.jar",
+      "sha256": "e17aad84c690ac4e46300a4180b3ae4077ffa4f526dbc82d117afbbff4ee83e4",
+      "sizeBytes": 88425,
+      "required": true
+    },
+    {
+      "path": "mods/backpacked-fabric-1.21.1-3.0.5.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/backpacked-fabric-1.21.1-3.0.5.jar",
+      "sha256": "56f1167d15f6a7d9fb9a9abb49fd033d40a511b8a98b8746c14f1dfd2ef60871",
+      "sizeBytes": 1285683,
+      "required": true
+    },
+    {
+      "path": "mods/balm-fabric-1.21.1-21.0.59.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/balm-fabric-1.21.1-21.0.59.jar",
+      "sha256": "07a109453beb8539c792fdedca97722434c3074df84c16b4ab6a532a2a265aa8",
+      "sizeBytes": 760238,
+      "required": true
+    },
+    {
+      "path": "mods/BCLibRemastered-30.4.0.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/BCLibRemastered-30.4.0.jar",
+      "sha256": "f32b9a62af72023e96faab50029dfdc02d1dd90abc7d1ee197ee1c17e4b30a5e",
+      "sizeBytes": 1606749,
+      "required": true
+    },
+    {
+      "path": "mods/BetterEndRemastered-30.4.0.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/BetterEndRemastered-30.4.0.jar",
+      "sha256": "8bffac8630d1ede7198c416a694183dc5d867c72a58e4f97103204b95cdfbffe",
+      "sizeBytes": 93253846,
+      "required": true
+    },
+    {
+      "path": "mods/BetterNetherRemastered-30.4.0.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/BetterNetherRemastered-30.4.0.jar",
+      "sha256": "6d7cb1da03875ebc4b85ef2696b9362e135dd8858aea9eb10621414d97504681",
+      "sizeBytes": 23177799,
+      "required": true
+    },
+    {
+      "path": "mods/BiomesOPlenty-fabric-1.21.1-21.1.0.14.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/BiomesOPlenty-fabric-1.21.1-21.1.0.14.jar",
+      "sha256": "ec600b84cda4ce89d7d1cc77aa25a7e5f51455c1f8e43441d95b5d85ea48a395",
+      "sizeBytes": 22349808,
+      "required": true
+    },
+    {
+      "path": "mods/capturexp-fabric-1.7.3-1.3.0.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/capturexp-fabric-1.7.3-1.3.0.jar",
+      "sha256": "8f5ab9ce3ea2957f75033f3adc8a6195d303a96c3a8c1eebd1d5ee254bf88cf7",
+      "sizeBytes": 22848,
+      "required": true
+    },
+    {
+      "path": "mods/chat_heads-0.15.2-fabric-1.21.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/chat_heads-0.15.2-fabric-1.21.jar",
+      "sha256": "bd92b062fb205e76e002669e47a41680821f8bcf3009f1af0061367df5a619d0",
+      "sizeBytes": 84297,
+      "required": true
+    },
+    {
+      "path": "mods/chipped-fabric-1.21.1-4.0.2.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/chipped-fabric-1.21.1-4.0.2.jar",
+      "sha256": "1721c94365fd8d2d3c3fdcac7efbfd7e605daa7dfb8adc4c126c5bbde2820c79",
+      "sizeBytes": 15016830,
+      "required": true
+    },
+    {
+      "path": "mods/cloth-config-15.0.140-fabric.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/cloth-config-15.0.140-fabric.jar",
+      "sha256": "33894e95da3af59014b39d126586d5241e07ea39f8618763e30dab637405f95f",
+      "sizeBytes": 1157166,
+      "required": true
+    },
+    {
+      "path": "mods/Clumps-fabric-1.21.1-19.0.0.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/Clumps-fabric-1.21.1-19.0.0.1.jar",
+      "sha256": "49e406cb2872e24a2d2dbe461b93f0c8fbee1748d14c2a941e54f785e3a1e1a7",
+      "sizeBytes": 20723,
+      "required": true
+    },
+    {
+      "path": "mods/CobbleBadges-fabric-4.0.0+Beta-1+1.21.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/CobbleBadges-fabric-4.0.0%2BBeta-1%2B1.21.1.jar",
+      "sha256": "1e0c8266549626dcf8d9501fecb2eb3e5ecc6ab8e8694ff2eb0f9fe1ca9e648d",
+      "sizeBytes": 843407,
+      "required": true
+    },
+    {
+      "path": "mods/cobblebase-fabric-2.0.0+1.7.0.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/cobblebase-fabric-2.0.0%2B1.7.0.jar",
+      "sha256": "e96b50ea7c778ae35ebaba9dc79a6bb5e9382a0e9b95da7031297465eb086ce9",
+      "sizeBytes": 16347642,
+      "required": true
+    },
+    {
+      "path": "mods/CobbleDollars-fabric-2.0.0+Beta-5.1+1.21.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/CobbleDollars-fabric-2.0.0%2BBeta-5.1%2B1.21.1.jar",
+      "sha256": "5d8690980ecc79b5f33005dd274d148d0b9b7713ff5e8223c7011aa8bb08401a",
+      "sizeBytes": 369528,
+      "required": true
+    },
+    {
+      "path": "mods/CobbleFurnies-fabric-1.2.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/CobbleFurnies-fabric-1.2.jar",
+      "sha256": "c1230a58ca2369b973bfade68a0ffcac86ffcbf9dd2a845999ed8c5348bfef93",
+      "sizeBytes": 2337235,
+      "required": true
+    },
+    {
+      "path": "mods/cobblemon_poke_labs-fabric-1.1.2.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/cobblemon_poke_labs-fabric-1.1.2.jar",
+      "sha256": "32e491d140c27db77b972b46e7a45ff657c49c413c16938b97af18eb6f836c20",
+      "sizeBytes": 39102,
+      "required": true
+    },
+    {
+      "path": "mods/cobblemon_simple_center-fabric-1.2.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/cobblemon_simple_center-fabric-1.2.1.jar",
+      "sha256": "9db6ed42ed288371dccde58e88038069a1096e15a41b9ad45efb3c3224210c8e",
+      "sizeBytes": 1060605,
+      "required": true
+    },
+    {
+      "path": "mods/Cobblemon-fabric-1.7.3+1.21.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/Cobblemon-fabric-1.7.3%2B1.21.1.jar",
+      "sha256": "f7c25955176badc444ad6211fc556514fedbdba776227f105fe899f8819d74e3",
+      "sizeBytes": 135801550,
+      "required": true
+    },
+    {
+      "path": "mods/cobblemonraiddens-fabric-0.11.2+1.21.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/cobblemonraiddens-fabric-0.11.2%2B1.21.1.jar",
+      "sha256": "b57b8c2c59b6080d01c91116b8fda4d27bd6a63a16d672ef2a155bdbaea71ffd",
+      "sizeBytes": 2688157,
+      "required": true
+    },
+    {
+      "path": "mods/cobblemore_lib-fabric-1.2.10.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/cobblemore_lib-fabric-1.2.10.jar",
+      "sha256": "7f48a2f6f702b37dafd8c6270f006e4e09177f36144fdefaa49901ed529d0be4",
+      "sizeBytes": 713368,
+      "required": true
+    },
+    {
+      "path": "mods/Cobblepedia-Fabric-0.7.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/Cobblepedia-Fabric-0.7.1.jar",
+      "sha256": "01b4bd3c1caffcb82aa509515bb21d84adffebed0ba2d4deadfa675c06768294",
+      "sizeBytes": 8276577,
+      "required": true
+    },
+    {
+      "path": "mods/collective-1.21.1-8.39.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/collective-1.21.1-8.39.jar",
+      "sha256": "ae59b63790c3097fb01e7801c21f3e7feed13b151c2ad993895196c74381a8fe",
+      "sizeBytes": 1061931,
+      "required": true
+    },
+    {
+      "path": "mods/comforts-fabric-9.0.5+1.21.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/comforts-fabric-9.0.5%2B1.21.1.jar",
+      "sha256": "73ff17028967a2e30731ea79aee2e18dd8e2d59a5dcd075facd6491cae1b2231",
+      "sizeBytes": 914494,
+      "required": true
+    },
+    {
+      "path": "mods/connectivity-fabric-1.21-7.6.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/connectivity-fabric-1.21-7.6.jar",
+      "sha256": "7abf008b1d8fb99a26a381f8998c3a12c4dad6506937c5289f78a4300dca132a",
+      "sizeBytes": 198109,
+      "required": true
+    },
+    {
+      "path": "mods/create-zinc-recipe-1.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/create-zinc-recipe-1.1.jar",
+      "sha256": "b8a167f4b6ba0e1741e11f551d52df4e0520175f9664877c2717b60fdd2d9a8c",
+      "sizeBytes": 5157,
+      "required": true
+    },
+    {
+      "path": "mods/critterarmory-1.21.1-0.6.5-fabric.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/critterarmory-1.21.1-0.6.5-fabric.jar",
+      "sha256": "cf04a5987e37f47c6eb699652d7b61631f178bda5e0ae560831ca550c48396ee",
+      "sizeBytes": 231005,
+      "required": true
+    },
+    {
+      "path": "mods/cupboard-fabric-1.21.1-3.8.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/cupboard-fabric-1.21.1-3.8.jar",
+      "sha256": "8ff596a45704b3273df1035ff5ac9c4bf4156fc09bded697f42b827a0e843a9d",
+      "sizeBytes": 25921,
+      "required": true
+    },
+    {
+      "path": "mods/DailyShop-mc1.21.1-v1.1.3-fabric.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/DailyShop-mc1.21.1-v1.1.3-fabric.jar",
+      "sha256": "c01581a3cd9db3773dbd28a15a86f758b18fcb992ab70cac4d1a61ef922a39a7",
+      "sizeBytes": 1209970,
+      "required": true
+    },
+    {
+      "path": "mods/deeperdarker-fabric-1.21-1.3.3-plus-b.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/deeperdarker-fabric-1.21-1.3.3-plus-b.jar",
+      "sha256": "d8b00ac7b28498785b46ca733687301113374c4520f1d5ad8bba0a7ae8041c1b",
+      "sizeBytes": 17977802,
+      "required": true
+    },
+    {
+      "path": "mods/Dungeons And Villages DeeperAndDarker 1.21.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/Dungeons%20And%20Villages%20DeeperAndDarker%201.21.1.jar",
+      "sha256": "9decb3a40bbcaa4caabd2f835c4b14e982fa2d965b132fc55059cc007d0cfe75",
+      "sizeBytes": 376345,
+      "required": true
+    },
+    {
+      "path": "mods/easy_mob_farm-fabric-1.21.1-10.10.0.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/easy_mob_farm-fabric-1.21.1-10.10.0.jar",
+      "sha256": "56926f4266e828e49c39b7fcc23d2bee151ae20e709fde22fbbef8fba4b11bd7",
+      "sizeBytes": 982328,
+      "required": true
+    },
+    {
+      "path": "mods/easy_npc_bundle-fabric-1.21.1-6.24.0.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/easy_npc_bundle-fabric-1.21.1-6.24.0.jar",
+      "sha256": "3259d9f408f07940f840d2adfcf771cff5f0918386b44a4905dad69922a4befe",
+      "sizeBytes": 25259,
+      "required": true
+    },
+    {
+      "path": "mods/easy_npc_config_ui-fabric-1.21.1-6.24.0.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/easy_npc_config_ui-fabric-1.21.1-6.24.0.jar",
+      "sha256": "83c3a583a6fafaf6e9809a3229afe380d8550d5ec5712c35aa2dcc9f1a56c857",
+      "sizeBytes": 934910,
+      "required": true
+    },
+    {
+      "path": "mods/easy_npc-fabric-1.21.1-6.24.0.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/easy_npc-fabric-1.21.1-6.24.0.jar",
+      "sha256": "305007fe97e2894e7d9b647b1412e70d4fc1d8e929707ac3a230db637ac5c415",
+      "sizeBytes": 2167804,
+      "required": true
+    },
+    {
+      "path": "mods/envelope-fabric-1.21.1-0.6.2.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/envelope-fabric-1.21.1-0.6.2.jar",
+      "sha256": "788d183236c400637a21cfe6adb554fd02184dd1adb52b8e4031ee9d30041965",
+      "sizeBytes": 1406348,
+      "required": true
+    },
+    {
+      "path": "mods/eternalstarlight-0.8.1+1.21.1+fabric.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/eternalstarlight-0.8.1%2B1.21.1%2Bfabric.jar",
+      "sha256": "2a75412cb28e228d3827d6dec0694b56892d7f9fa16c89aaa59eee57d3c15ab2",
+      "sizeBytes": 56987502,
+      "required": true
+    },
+    {
+      "path": "mods/ExplorersCompass-1.21.1-2.6.0-fabric.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/ExplorersCompass-1.21.1-2.6.0-fabric.jar",
+      "sha256": "f6327bb26c3ea5981792f1a5a7ada4fcd78b0e4fe3a563612122d37a68d46c4b",
+      "sizeBytes": 177481,
+      "required": true
+    },
+    {
+      "path": "mods/fabric-api-0.116.12+1.21.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/fabric-api-0.116.12%2B1.21.1.jar",
+      "sha256": "b872f8c6de3a49cb2f01482830552b4e9fa246ca2274e99f393caefa4a121ff2",
+      "sizeBytes": 2427037,
+      "required": true
+    },
+    {
+      "path": "mods/fallingleaves-1.17.1+1.21.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/fallingleaves-1.17.1%2B1.21.1.jar",
+      "sha256": "67e2071d6c25e2638573e6ee91a146b77e38d77edddbb26f45006ab878ebca77",
+      "sizeBytes": 170056,
+      "required": true
+    },
+    {
+      "path": "mods/FallingTree-1.21.1-1.21.1.11.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/FallingTree-1.21.1-1.21.1.11.jar",
+      "sha256": "70ee147602d2239e7a093e166fdf0c0abcef959d5d457c0f8f3669ef9b483dc4",
+      "sizeBytes": 496356,
+      "required": true
+    },
+    {
+      "path": "mods/fieldguide-fabric-1.21.1-1.13.0.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/fieldguide-fabric-1.21.1-1.13.0.jar",
+      "sha256": "b050979f5d45f73494b82f78bb1b4dfd596bae198d08880428bad0bc82b15bd2",
+      "sizeBytes": 1178794,
+      "required": true
+    },
+    {
+      "path": "mods/ForgeConfigAPIPort-v21.1.6-1.21.1-Fabric.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/ForgeConfigAPIPort-v21.1.6-1.21.1-Fabric.jar",
+      "sha256": "2e3a8f0e3bda85a7d722720e7ce879cbd9d028d9395c6fc224d329b3c982d9b1",
+      "sizeBytes": 633065,
+      "required": true
+    },
+    {
+      "path": "mods/framework-fabric-1.21.1-0.13.11.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/framework-fabric-1.21.1-0.13.11.jar",
+      "sha256": "5d15360a4fffa8699562c700b5b0e97f0fd0b63006f0c1dbe2fec2b60022117d",
+      "sizeBytes": 1647903,
+      "required": true
+    },
+    {
+      "path": "mods/ftb-chunks-fabric-2101.1.14.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/ftb-chunks-fabric-2101.1.14.jar",
+      "sha256": "8178a6b3720914dc0e95a3ccd6e0d975e27a2e27ff6706bec7e0f302fa5194f0",
+      "sizeBytes": 634842,
+      "required": true
+    },
+    {
+      "path": "mods/ftb-essentials-fabric-2101.1.9.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/ftb-essentials-fabric-2101.1.9.jar",
+      "sha256": "ce35d74f8c3c9d65e3e12f114fd98c0fd4fd84e380bd94e1d4335bd199e0b6bf",
+      "sizeBytes": 208089,
+      "required": true
+    },
+    {
+      "path": "mods/ftb-library-fabric-2101.1.32.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/ftb-library-fabric-2101.1.32.jar",
+      "sha256": "8d790f5a5c38c23fe03d76d8c29f0800f65960f23ae166fa5a50bcf0def8a985",
+      "sizeBytes": 1411643,
+      "required": true
+    },
+    {
+      "path": "mods/ftb-ranks-fabric-2101.1.3.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/ftb-ranks-fabric-2101.1.3.jar",
+      "sha256": "4ff6e1e05647f5640f68f78127dd82912eed3d5e1c45602cae04d18460b59976",
+      "sizeBytes": 87075,
+      "required": true
+    },
+    {
+      "path": "mods/ftb-teams-fabric-2101.1.10.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/ftb-teams-fabric-2101.1.10.jar",
+      "sha256": "bc398b9f7837447c701ed3cae2dffadb35270340d82abdb72e97265c3583386f",
+      "sizeBytes": 298292,
+      "required": true
+    },
+    {
+      "path": "mods/ftbxaerocompat-fabric-1.1.4.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/ftbxaerocompat-fabric-1.1.4.jar",
+      "sha256": "8de0c4a6f20125b223ba473b6b92b3190f7bfe2feff25ebdd4d03a13537eea23",
+      "sizeBytes": 108860,
+      "required": true
+    },
+    {
+      "path": "mods/geckolib-fabric-1.21.1-4.9.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/geckolib-fabric-1.21.1-4.9.1.jar",
+      "sha256": "03fa0acba469de767f0993184cc101f80ec2b00e46b2429032aa01cd2af8d6b9",
+      "sizeBytes": 660426,
+      "required": true
+    },
+    {
+      "path": "mods/GlitchCore-fabric-1.21.1-2.1.0.2.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/GlitchCore-fabric-1.21.1-2.1.0.2.jar",
+      "sha256": "9eb2eff5bec5e2084aa272522058001008c83e994babe4e31f9f87e92e21d986",
+      "sizeBytes": 329237,
+      "required": true
+    },
+    {
+      "path": "mods/immersive_aircraft-1.4.6+1.21.1-fabric.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/immersive_aircraft-1.4.6%2B1.21.1-fabric.jar",
+      "sha256": "b4f403b358e87f769ed089e488f03f56bf9089dd320871585ca6ed9715bb09fa",
+      "sizeBytes": 2436443,
+      "required": true
+    },
+    {
+      "path": "mods/immersiveoverlays-1.7.2+1.21.1-fabric.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/immersiveoverlays-1.7.2%2B1.21.1-fabric.jar",
+      "sha256": "6e8a40dbf196597fc531b9992d517975b4770625b00d219e8b844e419bda5e6d",
+      "sizeBytes": 304453,
+      "required": true
+    },
+    {
+      "path": "mods/item_descriptions-2.8.0+1.21.1-fabric.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/item_descriptions-2.8.0%2B1.21.1-fabric.jar",
+      "sha256": "47e41eb5d7f719629b430bc823e23233eea7e2bc9f6c4dd185ddcef8d143dec3",
+      "sizeBytes": 561026,
+      "required": true
+    },
+    {
+      "path": "mods/ItemCleaner-1.2-1.21.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/ItemCleaner-1.2-1.21.1.jar",
+      "sha256": "4dfbe904dbc6d6d69a78e5fca0938fcae612faa96c27e0751aeb74ff117fe568",
+      "sizeBytes": 75175,
+      "required": true
+    },
+    {
+      "path": "mods/Jade-1.21.1-Fabric-15.10.5.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/Jade-1.21.1-Fabric-15.10.5.jar",
+      "sha256": "b78e8f6e0e3d0148ae3b042c484d11bc5c53a81fbe71a9dcbc750338f4dce386",
+      "sizeBytes": 739009,
+      "required": true
+    },
+    {
+      "path": "mods/JadeAddons-1.21.1-Fabric-6.0.3.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/JadeAddons-1.21.1-Fabric-6.0.3.jar",
+      "sha256": "a0657caaea70de48a70fc29394b64cddc5b93bd0517a52691ac5907a632eba1f",
+      "sizeBytes": 39917,
+      "required": true
+    },
+    {
+      "path": "mods/jei-1.21.1-fabric-19.27.0.336.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/jei-1.21.1-fabric-19.27.0.336.jar",
+      "sha256": "1d47dab86cee6d68e0887ec5e14deee125d3e2ea92c5ecedbb57f8f60aafa709",
+      "sizeBytes": 1561528,
+      "required": true
+    },
+    {
+      "path": "mods/legendarymonuments-fabric-8.0.2.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/legendarymonuments-fabric-8.0.2.jar",
+      "sha256": "42f13134184678ba23e81c86cfc37bf9bdaf54cd206e3a22a964fe87d3eeaa26",
+      "sizeBytes": 16580179,
+      "required": true
+    },
+    {
+      "path": "mods/lithostitched-1.7.12-fabric-21.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/lithostitched-1.7.12-fabric-21.1.jar",
+      "sha256": "5ccc3cd456ae19e1121c8e8a1c0b30664824f927fcb73b9fe61539dd04e7efde",
+      "sizeBytes": 827221,
+      "required": true
+    },
+    {
+      "path": "mods/lootr-fabric-1.21.1-1.11.37.121.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/lootr-fabric-1.21.1-1.11.37.121.jar",
+      "sha256": "ed7d0869d81e86a78c20047e312033ec2482347117f42c36452008eb2418d963",
+      "sizeBytes": 1024810,
+      "required": true
+    },
+    {
+      "path": "mods/lootrmon-fabric-1.21.1-0.0.0.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/lootrmon-fabric-1.21.1-0.0.0.1.jar",
+      "sha256": "51ef78ef28e5fcf8a0ef14053c960af207ea42bd8a9f45afe8e4570e003fc672",
+      "sizeBytes": 118905,
+      "required": true
+    },
+    {
+      "path": "mods/marketboard-2.0.6-fabric-1.21.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/marketboard-2.0.6-fabric-1.21.1.jar",
+      "sha256": "64eaf17b54c9df25ab6ff881ea58065f94acdd0fc628e81dad21d47e0d72b9b4",
+      "sizeBytes": 1565305,
+      "required": true
+    },
+    {
+      "path": "mods/mca-fabric-7.7.17+1.21.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/mca-fabric-7.7.17%2B1.21.1.jar",
+      "sha256": "22a1a407d31e90dd88aa90d80f553b44dab62821347978db905be8673bf702b0",
+      "sizeBytes": 10774134,
+      "required": true
+    },
+    {
+      "path": "mods/mega_showdown-fabric-1.8.4+1.7.3+1.21.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/mega_showdown-fabric-1.8.4%2B1.7.3%2B1.21.1.jar",
+      "sha256": "0cf4568128805816a8d6f3cbab08374b2e0261784c3d6e8c091c602f79bebf51",
+      "sizeBytes": 17213370,
+      "required": true
+    },
+    {
+      "path": "mods/MobCatcher-Fabric-1.21.1-1.5.7.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/MobCatcher-Fabric-1.21.1-1.5.7.jar",
+      "sha256": "7d1c2b0ec35c66dcf293646e1efdb2c0dbe5fcc2dc0ef55952721746d94171c1",
+      "sizeBytes": 93015,
+      "required": true
+    },
+    {
+      "path": "mods/modernfix-fabric-5.25.1+mc1.21.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/modernfix-fabric-5.25.1%2Bmc1.21.1.jar",
+      "sha256": "3ce5a9ce75066961b7fa5382692bb1387cc3536cc984b064ab7d70b97f3c674c",
+      "sizeBytes": 471258,
+      "required": true
+    },
+    {
+      "path": "mods/modmenu-11.0.4.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/modmenu-11.0.4.jar",
+      "sha256": "a88e0d67c82b0434cbf56776c482587c275ed660f635d33f53ba485dfa30dcc3",
+      "sizeBytes": 973059,
+      "required": true
+    },
+    {
+      "path": "mods/ModularLootCrates-3.5.0+1.21.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/ModularLootCrates-3.5.0%2B1.21.jar",
+      "sha256": "0e61e69623719c80958192a0aad7b73fbe19806d21333fbb7788aa0f69b239b3",
+      "sizeBytes": 469498,
+      "required": true
+    },
+    {
+      "path": "mods/MouseTweaks-fabric-mc1.21-2.26.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/MouseTweaks-fabric-mc1.21-2.26.jar",
+      "sha256": "3e9fa4800fafef616fbf1545d62f5898f55c83fbd4126ce2b48b5e0077243fc0",
+      "sizeBytes": 75984,
+      "required": true
+    },
+    {
+      "path": "mods/MythsAndLegends-fabric-1.9.0.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/MythsAndLegends-fabric-1.9.0.jar",
+      "sha256": "c3af122bfad2c494fbf455080d1803dd18b64ee78bfd0c8ee3afbf1e5de07404",
+      "sizeBytes": 3249725,
+      "required": true
+    },
+    {
+      "path": "mods/NoChatRestrictions-Fabric-MC1.21.11-v1.0.0.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/NoChatRestrictions-Fabric-MC1.21.11-v1.0.0.jar",
+      "sha256": "bc8b10f71e17822ca274936e487104e6572f60e8969b81bfe23f30fc11300a94",
+      "sizeBytes": 9907,
+      "required": true
+    },
+    {
+      "path": "mods/obscuras_simple_storage-fabric-mc1.21.1-v3.0.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/obscuras_simple_storage-fabric-mc1.21.1-v3.0.1.jar",
+      "sha256": "e47e381e3e49b66d9137ac92262261850ccb95e8e1ad60862a943e36b5fef97d",
+      "sizeBytes": 4214486,
+      "required": true
+    },
+    {
+      "path": "mods/owo-lib-0.12.15.4+1.21.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/owo-lib-0.12.15.4%2B1.21.jar",
+      "sha256": "825180ce17bc012fb450653b14df9f32479dcdd073fc3f133bb47462f5a63cec",
+      "sizeBytes": 1183559,
+      "required": true
+    },
+    {
+      "path": "mods/Patchouli-1.21.1-93-FABRIC.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/Patchouli-1.21.1-93-FABRIC.jar",
+      "sha256": "e47e08397078ad152a61fb95a5dfd4f86f3a3b8b21b131025d3adbfe96538c3a",
+      "sizeBytes": 861256,
+      "required": true
+    },
+    {
+      "path": "mods/placeholder-api-2.4.2+1.21.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/placeholder-api-2.4.2%2B1.21.jar",
+      "sha256": "c0187ee299527ac7a3e0b1e83601dcdc0de631e286fe41e6be1a75958ea8e443",
+      "sizeBytes": 232325,
+      "required": true
+    },
+    {
+      "path": "mods/polymorph-fabric-1.1.0+1.21.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/polymorph-fabric-1.1.0%2B1.21.1.jar",
+      "sha256": "bc47b33c864b463167998680c296f513e6d06b42de6db03db0f274ae1f2ee671",
+      "sizeBytes": 320928,
+      "required": true
+    },
+    {
+      "path": "mods/pommel-held-items-1.4.2+1.21.x.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/pommel-held-items-1.4.2%2B1.21.x.jar",
+      "sha256": "f895e4983846ab538cb0210f6626ce0b437f3a90c1e716ad78f18c6facd134f7",
+      "sizeBytes": 50703,
+      "required": true
+    },
+    {
+      "path": "mods/quickpaths-1.21.1-3.9.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/quickpaths-1.21.1-3.9.jar",
+      "sha256": "8b3aa8f553251a09efb0864b3afd652fc8946c97cab0c5065d632cb81d844efd",
+      "sizeBytes": 42901,
+      "required": true
+    },
+    {
+      "path": "mods/rad-gyms-fabric-0.4.4.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/rad-gyms-fabric-0.4.4.jar",
+      "sha256": "46f851d7d04376a9489bb585788bf53be8fc20542cae95e908e2861c5e4db789",
+      "sizeBytes": 1044530,
+      "required": true
+    },
+    {
+      "path": "mods/Radical Gyms  Structures - RGS.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/Radical%20Gyms%20%20Structures%20-%20RGS.jar",
+      "sha256": "0b46a96e94d7ca037a0deddfec445616c32ae11535caf3d4e68cfd6fbe93822f",
+      "sizeBytes": 2084611,
+      "required": true
+    },
+    {
+      "path": "mods/rctapi-fabric-1.21.1-0.15.2-beta.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/rctapi-fabric-1.21.1-0.15.2-beta.jar",
+      "sha256": "e5bd96b1b74aad41588acc078e7385ca72f66a862aae47adda3d55b44c1d5ba8",
+      "sizeBytes": 234250,
+      "required": true
+    },
+    {
+      "path": "mods/rctmod-fabric-1.21.1-0.18.1-beta.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/rctmod-fabric-1.21.1-0.18.1-beta.jar",
+      "sha256": "92951d3be475a0433f8ef508439730723e2e901dd1e3b2509c29205031d4eb51",
+      "sizeBytes": 6757956,
+      "required": true
+    },
+    {
+      "path": "mods/RecallBeams-0.1.0-onecolor.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/RecallBeams-0.1.0-onecolor.jar",
+      "sha256": "d740bb374da68567e9863a12c9474dd44c2389c78dae8e7f40a32bcf4be06a7f",
+      "sizeBytes": 18255,
+      "required": true
+    },
+    {
+      "path": "mods/resourcefullib-fabric-1.21-3.0.12.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/resourcefullib-fabric-1.21-3.0.12.jar",
+      "sha256": "93064c5aff85bf5e6385470f311fd1c7de172f58b02fefb1d2920db76f8cd8b5",
+      "sizeBytes": 485586,
+      "required": true
+    },
+    {
+      "path": "mods/resourceworld-3.4.16.1.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/resourceworld-3.4.16.1.jar",
+      "sha256": "4398866abd872de16789d74f71dc099da58270d2205d823292360572131c7a5d",
+      "sizeBytes": 35118,
+      "required": true
+    },
+    {
+      "path": "mods/SignPlates-Fabric-1.21.1-1.1.2.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/SignPlates-Fabric-1.21.1-1.1.2.jar",
+      "sha256": "320e1e3289b1b126bd1ec2ecba5d874b9253d8e38ee8699e52805f48c95c785d",
+      "sizeBytes": 573567,
+      "required": true
+    },
+    {
+      "path": "mods/spark-1.10.109-fabric.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/spark-1.10.109-fabric.jar",
+      "sha256": "fafc121ac53dab1c32e74b7a1cae47d54435ba4cbeeda1180dc96675a7757047",
+      "sizeBytes": 3609981,
+      "required": true
+    },
+    {
+      "path": "mods/styled-chat-2.6.1+1.21.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/styled-chat-2.6.1%2B1.21.jar",
+      "sha256": "3d0c31f35611d55d6b7f74932b739b406e9db1961341afc144ecfaa1cb2abcdf",
+      "sizeBytes": 487791,
+      "required": true
+    },
+    {
+      "path": "mods/TerraBlender-fabric-1.21.1-4.1.0.8.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/TerraBlender-fabric-1.21.1-4.1.0.8.jar",
+      "sha256": "5f2d25306abfed8c6c6291e8904ae1a9f6a8ab4f1bf5f3a21f7e263a5bf217a6",
+      "sizeBytes": 337989,
+      "required": true
+    },
+    {
+      "path": "mods/timcore-fabric-1.7.3-1.32.0.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/timcore-fabric-1.7.3-1.32.0.jar",
+      "sha256": "8daaf896de6bc2ee0c097ff24659d248d800a31d7a8373c93a9790d2afb48d1d",
+      "sizeBytes": 304444,
+      "required": true
+    },
+    {
+      "path": "mods/trinkets-3.10.0.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/trinkets-3.10.0.jar",
+      "sha256": "349fd2aa8930b232050ee5304db55e4ef738b017971afe7c84acd589a95fda2f",
+      "sizeBytes": 272944,
+      "required": true
+    },
+    {
+      "path": "mods/uncrafteverything-1.9.2+1.21.1-fabric.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/uncrafteverything-1.9.2%2B1.21.1-fabric.jar",
+      "sha256": "51666a961079e15e2f044b046c1b0f342cd980f620798caaf99a38de01bdfb8f",
+      "sizeBytes": 586971,
+      "required": true
+    },
+    {
+      "path": "mods/waystones-fabric-1.21.1-21.1.34.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/waystones-fabric-1.21.1-21.1.34.jar",
+      "sha256": "8763c9b7df263de5429a8b613712de26e9d2b67f0bfb72a6fabc9c6b39fdc7a1",
+      "sizeBytes": 900157,
+      "required": true
+    },
+    {
+      "path": "mods/WorldWeaverRemastered-30.4.0.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/WorldWeaverRemastered-30.4.0.jar",
+      "sha256": "d4bfc183a1801d21af1170ab953f7be8c056c78e7309d6632ce6d0c1a61c5184",
+      "sizeBytes": 2387649,
+      "required": true
+    },
+    {
+      "path": "mods/xaerominimap-fabric-1.21.1-26.1.0.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/xaerominimap-fabric-1.21.1-26.1.0.jar",
+      "sha256": "0d3a3f53e33423fb2cd22736c731905adc06ea26b2a77300c620be9efe863e8a",
+      "sizeBytes": 2177932,
+      "required": true
+    },
+    {
+      "path": "mods/xaeroworldmap-fabric-1.21.1-1.41.2.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/xaeroworldmap-fabric-1.21.1-1.41.2.jar",
+      "sha256": "a6e5ed255c4d544952e797aee5fef59bd3a582e5d897622fe64a9072fc6419a6",
+      "sizeBytes": 1416055,
+      "required": true
+    },
+    {
+      "path": "mods/youre-in-grave-danger-fabric-2.4.18.jar",
+      "url": "https://aethro.net/launcher/shadows/stable/files/mods/youre-in-grave-danger-fabric-2.4.18.jar",
+      "sha256": "4ae15574b52062f1cb3524138cde0a8e2fe537061186a9e31c0847b423aafbf9",
+      "sizeBytes": 831659,
+      "required": true
+    },
+    {
+      "path": "servers.dat",
+      "url": "https://aethro.net/launcher/shadows/stable/files/servers.dat",
+      "sha256": "16b860f3025c40b8dcc29a5de8371fdb03e33afa3a4d5fdee8eb1c753252300c",
+      "sizeBytes": 5719,
+      "required": true
+    }
+  ],
+  "removeExtraFilesUnder": [
+    "mods"
+  ],
+  "launch": {
+    "jvmArgs": [
+      "-Xmx6G",
+      "-Xms2G"
+    ],
+    "gameArgs": [
+      "--quickPlayMultiplayer",
+      "shadows.playaethro.com"
+    ]
+  }
+}

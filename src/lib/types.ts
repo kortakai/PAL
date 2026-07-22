@@ -4,6 +4,8 @@ export type UserProfile = {
   username?: string;
   email?: string;
   avatarUrl?: string;
+  minecraftName?: string;
+  minecraftUuid?: string;
 };
 
 export type AuthSession = {
@@ -53,4 +55,42 @@ export type LauncherHome = {
     website: string;
     discord: string;
   };
+};
+
+export type ModpackFileStatus = {
+  path: string;
+  status: 'ok' | 'missing' | 'changed' | 'invalidManifest';
+  expectedSha256?: string;
+  actualSha256?: string;
+  sizeBytes?: number;
+};
+
+export type LocalMinecraftProfile = {
+  name: string;
+  uuid?: string;
+  source: string;
+};
+
+export type ShadowsRepairProgress = {
+  phase: 'checking' | 'installing' | 'setup' | 'verifying' | 'ready' | 'needsUpdate' | 'failed';
+  message: string;
+  currentFile?: string;
+  currentIndex: number;
+  totalFiles: number;
+  downloadedBytes: number;
+  totalBytes: number;
+};
+
+export type ModpackCheckResult = {
+  gameId: string;
+  displayName: string;
+  channel: string;
+  installDir: string;
+  totalFiles: number;
+  okFiles: number;
+  missingFiles: number;
+  changedFiles: number;
+  invalidManifestFiles: number;
+  ready: boolean;
+  files: ModpackFileStatus[];
 };

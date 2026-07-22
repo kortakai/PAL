@@ -1,17 +1,27 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { listen } from '@tauri-apps/api/event';
 import { openUrl } from '@tauri-apps/plugin-opener';
-import type { LauncherHome, NewsFeedId } from '../lib/types';
+import { checkShadowsInstall, detectLocalMinecraftProfile, openMinecraftLauncher, repairShadowsInstall } from '../lib/api';
+import type { LauncherHome, LocalMinecraftProfile, ModpackCheckResult, ModpackFileStatus, NewsFeedId, ShadowsRepairProgress } from '../lib/types';
 
 type Props = {
   home: LauncherHome;
   onLogout: () => void;
 };
 
+type ShadowsInstallState = 'notChecked' | 'checking' | 'needsUpdate' | 'installing' | 'ready' | 'failed';
+
 const FEED_TABS: Array<{ id: 'all' | NewsFeedId; label: string }> = [
   { id: 'all', label: 'All News' },
   { id: 'play-aethro', label: 'Play Aethro' },
   { id: 'aethro-online', label: 'Aethro Online' },
   { id: 'shadows', label: 'Shadows' }
+];
+
+const SHADOWS_TRACKS = [
+  { title: 'Pale Orchard', src: '/audio/shadows/pale-orchard.mp3' },
+  { title: 'Iron Crown Run', src: '/audio/shadows/iron-crown-run.mp3' },
+  { title: 'Moss on My Boots', src: '/audio/shadows/moss-on-my-boots.mp3' }
 ];
 
 function formatDate(iso: string) {
@@ -22,15 +32,85 @@ function formatDate(iso: string) {
   }).format(new Date(iso));
 }
 
+function fileStatusLabel(status: ModpackFileStatus['status']) {
+  switch (status) {
+    case 'ok':
+      return 'Ready';
+    case 'missing':
+      return 'Missing';
+    case 'changed':
+      return 'Changed';
+    case 'invalidManifest':
+      return 'Manifest issue';
+  }
+}
+
+function fileStatusClass(status: ModpackFileStatus['status']) {
+  if (status === 'ok') return 'online';
+  if (status === 'missing') return 'offline';
+  return 'maintenance';
+}
+
+function formatBytes(bytes: number) {
+  if (!bytes) return '0 MB';
+  return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+}
+
+function installStateLabel(state: ShadowsInstallState) {
+  switch (state) {
+    case 'notChecked':
+      return 'Not checked';
+    case 'checking':
+      return 'Checking';
+    case 'needsUpdate':
+      return 'Needs update';
+    case 'installing':
+      return 'Installing';
+    case 'ready':
+      return 'Ready';
+    case 'failed':
+      return 'Failed';
+  }
+}
+
+function worldCardClass(gameId: string) {
+  if (gameId === 'shadows') return 'world-card shadows-world-card';
+  if (gameId === 'aethro-online') return 'world-card kalismor-world-card';
+  return 'world-card';
+}
+
 export function Dashboard({ home, onLogout }: Props) {
+  const shadowsAudioRef = useRef<HTMLAudioElement | null>(null);
+  const checkedLocalMinecraftProfileRef = useRef(false);
   const [activeFeed, setActiveFeed] = useState<'all' | NewsFeedId>('all');
+  const [view, setView] = useState<'home' | 'shadows' | 'aethro-online'>('home');
+  const [musicEnabled, setMusicEnabled] = useState(true);
+  const [trackIndex, setTrackIndex] = useState(0);
+  const [modpackCheck, setModpackCheck] = useState<ModpackCheckResult | null>(null);
+  const [installState, setInstallState] = useState<ShadowsInstallState>('notChecked');
+  const [repairProgress, setRepairProgress] = useState<ShadowsRepairProgress | null>(null);
+  const [localMinecraftProfile, setLocalMinecraftProfile] = useState<LocalMinecraftProfile | null>(null);
+  const [checkingMinecraftProfile, setCheckingMinecraftProfile] = useState(false);
+  const [checkingFiles, setCheckingFiles] = useState(false);
+  const [repairingFiles, setRepairingFiles] = useState(false);
+  const [launchingMinecraft, setLaunchingMinecraft] = useState(false);
+  const [shadowsError, setShadowsError] = useState<string | null>(null);
 
   async function openExternal(url: string) {
     await openUrl(url);
   }
 
   function playGame(gameId: string) {
-    // TODO: route to Shadows patcher or Aethro Online character picker/terminal.
+    if (gameId === 'shadows') {
+      setView('shadows');
+      return;
+    }
+
+    if (gameId === 'aethro-online') {
+      setView('aethro-online');
+      return;
+    }
+
     alert(`${gameId} launcher flow not wired yet.`);
   }
 
@@ -39,31 +119,502 @@ export function Dashboard({ home, onLogout }: Props) {
     return home.news.filter((item) => item.feedId === activeFeed);
   }, [activeFeed, home.news]);
 
+  const shadowsNews = useMemo(() => home.news.filter((item) => item.feedId === 'shadows'), [home.news]);
+  const aethroOnlineNews = useMemo(() => home.news.filter((item) => item.feedId === 'aethro-online'), [home.news]);
+  const activeTrack = SHADOWS_TRACKS[trackIndex];
+  const accountInitial = (home.user.displayName || home.user.username || 'A').slice(0, 1).toUpperCase();
+
+  useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    let mounted = true;
+
+    try {
+      listen<ShadowsRepairProgress>('shadows-repair-progress', (event) => {
+        const progress = event.payload;
+        setRepairProgress(progress);
+
+        if (progress.phase === 'checking' || progress.phase === 'verifying') {
+          setInstallState('checking');
+        } else if (progress.phase === 'installing' || progress.phase === 'setup') {
+          setInstallState('installing');
+        } else if (progress.phase === 'ready') {
+          setInstallState('ready');
+        } else if (progress.phase === 'needsUpdate') {
+          setInstallState('needsUpdate');
+        } else if (progress.phase === 'failed') {
+          setInstallState('failed');
+        }
+      })
+        .then((cleanup) => {
+          if (mounted) unlisten = cleanup;
+        })
+        .catch((err) => {
+          console.warn('Shadows progress listener unavailable.', err);
+        });
+    } catch (err) {
+      console.warn('Shadows progress listener unavailable.', err);
+    }
+
+    return () => {
+      mounted = false;
+      unlisten?.();
+    };
+  }, []);
+
+  useEffect(() => {
+    const audio = shadowsAudioRef.current;
+    if (!audio) return;
+
+    if (view !== 'shadows' || !musicEnabled) {
+      audio.pause();
+      return;
+    }
+
+    audio.volume = 0.42;
+    audio.play().catch(() => {
+      setMusicEnabled(false);
+    });
+  }, [musicEnabled, trackIndex, view]);
+
+  useEffect(() => {
+    if (view === 'shadows') return;
+    checkedLocalMinecraftProfileRef.current = false;
+    setCheckingMinecraftProfile(false);
+  }, [view]);
+
+  useEffect(() => {
+    if (view !== 'shadows' || home.user.minecraftName || localMinecraftProfile || checkedLocalMinecraftProfileRef.current) return;
+
+    checkedLocalMinecraftProfileRef.current = true;
+    setCheckingMinecraftProfile(true);
+    detectLocalMinecraftProfile()
+      .then((profile) => {
+        setLocalMinecraftProfile(profile);
+      })
+      .catch(() => {
+        setLocalMinecraftProfile(null);
+      })
+      .finally(() => {
+        setCheckingMinecraftProfile(false);
+      });
+  }, [home.user.minecraftName, localMinecraftProfile, view]);
+
+  function toggleShadowsMusic() {
+    setMusicEnabled((enabled) => !enabled);
+  }
+
+  function playNextTrack() {
+    setTrackIndex((index) => (index + 1) % SHADOWS_TRACKS.length);
+  }
+
+  async function verifyShadowsFiles() {
+    setCheckingFiles(true);
+    setInstallState('checking');
+    setRepairProgress(null);
+    setShadowsError(null);
+
+    try {
+      const result = await checkShadowsInstall();
+      setModpackCheck(result);
+      setInstallState(result.ready ? 'ready' : 'needsUpdate');
+    } catch (err) {
+      setInstallState('failed');
+      setShadowsError(err instanceof Error ? err.message : String(err || 'Unable to verify Shadows files.'));
+    } finally {
+      setCheckingFiles(false);
+    }
+  }
+
+  async function repairShadowsFiles() {
+    setRepairingFiles(true);
+    setInstallState('checking');
+    setRepairProgress(null);
+    setShadowsError(null);
+
+    try {
+      const result = await repairShadowsInstall();
+      setModpackCheck(result);
+      setInstallState(result.ready ? 'ready' : 'needsUpdate');
+    } catch (err) {
+      setInstallState('failed');
+      setShadowsError(err instanceof Error ? err.message : String(err || 'Unable to install Shadows files.'));
+    } finally {
+      setRepairingFiles(false);
+    }
+  }
+
+  async function launchMinecraftLauncher() {
+    setLaunchingMinecraft(true);
+    setShadowsError(null);
+
+    try {
+      await openMinecraftLauncher();
+    } catch (err) {
+      setShadowsError(err instanceof Error ? err.message : String(err || 'Unable to open Minecraft Launcher.'));
+    } finally {
+      setLaunchingMinecraft(false);
+    }
+  }
+
+  if (view === 'aethro-online') {
+    return (
+      <main className="dashboard kalismor-page">
+        <header className="topbar kalismor-topbar">
+          <div>
+            <span className="eyebrow">Aethro Online</span>
+            <h1>Chronicles of Kalismor</h1>
+          </div>
+          <div className="topbar-actions">
+            <button className="secondary" onClick={() => setView('home')}>Back</button>
+            <button className="secondary" onClick={onLogout}>Log out</button>
+          </div>
+        </header>
+
+        <section className="kalismor-hero">
+          <div className="kalismor-sigil" aria-hidden="true">
+            <span />
+          </div>
+          <div className="kalismor-hero-copy">
+            <span className="eyebrow">The Gate Is Sealed</span>
+            <h2>Kalismor waits beneath a black sky.</h2>
+            <p>
+              Character binding, terminal launch, and live realm access are being prepared.
+              For now, this page will carry Chronicles news and the shape of what is coming.
+            </p>
+            <button className="secondary coming-soon-button" disabled>
+              Coming Soon
+            </button>
+          </div>
+        </section>
+
+        <section className="aethro-online-layout">
+          <div className="panel">
+            <div className="panel-heading">
+              <h2>Account</h2>
+              <span>{home.user.displayName}</span>
+            </div>
+
+            <div className="identity-box">
+              <span className="eyebrow">Character</span>
+              <strong>Not selected yet</strong>
+              <p>Chronicles character selection will appear here once the Kalismor account bridge is ready.</p>
+            </div>
+
+            <div className="patch-actions">
+              <button disabled>
+                Coming Soon
+              </button>
+            </div>
+          </div>
+
+          <div className="panel">
+            <div className="panel-heading">
+              <h2>Aethro Online News</h2>
+              <span>{aethroOnlineNews.length} article{aethroOnlineNews.length === 1 ? '' : 's'}</span>
+            </div>
+
+            <div className="news-list">
+              {aethroOnlineNews.length === 0 ? (
+                <article className="news-item">
+                  <h3>No Aethro Online news loaded</h3>
+                  <p>The Aethro Online RSS feed did not return articles yet.</p>
+                </article>
+              ) : aethroOnlineNews.map((item) => (
+                <article key={item.id} className="news-item">
+                  <div className="news-meta">
+                    <span>{item.feedName}</span>
+                    <span>{formatDate(item.publishedAt)}</span>
+                  </div>
+                  <h3>{item.title}</h3>
+                  <p>{item.summary}</p>
+                  <button className="link-button" onClick={() => openExternal(item.url)}>Read more</button>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (view === 'shadows') {
+    const minecraftName = home.user.minecraftName || localMinecraftProfile?.name;
+    const minecraftNameSource = home.user.minecraftName ? 'Aethro account' : localMinecraftProfile?.source;
+    const ready = modpackCheck?.ready ?? false;
+    const progressPercent = repairProgress?.totalBytes
+      ? Math.min(100, Math.round((repairProgress.downloadedBytes / repairProgress.totalBytes) * 100))
+      : installState === 'ready'
+        ? 100
+        : modpackCheck?.totalFiles
+          ? Math.round((modpackCheck.okFiles / modpackCheck.totalFiles) * 100)
+          : 0;
+    const progressDetail = repairProgress?.totalFiles
+      ? `${repairProgress.currentIndex}/${repairProgress.totalFiles} files`
+      : modpackCheck
+        ? `${modpackCheck.okFiles}/${modpackCheck.totalFiles} files verified`
+        : installState === 'checking'
+          ? 'Starting scan'
+          : installState === 'installing'
+            ? 'Preparing install'
+            : 'No scan yet';
+    const statusMessage = repairProgress?.message
+      || (modpackCheck ? modpackCheck.installDir : installState === 'notChecked'
+        ? 'Run install or verify before opening Minecraft.'
+        : 'Preparing Shadows status.');
+
+    return (
+      <main className="dashboard shadows-page">
+        <header className="topbar">
+          <div>
+            <span className="eyebrow">Shadows of Aethro</span>
+            <h1>Expedition Ready</h1>
+          </div>
+          <div className="topbar-actions">
+            <button
+              className={`secondary music-toggle ${musicEnabled ? 'active' : ''}`}
+              onClick={toggleShadowsMusic}
+              aria-pressed={musicEnabled}
+            >
+              {musicEnabled ? 'Music On' : 'Music Off'}
+            </button>
+            <button className="secondary" onClick={() => setView('home')}>Back</button>
+            <button className="secondary" onClick={onLogout}>Log out</button>
+          </div>
+        </header>
+
+        <audio ref={shadowsAudioRef} src={activeTrack.src} onEnded={playNextTrack} preload="auto" />
+
+        <section className="shadows-adventure-banner">
+          <div className="shadows-landscape" aria-hidden="true">
+            <span className="pixel-sun" />
+            <span className="pixel-cloud cloud-one" />
+            <span className="pixel-cloud cloud-two" />
+            <span className="capture-capsule" />
+            <span className="village-hut" />
+            <div className="block-ridge ridge-back" />
+            <div className="block-ridge ridge-front" />
+          </div>
+          <div className="shadows-banner-copy">
+            <span className="eyebrow">Shadows Client</span>
+            <h2>Install, verify, and launch Shadows of Aethro.</h2>
+          </div>
+        </section>
+
+        <section className="shadows-layout">
+          <div className="panel">
+            <div className="panel-heading">
+              <h2>Account</h2>
+              <span>{home.user.displayName}</span>
+            </div>
+
+            <div className="identity-box">
+              <span className="eyebrow">Minecraft Name</span>
+              <strong>{minecraftName || (checkingMinecraftProfile ? 'Checking local launcher...' : 'Not linked yet')}</strong>
+              <p>
+                {minecraftName
+                  ? `Found from ${minecraftNameSource}.`
+                  : 'Aethro did not return a Minecraft name, and the local Minecraft Launcher profile was not found yet.'}
+              </p>
+            </div>
+
+            <div className="music-now-playing">
+              <span className="eyebrow">Now Playing</span>
+              <strong>{activeTrack.title}</strong>
+            </div>
+
+            <div className={`install-status install-status-${installState}`}>
+              <div className="install-status-heading">
+                <div>
+                  <span className="eyebrow">Install Status</span>
+                  <strong>{installStateLabel(installState)}</strong>
+                </div>
+                <span>{progressDetail}</span>
+              </div>
+
+              <div className="progress-track" aria-label="Shadows install progress">
+                <div className="progress-fill" style={{ width: `${progressPercent}%` }} />
+              </div>
+
+              <div className="install-status-detail">
+                <span>{statusMessage}</span>
+                {repairProgress?.totalBytes ? (
+                  <span>{formatBytes(repairProgress.downloadedBytes)} / {formatBytes(repairProgress.totalBytes)}</span>
+                ) : null}
+              </div>
+
+              {repairProgress?.currentFile ? <p>{repairProgress.currentFile}</p> : null}
+            </div>
+
+            <div className="patch-actions">
+              <button onClick={repairShadowsFiles} disabled={repairingFiles || checkingFiles}>
+                {repairingFiles ? 'Installing...' : 'Install / Repair Shadows'}
+              </button>
+              <button className="secondary" onClick={verifyShadowsFiles} disabled={checkingFiles || repairingFiles}>
+                {checkingFiles ? 'Checking...' : 'Verify'}
+              </button>
+              <button className="secondary" onClick={launchMinecraftLauncher} disabled={launchingMinecraft || repairingFiles || !ready}>
+                {launchingMinecraft ? 'Opening...' : 'Open Minecraft Launcher'}
+              </button>
+            </div>
+
+            {shadowsError && <p className="error">{shadowsError}</p>}
+
+            {modpackCheck && (
+              <div className="patch-summary">
+                <div>
+                  <strong>{modpackCheck.ready ? 'Ready' : 'Needs files'}</strong>
+                  <span>{modpackCheck.okFiles}/{modpackCheck.totalFiles} files verified</span>
+                </div>
+                <p>{modpackCheck.installDir}</p>
+                <div className="patch-counts">
+                  <span>{modpackCheck.missingFiles} missing</span>
+                  <span>{modpackCheck.changedFiles} changed</span>
+                  <span>{modpackCheck.invalidManifestFiles} manifest issues</span>
+                </div>
+              </div>
+            )}
+
+            {modpackCheck && modpackCheck.files.length > 0 && (
+              <div className="file-list">
+                {modpackCheck.files.slice(0, 8).map((file) => (
+                  <div key={file.path} className="file-row">
+                    <span>{file.path}</span>
+                    <strong className={`status ${fileStatusClass(file.status)}`}>
+                      {fileStatusLabel(file.status)}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="panel">
+            <div className="panel-heading">
+              <h2>Shadows News</h2>
+              <span>{shadowsNews.length} article{shadowsNews.length === 1 ? '' : 's'}</span>
+            </div>
+
+            <div className="news-list">
+              {shadowsNews.length === 0 ? (
+                <article className="news-item">
+                  <h3>No Shadows news loaded</h3>
+                  <p>The Shadows RSS feed did not return articles yet.</p>
+                </article>
+              ) : shadowsNews.map((item) => (
+                <article key={item.id} className="news-item">
+                  <div className="news-meta">
+                    <span>{item.feedName}</span>
+                    <span>{formatDate(item.publishedAt)}</span>
+                  </div>
+                  <h3>{item.title}</h3>
+                  <p>{item.summary}</p>
+                  <button className="link-button" onClick={() => openExternal(item.url)}>Read more</button>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
   return (
-    <main className="dashboard">
-      <header className="topbar">
-        <div>
-          <span className="eyebrow">Play Aethro Launcher</span>
-          <h1>Welcome back, {home.user.displayName}</h1>
+    <main className="dashboard home-dashboard">
+      <header className="home-topbar">
+        <div className="home-brand">
+          <div className="home-brand-mark">PA</div>
+          <div>
+            <span className="eyebrow">Play Aethro Launcher</span>
+            <h1>Welcome back, {home.user.displayName}</h1>
+          </div>
         </div>
-        <button className="secondary" onClick={onLogout}>Log out</button>
+        <div className="home-actions">
+          <button className="secondary icon-button" onClick={() => openExternal(home.links.website)}>
+            <span className="button-icon icon-globe" aria-hidden="true" />
+            Website
+          </button>
+          <button className="secondary icon-button" onClick={() => openExternal(home.links.discord)}>
+            <span className="button-icon icon-chat" aria-hidden="true" />
+            Discord
+          </button>
+          <button className="secondary icon-button" onClick={onLogout}>
+            <span className="button-icon icon-exit" aria-hidden="true" />
+            Log out
+          </button>
+        </div>
       </header>
 
-      <section className="wide-hero">
-        <div>
-          <h2>{home.hero.title}</h2>
-          <p>{home.hero.subtitle}</p>
+      <section className="home-hero">
+        <img src="/images/play-aethro-hero.png" alt="" />
+        <div className="home-hero-copy">
+          <span className="eyebrow">Gateway Open</span>
+          <h2>Choose your world</h2>
+          <p>Launch Shadows, step into Kalismor, or catch up on the latest Aethro updates.</p>
+          <div className="home-hero-actions">
+            <button className="icon-button" onClick={() => playGame('shadows')}>
+              <span className="button-icon icon-play" aria-hidden="true" />
+              Play Shadows
+            </button>
+            <button className="secondary icon-button" onClick={() => playGame('aethro-online')}>
+              <span className="button-icon icon-star" aria-hidden="true" />
+              Kalismor
+            </button>
+          </div>
+        </div>
+        <div className="home-account-card">
+          <div className="home-avatar">{accountInitial}</div>
+          <div>
+            <span className="eyebrow">Signed In</span>
+            <strong>{home.user.displayName}</strong>
+          </div>
         </div>
       </section>
 
-      <section className="grid two">
-        <div className="panel">
-          <div className="panel-heading">
-            <h2>News</h2>
+      <section className="home-layout">
+        <div className="worlds-panel">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">World Select</span>
+              <h2>Play</h2>
+            </div>
+            <span>{home.games.length} worlds</span>
+          </div>
+
+          <div className="world-grid">
+            {home.games.map((game) => (
+              <article key={game.id} className={worldCardClass(game.id)}>
+                <div className="world-card-art" aria-hidden="true">
+                  <span />
+                </div>
+                <div className="world-card-content">
+                  <div className="world-card-title">
+                    <div>
+                      <span className="eyebrow">{game.id === 'aethro-online' ? 'Chronicles' : 'Adventure'}</span>
+                      <h3>{game.title}</h3>
+                    </div>
+                    <span className={`status ${game.status}`}>{game.status}</span>
+                  </div>
+                  <p>{game.description}</p>
+                  <button className="icon-button" onClick={() => playGame(game.id)}>
+                    <span className="button-icon icon-play" aria-hidden="true" />
+                    {game.actionLabel}
+                  </button>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <aside className="home-news-panel">
+          <div className="section-heading">
+            <div>
+              <span className="eyebrow">Aethro Wire</span>
+              <h2>News</h2>
+            </div>
             <span>{visibleNews.length} article{visibleNews.length === 1 ? '' : 's'}</span>
           </div>
 
-          <div className="feed-tabs">
+          <div className="feed-tabs home-feed-tabs">
             {FEED_TABS.map((feed) => (
               <button
                 key={feed.id}
@@ -75,13 +626,13 @@ export function Dashboard({ home, onLogout }: Props) {
             ))}
           </div>
 
-          <div className="news-list">
+          <div className="news-list home-news-list">
             {visibleNews.length === 0 ? (
               <article className="news-item">
                 <h3>No news loaded</h3>
-                <p>The RSS feed did not return articles yet. Check the feed URL or network connection.</p>
+                <p>The RSS feed did not return articles yet.</p>
               </article>
-            ) : visibleNews.map((item) => (
+            ) : visibleNews.slice(0, 4).map((item) => (
               <article key={item.id} className="news-item">
                 <div className="news-meta">
                   <span>{item.feedName}</span>
@@ -89,31 +640,14 @@ export function Dashboard({ home, onLogout }: Props) {
                 </div>
                 <h3>{item.title}</h3>
                 <p>{item.summary}</p>
-                <button className="link-button" onClick={() => openExternal(item.url)}>Read more</button>
+                <button className="link-button icon-button" onClick={() => openExternal(item.url)}>
+                  Read more
+                  <span className="button-icon icon-external" aria-hidden="true" />
+                </button>
               </article>
             ))}
           </div>
-        </div>
-
-        <div className="panel">
-          <h2>Play</h2>
-          <div className="game-list">
-            {home.games.map((game) => (
-              <article key={game.id} className="game-card">
-                <div>
-                  <h3>{game.title}</h3>
-                  <p>{game.description}</p>
-                  <span className={`status ${game.status}`}>{game.status}</span>
-                </div>
-                <button onClick={() => playGame(game.id)}>{game.actionLabel}</button>
-              </article>
-            ))}
-          </div>
-          <div className="external-row">
-            <button className="secondary" onClick={() => openExternal(home.links.website)}>Open Website</button>
-            <button className="secondary" onClick={() => openExternal(home.links.discord)}>Open Discord</button>
-          </div>
-        </div>
+        </aside>
       </section>
     </main>
   );

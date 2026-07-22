@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Dashboard } from './components/Dashboard';
 import { LoginScreen } from './components/LoginScreen';
-import { clearSavedSession, getLauncherHome, loadSavedSession, logoutSession, refreshSession } from './lib/api';
+import { clearSavedSession, createLauncherHome, getLauncherHome, loadSavedSession, logoutSession, refreshSession } from './lib/api';
 import type { AuthSession, LauncherHome } from './lib/types';
 
 export function App() {
   const [session, setSession] = useState<AuthSession | null>(() => loadSavedSession());
-  const [home, setHome] = useState<LauncherHome | null>(null);
+  const [home, setHome] = useState<LauncherHome | null>(() => session?.user ? createLauncherHome(session.user) : null);
   const [loading, setLoading] = useState(false);
   const [bootError, setBootError] = useState<string | null>(null);
 
@@ -15,7 +15,11 @@ export function App() {
 
     let cancelled = false;
     const currentSession = session;
-    setLoading(true);
+    if (currentSession.user) {
+      setHome((currentHome) => createLauncherHome(currentSession.user!, currentHome?.news ?? []));
+    }
+
+    setLoading(!currentSession.user);
     setBootError(null);
 
     async function boot() {
@@ -58,11 +62,17 @@ export function App() {
 
   if (!session) return <LoginScreen onLoggedIn={setSession} />;
 
-  if (loading || !home) {
+  if (!home) {
     return (
-      <main className="loading">
-        <div>
-          <h1>Loading Play Aethro…</h1>
+      <main className="loading brand-loading">
+        <div className="loading-scene">
+          <img src="/images/play-aethro-hero.png" alt="" />
+          <div className="loading-orb">PA</div>
+        </div>
+        <div className="loading-copy">
+          <span className="eyebrow">Play Aethro Launcher</span>
+          <h1>Opening the gateway</h1>
+          <div className="loading-bar"><span /></div>
           {bootError && <p className="error">{bootError}</p>}
           {bootError && <button onClick={logout}>Back to login</button>}
         </div>

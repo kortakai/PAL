@@ -41,20 +41,30 @@ export function LoginScreen({ onLoggedIn }: Props) {
   }
 
   return (
-    <main className="login-shell">
-      <section className="hero-card">
-        <div className="hero-art">PLAY AETHRO</div>
-        <div className="hero-copy">
-          <h1>Play Aethro</h1>
-          <p>Shadows of Aethro, Aethro Online, and whatever chaos comes next.</p>
+    <main className="login-shell brand-login">
+      <section className="hero-card brand-hero">
+        <img className="brand-hero-image" src="/images/play-aethro-hero.png" alt="" />
+        <div className="brand-mark">
+          <span>PA</span>
+        </div>
+        <div className="hero-copy brand-hero-copy">
+          <span className="eyebrow">Play Aethro Launcher</span>
+          <h1>Choose Your World</h1>
+          <p>Shadows of Aethro, Chronicles of Kalismor, and the next gate beyond.</p>
+          <div className="brand-worlds">
+            <span>Shadows</span>
+            <span>Kalismor</span>
+            <span>Aethro.net</span>
+          </div>
         </div>
       </section>
 
-      <section className="login-card">
-        <h2>Log in</h2>
-        <p className="muted">
-          Use your existing Aethro account system. The launcher opens Aethro in your browser and comes back here after login.
-        </p>
+      <section className="login-card brand-login-card">
+        <div className="login-card-mark">
+          <span>Gateway</span>
+        </div>
+        <h2>Enter Aethro</h2>
+        <p className="muted">Use your Aethro account to sync launcher access across worlds.</p>
 
         <div className="login-actions">
           <button type="button" onClick={aethroLogin} disabled={busy || discordBusy}>
@@ -72,10 +82,6 @@ export function LoginScreen({ onLoggedIn }: Props) {
         </label>
 
         {error && <p className="error">{error}</p>}
-
-        <p className="muted tiny">
-          Dev callback: <code>http://127.0.0.1:38987/oauth/callback</code>
-        </p>
       </section>
     </main>
   );

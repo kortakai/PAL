@@ -1,15 +1,26 @@
 import { invoke } from '@tauri-apps/api/core';
-import type { AuthSession, LauncherHome, LauncherNewsItem, NewsFeedId, UserProfile } from './types';
+import type {
+  AuthSession,
+  LauncherHome,
+  LauncherNewsItem,
+  LocalMinecraftProfile,
+  ModpackCheckResult,
+  NewsFeedId,
+  UserProfile
+} from './types';
 
 const API_BASE = 'https://aethro.net/api';
 const SESSION_STORAGE_KEY = 'aethro.launcher.session.v1';
+const USERINFO_TIMEOUT_MS = 8_000;
+const RSS_TIMEOUT_MS = 8_000;
 
 const OAUTH_CONFIG = {
-  clientId: 'ath_HJTfr0PaMHXcYxXB4DtMVyC_',
-  clientSecret: 'athsec_ryHDnnXDEGeNdEd3dTFQP4ngrHYj2VGOAjjp9td6OmnFYjuEm',
+  clientId: 'ath_XuN_R2q4KK7VUFDYvGiksCgx',
+  clientSecret: 'athsec_db__ZuF10cjW6foS_7EVjdxY45-bdHJA1tl4PLQZUo830Prm',
   redirectUri: 'http://127.0.0.1:38987/oauth/callback',
-  scope: 'profile email',
+  scope: 'openid profile discord',
   usePkce: false,
+  tokenAuthMethod: 'clientSecretPost',
   authorizeUrl: 'https://aethro.net/oauth/authorize/',
   tokenUrl: 'https://aethro.net/oauth/token/',
   userinfoUrl: 'https://aethro.net/api/account/userinfo/',
@@ -40,6 +51,18 @@ type ApiRequestOptions = {
   token?: string;
   body?: unknown;
 };
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timeout = window.setTimeout(() => {
+      reject(new Error(`${label} timed out after ${Math.round(timeoutMs / 1000)} seconds.`));
+    }, timeoutMs);
+
+    promise
+      .then(resolve, reject)
+      .finally(() => window.clearTimeout(timeout));
+  });
+}
 
 function isProbablyExpired(session: AuthSession): boolean {
   if (!session.expiresAt) return false;
@@ -114,6 +137,7 @@ export async function loginWithAethro(remember: boolean): Promise<AuthSession> {
         redirectUri: OAUTH_CONFIG.redirectUri,
         scope: OAUTH_CONFIG.scope,
         usePkce: OAUTH_CONFIG.usePkce,
+        tokenAuthMethod: OAUTH_CONFIG.tokenAuthMethod,
         authorizeUrl: OAUTH_CONFIG.authorizeUrl,
         tokenUrl: OAUTH_CONFIG.tokenUrl,
         userinfoUrl: OAUTH_CONFIG.userinfoUrl
@@ -138,15 +162,19 @@ export async function getCurrentUser(session: AuthSession): Promise<UserProfile>
   if (session.user && session.accessToken.startsWith('dev-session-token-')) return session.user;
 
   try {
-    const userInfo = await invoke<UserProfile>('api_request_json', {
-      url: OAUTH_CONFIG.userinfoUrl,
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        Authorization: `Bearer ${session.accessToken}`
-      },
-      body: null
-    });
+    const userInfo = await withTimeout(
+      invoke<UserProfile>('api_request_json', {
+        url: OAUTH_CONFIG.userinfoUrl,
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${session.accessToken}`
+        },
+        body: null
+      }),
+      USERINFO_TIMEOUT_MS,
+      'Aethro user info'
+    );
 
     return {
       ...session.user,
@@ -185,9 +213,25 @@ export async function beginDiscordLogin(remember: boolean): Promise<AuthSession>
   return loginWithAethro(remember);
 }
 
+export async function checkShadowsInstall(): Promise<ModpackCheckResult> {
+  return invoke<ModpackCheckResult>('check_shadows_install');
+}
+
+export async function repairShadowsInstall(): Promise<ModpackCheckResult> {
+  return invoke<ModpackCheckResult>('repair_shadows_install');
+}
+
+export async function detectLocalMinecraftProfile(): Promise<LocalMinecraftProfile | null> {
+  return invoke<LocalMinecraftProfile | null>('detect_local_minecraft_profile');
+}
+
+export async function openMinecraftLauncher(): Promise<string> {
+  return invoke<string>('open_minecraft_launcher');
+}
+
 async function fetchText(url: string): Promise<string> {
   // Rust-side request avoids browser CORS problems inside the Tauri webview.
-  return invoke<string>('fetch_text', { url });
+  return withTimeout(invoke<string>('fetch_text', { url }), RSS_TIMEOUT_MS, 'Aethro RSS feed');
 }
 
 function textFromElement(parent: Element, tagName: string): string {
@@ -209,7 +253,7 @@ function parseRss(xml: string, feedId: NewsFeedId, feedName: string): LauncherNe
 
   return [...doc.querySelectorAll('item')].slice(0, 8).map((item, index) => {
     const title = textFromElement(item, 'title') || 'Untitled';
-    const url = textFromElement(item, 'link') || 'https://aethro.net';
+    const url = textFromElement(item, 'link') || 'https://playaethro.online';
     const publishedAtRaw = textFromElement(item, 'pubDate');
     const description = textFromElement(item, 'description');
     const summary = stripHtml(description).slice(0, 220);
@@ -243,11 +287,26 @@ async function getLauncherNews(): Promise<LauncherNewsItem[]> {
 }
 
 export async function getLauncherHome(session: AuthSession): Promise<LauncherHome> {
-  const [news, user] = await Promise.all([
+  const [newsResult, userResult] = await Promise.allSettled([
     getLauncherNews(),
     getCurrentUser(session)
   ]);
 
+  const news = newsResult.status === 'fulfilled' ? newsResult.value : [];
+  const user = userResult.status === 'fulfilled'
+    ? userResult.value
+    : session.user ?? {
+      id: 'aethro-user',
+      displayName: 'Aethro Hero'
+    };
+
+  if (newsResult.status === 'rejected') console.warn('Launcher news failed to load.', newsResult.reason);
+  if (userResult.status === 'rejected') console.warn('Aethro profile refresh failed.', userResult.reason);
+
+  return createLauncherHome(user, news);
+}
+
+export function createLauncherHome(user: UserProfile, news: LauncherNewsItem[] = []): LauncherHome {
   return {
     user,
     hero: {
@@ -266,15 +325,15 @@ export async function getLauncherHome(session: AuthSession): Promise<LauncherHom
       },
       {
         id: 'aethro-online',
-        title: 'Aethro Online',
-        description: 'Text-based fantasy MUD terminal.',
-        status: 'unknown',
-        actionLabel: 'Play Aethro Online'
+        title: 'Chronicles of Kalismor',
+        description: 'A dark fantasy MUD gateway being prepared.',
+        status: 'maintenance',
+        actionLabel: 'View Kalismor'
       }
     ],
     links: {
-      website: 'https://aethro.net',
-      discord: 'https://discord.gg/replace-me'
+      website: 'https://playaethro.online',
+      discord: 'https://dsc.gg/aethro'
     }
   };
 }
