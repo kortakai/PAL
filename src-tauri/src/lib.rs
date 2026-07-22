@@ -16,6 +16,7 @@ use tauri::{Emitter, Manager};
 
 const HTTP_TIMEOUT_SECONDS: u64 = 12;
 const DOWNLOAD_TIMEOUT_SECONDS: u64 = 300;
+const SHADOWS_MANIFEST_URL: &str = "https://aethro.net/launcher/shadows/stable/manifest.json";
 
 #[derive(Debug, Serialize, Deserialize)]
 struct HashResult {
@@ -546,9 +547,38 @@ fn sha256_bytes(bytes: &[u8]) -> String {
     format!("{:x}", hasher.finalize())
 }
 
-fn load_shadows_manifest() -> Result<ShadowsManifest, String> {
+fn load_bundled_shadows_manifest() -> Result<ShadowsManifest, String> {
     serde_json::from_str::<ShadowsManifest>(include_str!("../../manifests/shadows-stable.json"))
-        .map_err(|e| format!("Unable to parse Shadows manifest: {e}"))
+        .map_err(|e| format!("Unable to parse bundled Shadows manifest: {e}"))
+}
+
+async fn load_shadows_manifest() -> Result<ShadowsManifest, String> {
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(HTTP_TIMEOUT_SECONDS))
+        .build()
+        .map_err(|e| format!("Unable to create Shadows manifest client: {e}"))?;
+
+    match client.get(SHADOWS_MANIFEST_URL).send().await {
+        Ok(response) if response.status().is_success() => {
+            let text = response
+                .text()
+                .await
+                .map_err(|e| format!("Unable to read remote Shadows manifest: {e}"))?;
+            serde_json::from_str::<ShadowsManifest>(&text)
+                .map_err(|e| format!("Unable to parse remote Shadows manifest: {e}"))
+        }
+        Ok(response) => {
+            eprintln!(
+                "Remote Shadows manifest returned HTTP {}; using bundled fallback.",
+                response.status()
+            );
+            load_bundled_shadows_manifest()
+        }
+        Err(err) => {
+            eprintln!("Remote Shadows manifest unavailable: {err}; using bundled fallback.");
+            load_bundled_shadows_manifest()
+        }
+    }
 }
 
 fn shadows_install_dir(
@@ -982,7 +1012,7 @@ fn hash_file(path: String) -> Result<HashResult, String> {
 
 #[tauri::command]
 async fn check_shadows_install(app_handle: tauri::AppHandle) -> Result<ModpackCheckResult, String> {
-    let manifest = load_shadows_manifest()?;
+    let manifest = load_shadows_manifest().await?;
     let install_dir = shadows_install_dir(&app_handle, &manifest)?;
     emit_shadows_progress(
         &app_handle,
@@ -1020,7 +1050,7 @@ async fn check_shadows_install(app_handle: tauri::AppHandle) -> Result<ModpackCh
 async fn repair_shadows_install(
     app_handle: tauri::AppHandle,
 ) -> Result<ModpackCheckResult, String> {
-    let manifest = load_shadows_manifest()?;
+    let manifest = load_shadows_manifest().await?;
     let install_dir = shadows_install_dir(&app_handle, &manifest)?;
 
     emit_shadows_progress(
@@ -1211,7 +1241,7 @@ fn detect_local_minecraft_profile() -> Result<Option<LocalMinecraftProfile>, Str
 
 #[tauri::command]
 async fn open_minecraft_launcher(app_handle: tauri::AppHandle) -> Result<String, String> {
-    let manifest = load_shadows_manifest()?;
+    let manifest = load_shadows_manifest().await?;
     let install_dir = shadows_install_dir(&app_handle, &manifest)?;
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(HTTP_TIMEOUT_SECONDS))

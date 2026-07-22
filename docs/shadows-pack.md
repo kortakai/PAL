@@ -28,13 +28,28 @@ The generator:
 - writes relative paths, file sizes, SHA-256 hashes, and hosted download URLs
 - writes the manifest to `manifests/shadows-stable.json`
 
-The launcher currently bundles `manifests/shadows-stable.json` for verification. For production patching, upload the same source files so they match the manifest URLs:
+The launcher checks the remote manifest first:
+
+```text
+https://aethro.net/launcher/shadows/stable/manifest.json
+```
+
+It keeps the bundled `manifests/shadows-stable.json` only as a fallback if the website manifest is unavailable.
+
+For production patching, upload the generated manifest plus the same source files so they match the manifest URLs:
 
 ```text
 https://aethro.net/launcher/shadows/stable/files/<relative file path>
 ```
 
-When the pack changes, update `ShadowPackSource`, rerun the command, and rebuild the launcher.
+When the pack changes:
+
+1. Update `/Users/paul/Documents/ShadowPackSource`.
+2. Rerun the manifest command.
+3. Upload `manifests/shadows-stable.json` to the website as `launcher/shadows/stable/manifest.json`.
+4. Upload the source files under `launcher/shadows/stable/files/`.
+
+You do not need a launcher rebuild for normal modpack changes once users have a launcher version that supports the remote manifest.
 
 ## Fabric Loader
 
