@@ -3,14 +3,14 @@ use rand::{distributions::Alphanumeric, Rng};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{
-    collections::HashMap,
+    collections::{HashMap, HashSet},
     env,
     fs::{self, File},
     io::{Read, Write},
     net::{TcpListener, TcpStream},
     path::{Component, Path, PathBuf},
     process::Command,
-    time::Duration,
+    time::{Duration, SystemTime, UNIX_EPOCH},
 };
 use tauri::{Emitter, Manager};
 
@@ -78,6 +78,7 @@ struct ShadowsManifest {
     display_name: String,
     minecraft: Option<ShadowsManifestMinecraft>,
     launch: Option<ShadowsManifestLaunch>,
+    remove_extra_files_under: Option<Vec<String>>,
     files: Vec<ShadowsManifestFile>,
 }
 
@@ -557,8 +558,13 @@ async fn load_shadows_manifest() -> Result<ShadowsManifest, String> {
         .timeout(Duration::from_secs(HTTP_TIMEOUT_SECONDS))
         .build()
         .map_err(|e| format!("Unable to create Shadows manifest client: {e}"))?;
+    let cache_bust = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    let manifest_url = format!("{SHADOWS_MANIFEST_URL}?t={cache_bust}");
 
-    match client.get(SHADOWS_MANIFEST_URL).send().await {
+    match client.get(&manifest_url).send().await {
         Ok(response) if response.status().is_success() => {
             let text = response
                 .text()
@@ -707,6 +713,121 @@ fn check_shadows_manifest_files(
         ready: missing_files == 0 && changed_files == 0 && invalid_manifest_files == 0,
         files,
     })
+}
+
+fn collect_regular_files(root: &Path, files: &mut Vec<PathBuf>) -> Result<(), String> {
+    if !root.exists() {
+        return Ok(());
+    }
+
+    for entry in
+        fs::read_dir(root).map_err(|e| format!("Unable to read folder {}: {e}", root.display()))?
+    {
+        let entry = entry.map_err(|e| format!("Unable to read folder entry: {e}"))?;
+        let file_type = entry
+            .file_type()
+            .map_err(|e| format!("Unable to inspect {}: {e}", entry.path().display()))?;
+
+        if file_type.is_dir() {
+            collect_regular_files(&entry.path(), files)?;
+        } else if file_type.is_file() {
+            files.push(entry.path());
+        }
+    }
+
+    Ok(())
+}
+
+fn remove_empty_child_dirs(root: &Path) -> Result<(), String> {
+    if !root.exists() {
+        return Ok(());
+    }
+
+    for entry in
+        fs::read_dir(root).map_err(|e| format!("Unable to read folder {}: {e}", root.display()))?
+    {
+        let entry = entry.map_err(|e| format!("Unable to read folder entry: {e}"))?;
+        let file_type = entry
+            .file_type()
+            .map_err(|e| format!("Unable to inspect {}: {e}", entry.path().display()))?;
+
+        if file_type.is_dir() {
+            remove_empty_child_dirs(&entry.path())?;
+            if fs::read_dir(entry.path())
+                .map_err(|e| format!("Unable to read folder {}: {e}", entry.path().display()))?
+                .next()
+                .is_none()
+            {
+                fs::remove_dir(entry.path())
+                    .map_err(|e| format!("Unable to remove empty folder: {e}"))?;
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn manifest_path_from_file(install_dir: &Path, file_path: &Path) -> Result<String, String> {
+    let relative = file_path
+        .strip_prefix(install_dir)
+        .map_err(|e| format!("Unable to resolve installed file path: {e}"))?;
+    let mut parts = Vec::new();
+
+    for component in relative.components() {
+        match component {
+            Component::Normal(part) => parts.push(part.to_string_lossy().to_string()),
+            Component::CurDir => {}
+            _ => {
+                return Err(format!(
+                    "Installed file path is not allowed: {}",
+                    file_path.display()
+                ))
+            }
+        }
+    }
+
+    Ok(parts.join("/"))
+}
+
+fn cleanup_extra_manifest_files(
+    manifest: &ShadowsManifest,
+    install_dir: &Path,
+) -> Result<usize, String> {
+    let cleanup_roots = match manifest.remove_extra_files_under.as_deref() {
+        Some(roots) if !roots.is_empty() => roots,
+        _ => return Ok(0),
+    };
+    let manifest_paths = manifest
+        .files
+        .iter()
+        .map(|file| file.path.as_str())
+        .collect::<HashSet<_>>();
+    let mut removed = 0;
+
+    for cleanup_root in cleanup_roots {
+        let root_dir = safe_join(install_dir, cleanup_root)?;
+        let mut installed_files = Vec::new();
+        collect_regular_files(&root_dir, &mut installed_files)?;
+
+        for installed_file in installed_files {
+            let manifest_path = manifest_path_from_file(install_dir, &installed_file)?;
+            if manifest_paths.contains(manifest_path.as_str()) {
+                continue;
+            }
+
+            fs::remove_file(&installed_file).map_err(|e| {
+                format!(
+                    "Unable to remove old Shadows file {}: {e}",
+                    installed_file.display()
+                )
+            })?;
+            removed += 1;
+        }
+
+        remove_empty_child_dirs(&root_dir)?;
+    }
+
+    Ok(removed)
 }
 
 fn validate_shadows_download_url(url: &str) -> Result<reqwest::Url, String> {
@@ -1109,6 +1230,21 @@ async fn repair_shadows_install(
         emit_shadows_progress(
             &app_handle,
             "setup",
+            "Removing old Shadows files",
+            None,
+            current.ok_files,
+            current.total_files,
+            total_manifest_bytes,
+            total_manifest_bytes,
+        );
+        let removed_files = cleanup_extra_manifest_files(&manifest, &install_dir)?;
+        if removed_files > 0 {
+            eprintln!("Removed {removed_files} old Shadows files.");
+        }
+
+        emit_shadows_progress(
+            &app_handle,
+            "setup",
             "Setting up Minecraft Launcher profile",
             None,
             current.ok_files,
@@ -1175,6 +1311,21 @@ async fn repair_shadows_install(
             downloaded_bytes,
             total_download_bytes,
         );
+    }
+
+    emit_shadows_progress(
+        &app_handle,
+        "setup",
+        "Removing old Shadows files",
+        None,
+        repair_files.len(),
+        repair_files.len(),
+        downloaded_bytes,
+        total_download_bytes,
+    );
+    let removed_files = cleanup_extra_manifest_files(&manifest, &install_dir)?;
+    if removed_files > 0 {
+        eprintln!("Removed {removed_files} old Shadows files.");
     }
 
     emit_shadows_progress(

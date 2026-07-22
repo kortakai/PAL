@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { getVersion } from '@tauri-apps/api/app';
 import { Dashboard } from './components/Dashboard';
 import { LoginScreen } from './components/LoginScreen';
 import { clearSavedSession, createLauncherHome, getLauncherHome, loadSavedSession, logoutSession, refreshSession } from './lib/api';
@@ -9,6 +10,13 @@ export function App() {
   const [home, setHome] = useState<LauncherHome | null>(() => session?.user ? createLauncherHome(session.user) : null);
   const [loading, setLoading] = useState(false);
   const [bootError, setBootError] = useState<string | null>(null);
+  const [appVersion, setAppVersion] = useState('');
+
+  useEffect(() => {
+    getVersion()
+      .then(setAppVersion)
+      .catch(() => setAppVersion('dev'));
+  }, []);
 
   useEffect(() => {
     if (!session) return;
@@ -60,25 +68,42 @@ export function App() {
     setHome(null);
   }
 
-  if (!session) return <LoginScreen onLoggedIn={setSession} />;
+  const versionBadge = appVersion ? <div className="app-version-badge">v{appVersion}</div> : null;
 
-  if (!home) {
+  if (!session) {
     return (
-      <main className="loading brand-loading">
-        <div className="loading-scene">
-          <img src="/images/play-aethro-hero.png" alt="" />
-          <div className="loading-orb">PA</div>
-        </div>
-        <div className="loading-copy">
-          <span className="eyebrow">Play Aethro Launcher</span>
-          <h1>Opening the gateway</h1>
-          <div className="loading-bar"><span /></div>
-          {bootError && <p className="error">{bootError}</p>}
-          {bootError && <button onClick={logout}>Back to login</button>}
-        </div>
-      </main>
+      <>
+        {versionBadge}
+        <LoginScreen onLoggedIn={setSession} />
+      </>
     );
   }
 
-  return <Dashboard home={home} onLogout={logout} />;
+  if (!home) {
+    return (
+      <>
+        {versionBadge}
+        <main className="loading brand-loading">
+          <div className="loading-scene">
+            <img src="/images/play-aethro-hero.png" alt="" />
+            <div className="loading-orb">PA</div>
+          </div>
+          <div className="loading-copy">
+            <span className="eyebrow">Play Aethro Launcher</span>
+            <h1>Opening the gateway</h1>
+            <div className="loading-bar"><span /></div>
+            {bootError && <p className="error">{bootError}</p>}
+            {bootError && <button onClick={logout}>Back to login</button>}
+          </div>
+        </main>
+      </>
+    );
+  }
+
+  return (
+    <>
+      {versionBadge}
+      <Dashboard home={home} onLogout={logout} />
+    </>
+  );
 }
