@@ -223,7 +223,11 @@ struct FlexibleUserInfo {
     avatar_url: Option<String>,
     avatar: Option<String>,
     picture: Option<String>,
-    #[serde(alias = "minecraftName", alias = "minecraft_name", alias = "minecraft_username")]
+    #[serde(
+        alias = "minecraftName",
+        alias = "minecraft_name",
+        alias = "minecraft_username"
+    )]
     minecraft_name: Option<String>,
     #[serde(alias = "minecraftUuid", alias = "minecraft_uuid")]
     minecraft_uuid: Option<String>,
@@ -543,10 +547,8 @@ fn sha256_bytes(bytes: &[u8]) -> String {
 }
 
 fn load_shadows_manifest() -> Result<ShadowsManifest, String> {
-    serde_json::from_str::<ShadowsManifest>(include_str!(
-        "../../manifests/shadows-stable.json"
-    ))
-    .map_err(|e| format!("Unable to parse Shadows manifest: {e}"))
+    serde_json::from_str::<ShadowsManifest>(include_str!("../../manifests/shadows-stable.json"))
+        .map_err(|e| format!("Unable to parse Shadows manifest: {e}"))
 }
 
 fn shadows_install_dir(
@@ -686,7 +688,9 @@ fn validate_shadows_download_url(url: &str) -> Result<reqwest::Url, String> {
     }
 
     if !parsed.path().starts_with("/launcher/shadows/stable/files/") {
-        return Err(format!("Shadows file URL is outside the pack folder: {url}"));
+        return Err(format!(
+            "Shadows file URL is outside the pack folder: {url}"
+        ));
     }
 
     Ok(parsed)
@@ -728,20 +732,18 @@ async fn download_manifest_file(
         ));
     }
 
-    let url = manifest_file
-        .url
-        .as_deref()
-        .ok_or_else(|| format!("Manifest file is missing a download URL: {}", manifest_file.path))?;
+    let url = manifest_file.url.as_deref().ok_or_else(|| {
+        format!(
+            "Manifest file is missing a download URL: {}",
+            manifest_file.path
+        )
+    })?;
     let parsed_url = validate_shadows_download_url(url)?;
     let file_path = safe_join(install_dir, &manifest_file.path)?;
 
     if let Some(parent) = file_path.parent() {
-        fs::create_dir_all(parent).map_err(|e| {
-            format!(
-                "Unable to create folder for {}: {e}",
-                manifest_file.path
-            )
-        })?;
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Unable to create folder for {}: {e}", manifest_file.path))?;
     }
 
     let response = client
@@ -954,7 +956,8 @@ async fn install_fabric_launcher_profile(
         "playAethroJavaMajor": minecraft.java_major,
         "playAethroGameArgs": game_args
     });
-    launcher_profiles["selectedProfile"] = serde_json::Value::String("play-aethro-shadows".to_string());
+    launcher_profiles["selectedProfile"] =
+        serde_json::Value::String("play-aethro-shadows".to_string());
 
     fs::write(
         &profiles_path,
@@ -1007,22 +1010,16 @@ async fn check_shadows_install(app_handle: tauri::AppHandle) -> Result<ModpackCh
         None,
         result.ok_files,
         result.total_files,
-        result
-            .files
-            .iter()
-            .filter_map(|file| file.size_bytes)
-            .sum(),
-        result
-            .files
-            .iter()
-            .filter_map(|file| file.size_bytes)
-            .sum(),
+        result.files.iter().filter_map(|file| file.size_bytes).sum(),
+        result.files.iter().filter_map(|file| file.size_bytes).sum(),
     );
     Ok(result)
 }
 
 #[tauri::command]
-async fn repair_shadows_install(app_handle: tauri::AppHandle) -> Result<ModpackCheckResult, String> {
+async fn repair_shadows_install(
+    app_handle: tauri::AppHandle,
+) -> Result<ModpackCheckResult, String> {
     let manifest = load_shadows_manifest()?;
     let install_dir = shadows_install_dir(&app_handle, &manifest)?;
 
@@ -1099,7 +1096,11 @@ async fn repair_shadows_install(app_handle: tauri::AppHandle) -> Result<ModpackC
         let final_check = check_shadows_manifest_files(&manifest, &install_dir, Some(&app_handle))?;
         emit_shadows_progress(
             &app_handle,
-            if final_check.ready { "ready" } else { "needsUpdate" },
+            if final_check.ready {
+                "ready"
+            } else {
+                "needsUpdate"
+            },
             if final_check.ready {
                 "Shadows is ready"
             } else {
@@ -1173,7 +1174,11 @@ async fn repair_shadows_install(app_handle: tauri::AppHandle) -> Result<ModpackC
     let final_check = check_shadows_manifest_files(&manifest, &install_dir, Some(&app_handle))?;
     emit_shadows_progress(
         &app_handle,
-        if final_check.ready { "ready" } else { "needsUpdate" },
+        if final_check.ready {
+            "ready"
+        } else {
+            "needsUpdate"
+        },
         if final_check.ready {
             "Shadows is ready"
         } else {
@@ -1214,6 +1219,60 @@ async fn open_minecraft_launcher(app_handle: tauri::AppHandle) -> Result<String,
         .map_err(|e| format!("Unable to create Minecraft profile setup client: {e}"))?;
     install_fabric_launcher_profile(&client, &manifest, &install_dir).await?;
 
+    #[cfg(target_os = "windows")]
+    {
+        let mut launcher_paths = Vec::new();
+
+        if let Ok(program_files_x86) = env::var("ProgramFiles(x86)") {
+            launcher_paths.push(
+                PathBuf::from(program_files_x86)
+                    .join("Minecraft Launcher")
+                    .join("MinecraftLauncher.exe"),
+            );
+        }
+
+        if let Ok(program_files) = env::var("ProgramFiles") {
+            launcher_paths.push(
+                PathBuf::from(program_files)
+                    .join("Minecraft Launcher")
+                    .join("MinecraftLauncher.exe"),
+            );
+            launcher_paths.push(
+                PathBuf::from(program_files)
+                    .join("WindowsApps")
+                    .join("Microsoft.4297127D64EC6_8wekyb3d8bbwe")
+                    .join("Minecraft.exe"),
+            );
+        }
+
+        if let Ok(local_app_data) = env::var("LOCALAPPDATA") {
+            launcher_paths.push(
+                PathBuf::from(local_app_data)
+                    .join("Programs")
+                    .join("Minecraft Launcher")
+                    .join("MinecraftLauncher.exe"),
+            );
+        }
+
+        for launcher_path in launcher_paths {
+            if launcher_path.exists() {
+                Command::new(&launcher_path)
+                    .spawn()
+                    .map_err(|e| format!("Unable to open {}: {e}", launcher_path.display()))?;
+
+                return Ok("Minecraft Launcher opened.".to_string());
+            }
+        }
+
+        Command::new("explorer.exe")
+            .arg("shell:AppsFolder\\Microsoft.4297127D64EC6_8wekyb3d8bbwe!Minecraft")
+            .spawn()
+            .map_err(|e| format!("Unable to open Minecraft Launcher from the Start menu: {e}"))?;
+
+        return Ok("Minecraft Launcher opened.".to_string());
+    }
+
+    #[cfg(not(target_os = "windows"))]
     if open::that("minecraft://").is_ok() {
         return Ok("Minecraft Launcher opened.".to_string());
     }
@@ -1506,6 +1565,8 @@ fn launch_placeholder(game_id: String) -> Result<String, String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_shell::init())
         .plugin(tauri_plugin_store::Builder::new().build())

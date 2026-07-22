@@ -77,13 +77,15 @@ jobs:
         uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           args: ${{ matrix.args }}
-          releaseDraft: true
-          prerelease: true
+          releaseDraft: ${{ github.event_name == 'workflow_dispatch' }}
+          prerelease: ${{ github.event_name == 'workflow_dispatch' }}
           tagName: app-v__VERSION__
           releaseName: Play Aethro Launcher v__VERSION__
-          releaseBody: Tester build. Download the installer for your operating system from the assets below.
+          releaseBody: Play Aethro Launcher build. Download the installer for your operating system from the assets below.
           releaseAssetNamePattern: '[name]_[version]_[platform]_[arch].[ext]'
           uploadWorkflowArtifacts: true
           workflowArtifactNamePattern: '[platform]-[arch]-[bundle]'

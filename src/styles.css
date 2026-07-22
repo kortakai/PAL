@@ -116,7 +116,37 @@ button.secondary { color: #f7efe5; background: rgba(255,255,255,.12); border: 1p
   border-top: 2px solid currentColor;
   border-right: 2px solid currentColor;
 }
+.icon-download::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 1px;
+  width: 3px;
+  height: 10px;
+  background: currentColor;
+}
+.icon-download::after {
+  content: '';
+  position: absolute;
+  left: 3px;
+  bottom: 2px;
+  width: 11px;
+  height: 11px;
+  border-left: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+}
 input { width: 100%; margin-top: 8px; border: 1px solid rgba(255,255,255,.16); border-radius: 10px; padding: 12px; color: #fff; background: rgba(255,255,255,.08); }
+input[type="range"] {
+  width: 120px;
+  height: 6px;
+  margin: 0;
+  border: 0;
+  border-radius: 999px;
+  padding: 0;
+  accent-color: #f8c15c;
+  background: rgba(255,255,255,.18);
+}
 label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-weight: 700; }
 .login-shell { display: grid; grid-template-columns: 1.3fr .7fr; gap: 32px; min-height: 100vh; padding: 48px; }
 .brand-login {
@@ -208,6 +238,70 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
 .topbar-actions { display: flex; gap: 12px; }
 .music-toggle { min-width: 104px; }
 .music-toggle.active { color: #1f122b; background: #f8c15c; border-color: transparent; }
+.music-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(255, 211, 110, .18);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: rgba(8, 16, 16, .54);
+}
+.music-control label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: #d8cab2;
+  font-size: 12px;
+}
+.music-control label span {
+  color: #ffd36e;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.launcher-update {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 0 0 22px;
+  border: 1px solid rgba(248, 193, 92, .28);
+  border-radius: 14px;
+  padding: 16px 18px;
+  background: linear-gradient(90deg, rgba(248, 193, 92, .18), rgba(8, 16, 16, .76));
+  box-shadow: 0 18px 50px rgba(0,0,0,.22);
+}
+.launcher-update strong {
+  display: block;
+  margin-top: 4px;
+  color: #fff1c0;
+  font-size: 20px;
+}
+.launcher-update p {
+  margin: 4px 0 0;
+  color: #d8cab2;
+}
+.launcher-update-progress {
+  overflow: hidden;
+  width: min(360px, 52vw);
+  height: 8px;
+  margin-top: 12px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.14);
+}
+.launcher-update-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #f8c15c;
+  transition: width .18s ease;
+}
+.launcher-update-failed {
+  border-color: rgba(255, 154, 154, .36);
+  background: linear-gradient(90deg, rgba(112, 24, 33, .42), rgba(8, 16, 16, .76));
+}
 .eyebrow { color: #f8c15c; font-weight: 900; text-transform: uppercase; letter-spacing: .14em; font-size: 12px; }
 .home-dashboard {
   position: relative;
@@ -477,7 +571,6 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
 .home-news-list .news-item h3 { color: #fff1c0; line-height: 1.15; }
 .home-news-list .news-item p { color: #d8cab2; }
 .home-news-list .link-button {
-  color: #ffd36e;
   font-size: 13px;
 }
 .kalismor-page {
@@ -641,7 +734,8 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
   color: #cfc5b4;
 }
 .kalismor-page .link-button {
-  color: #c6ae71;
+  background: #c6ae71;
+  color: #090a0f;
 }
 .wide-hero { min-height: 180px; padding: 34px; margin-bottom: 24px; display: flex; align-items: end; background: linear-gradient(135deg, rgba(248,193,92,.22), rgba(98,37,135,.40)); }
 .wide-hero h2 { margin: 0 0 8px; font-size: 40px; }
@@ -652,7 +746,19 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
 .news-item, .game-card { border-radius: 18px; padding: 18px; background: rgba(0,0,0,.22); border: 1px solid rgba(255,255,255,.08); margin-bottom: 14px; }
 .news-item h3, .game-card h3 { margin: 0 0 8px; }
 .news-item p, .game-card p { color: #d7c9df; }
-.link-button { color: #f8c15c; background: transparent; padding: 0; box-shadow: none; }
+.link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid rgba(255, 211, 110, .28);
+  border-radius: 8px;
+  padding: 8px 10px;
+  background: #f8c15c;
+  color: #1f122b;
+  box-shadow: none;
+  font-size: 13px;
+}
 .game-card { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .status { display: inline-flex; border-radius: 99px; padding: 4px 10px; font-size: 12px; font-weight: 900; background: rgba(255,255,255,.10); color: #ddd; text-transform: uppercase; }
 .status.online { color: #b7ffcf; }

@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { listen } from '@tauri-apps/api/event';
 import { openUrl } from '@tauri-apps/plugin-opener';
+import { relaunch } from '@tauri-apps/plugin-process';
+import { check as checkLauncherUpdate, type Update } from '@tauri-apps/plugin-updater';
 import { checkShadowsInstall, detectLocalMinecraftProfile, openMinecraftLauncher, repairShadowsInstall } from '../lib/api';
 import type { LauncherHome, LocalMinecraftProfile, ModpackCheckResult, ModpackFileStatus, NewsFeedId, ShadowsRepairProgress } from '../lib/types';
 
@@ -10,6 +12,7 @@ type Props = {
 };
 
 type ShadowsInstallState = 'notChecked' | 'checking' | 'needsUpdate' | 'installing' | 'ready' | 'failed';
+type LauncherUpdateState = 'idle' | 'checking' | 'available' | 'installing' | 'restarting' | 'failed';
 
 const FEED_TABS: Array<{ id: 'all' | NewsFeedId; label: string }> = [
   { id: 'all', label: 'All News' },
@@ -80,11 +83,12 @@ function worldCardClass(gameId: string) {
 }
 
 export function Dashboard({ home, onLogout }: Props) {
-  const shadowsAudioRef = useRef<HTMLAudioElement | null>(null);
+  const launcherAudioRef = useRef<HTMLAudioElement | null>(null);
   const checkedLocalMinecraftProfileRef = useRef(false);
   const [activeFeed, setActiveFeed] = useState<'all' | NewsFeedId>('all');
   const [view, setView] = useState<'home' | 'shadows' | 'aethro-online'>('home');
   const [musicEnabled, setMusicEnabled] = useState(true);
+  const [musicVolume, setMusicVolume] = useState(42);
   const [trackIndex, setTrackIndex] = useState(0);
   const [modpackCheck, setModpackCheck] = useState<ModpackCheckResult | null>(null);
   const [installState, setInstallState] = useState<ShadowsInstallState>('notChecked');
@@ -95,6 +99,10 @@ export function Dashboard({ home, onLogout }: Props) {
   const [repairingFiles, setRepairingFiles] = useState(false);
   const [launchingMinecraft, setLaunchingMinecraft] = useState(false);
   const [shadowsError, setShadowsError] = useState<string | null>(null);
+  const [launcherUpdate, setLauncherUpdate] = useState<Update | null>(null);
+  const [launcherUpdateState, setLauncherUpdateState] = useState<LauncherUpdateState>('idle');
+  const [launcherUpdateMessage, setLauncherUpdateMessage] = useState('');
+  const [launcherUpdateProgress, setLauncherUpdateProgress] = useState(0);
 
   async function openExternal(url: string) {
     await openUrl(url);
@@ -123,6 +131,112 @@ export function Dashboard({ home, onLogout }: Props) {
   const aethroOnlineNews = useMemo(() => home.news.filter((item) => item.feedId === 'aethro-online'), [home.news]);
   const activeTrack = SHADOWS_TRACKS[trackIndex];
   const accountInitial = (home.user.displayName || home.user.username || 'A').slice(0, 1).toUpperCase();
+
+  async function checkForLauncherUpdate(showErrors = false) {
+    setLauncherUpdateState('checking');
+
+    try {
+      const update = await checkLauncherUpdate({ timeout: 8_000 });
+      if (!update) {
+        setLauncherUpdate(null);
+        setLauncherUpdateState('idle');
+        setLauncherUpdateMessage('');
+        return;
+      }
+
+      setLauncherUpdate(update);
+      setLauncherUpdateState('available');
+      setLauncherUpdateMessage(`Version ${update.version} is ready to install.`);
+      setLauncherUpdateProgress(0);
+    } catch (err) {
+      console.warn('Launcher update check failed.', err);
+      setLauncherUpdate(null);
+      setLauncherUpdateState(showErrors ? 'failed' : 'idle');
+      setLauncherUpdateMessage(
+        showErrors
+          ? err instanceof Error ? err.message : String(err || 'Unable to check for launcher updates.')
+          : ''
+      );
+    }
+  }
+
+  async function installLauncherUpdate() {
+    if (!launcherUpdate) return;
+
+    setLauncherUpdateState('installing');
+    setLauncherUpdateMessage(`Installing version ${launcherUpdate.version}...`);
+    setLauncherUpdateProgress(0);
+
+    let downloadedBytes = 0;
+    let totalBytes = 0;
+
+    try {
+      await launcherUpdate.downloadAndInstall((event) => {
+        if (event.event === 'Started') {
+          downloadedBytes = 0;
+          totalBytes = event.data.contentLength ?? 0;
+          setLauncherUpdateProgress(0);
+        }
+
+        if (event.event === 'Progress') {
+          downloadedBytes += event.data.chunkLength;
+          if (totalBytes > 0) {
+            setLauncherUpdateProgress(Math.min(100, Math.round((downloadedBytes / totalBytes) * 100)));
+          }
+        }
+
+        if (event.event === 'Finished') {
+          setLauncherUpdateProgress(100);
+        }
+      });
+
+      setLauncherUpdateState('restarting');
+      setLauncherUpdateMessage('Update installed. Restarting the launcher...');
+      await relaunch();
+    } catch (err) {
+      console.error('Launcher update install failed.', err);
+      setLauncherUpdateState('failed');
+      setLauncherUpdateMessage(err instanceof Error ? err.message : String(err || 'Unable to install launcher update.'));
+    }
+  }
+
+  function renderLauncherUpdateNotice() {
+    if (launcherUpdateState === 'idle' || launcherUpdateState === 'checking') return null;
+
+    return (
+      <section className={`launcher-update launcher-update-${launcherUpdateState}`}>
+        <div>
+          <span className="eyebrow">Launcher Update</span>
+          <strong>
+            {launcherUpdateState === 'available'
+              ? 'Update available'
+              : launcherUpdateState === 'installing'
+                ? 'Installing update'
+                : launcherUpdateState === 'restarting'
+                  ? 'Restarting'
+                  : 'Update check failed'}
+          </strong>
+          <p>{launcherUpdateMessage}</p>
+          {(launcherUpdateState === 'installing' || launcherUpdateState === 'restarting') && (
+            <div className="launcher-update-progress" aria-label="Launcher update progress">
+              <span style={{ width: `${launcherUpdateProgress}%` }} />
+            </div>
+          )}
+        </div>
+        {launcherUpdateState === 'available' && (
+          <button className="icon-button" onClick={installLauncherUpdate}>
+            <span className="button-icon icon-download" aria-hidden="true" />
+            Install Update
+          </button>
+        )}
+        {launcherUpdateState === 'failed' && (
+          <button className="secondary" onClick={() => checkForLauncherUpdate(true)}>
+            Retry
+          </button>
+        )}
+      </section>
+    );
+  }
 
   useEffect(() => {
     let unlisten: (() => void) | undefined;
@@ -162,19 +276,23 @@ export function Dashboard({ home, onLogout }: Props) {
   }, []);
 
   useEffect(() => {
-    const audio = shadowsAudioRef.current;
+    checkForLauncherUpdate();
+  }, []);
+
+  useEffect(() => {
+    const audio = launcherAudioRef.current;
     if (!audio) return;
 
-    if (view !== 'shadows' || !musicEnabled) {
+    if ((view !== 'shadows' && view !== 'aethro-online') || !musicEnabled) {
       audio.pause();
       return;
     }
 
-    audio.volume = 0.42;
+    audio.volume = musicVolume / 100;
     audio.play().catch(() => {
       setMusicEnabled(false);
     });
-  }, [musicEnabled, trackIndex, view]);
+  }, [musicEnabled, musicVolume, trackIndex, view]);
 
   useEffect(() => {
     if (view === 'shadows') return;
@@ -199,8 +317,12 @@ export function Dashboard({ home, onLogout }: Props) {
       });
   }, [home.user.minecraftName, localMinecraftProfile, view]);
 
-  function toggleShadowsMusic() {
+  function toggleMusic() {
     setMusicEnabled((enabled) => !enabled);
+  }
+
+  function updateMusicVolume(value: string) {
+    setMusicVolume(Number(value));
   }
 
   function playNextTrack() {
@@ -265,10 +387,34 @@ export function Dashboard({ home, onLogout }: Props) {
             <h1>Chronicles of Kalismor</h1>
           </div>
           <div className="topbar-actions">
+            <div className="music-control kalismor-music-control">
+              <button
+                className={`secondary music-toggle ${musicEnabled ? 'active' : ''}`}
+                onClick={toggleMusic}
+                aria-pressed={musicEnabled}
+              >
+                {musicEnabled ? 'Music On' : 'Music Off'}
+              </button>
+              <label>
+                <span>Volume</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={musicVolume}
+                  onChange={(event) => updateMusicVolume(event.target.value)}
+                  aria-label="Music volume"
+                />
+              </label>
+            </div>
             <button className="secondary" onClick={() => setView('home')}>Back</button>
             <button className="secondary" onClick={onLogout}>Log out</button>
           </div>
         </header>
+
+        {renderLauncherUpdateNotice()}
+
+        <audio ref={launcherAudioRef} src={activeTrack.src} onEnded={playNextTrack} preload="auto" />
 
         <section className="kalismor-hero">
           <div className="kalismor-sigil" aria-hidden="true">
@@ -298,6 +444,11 @@ export function Dashboard({ home, onLogout }: Props) {
               <span className="eyebrow">Character</span>
               <strong>Not selected yet</strong>
               <p>Chronicles character selection will appear here once the Kalismor account bridge is ready.</p>
+            </div>
+
+            <div className="music-now-playing">
+              <span className="eyebrow">Now Playing</span>
+              <strong>{activeTrack.title}</strong>
             </div>
 
             <div className="patch-actions">
@@ -370,9 +521,22 @@ export function Dashboard({ home, onLogout }: Props) {
             <h1>Expedition Ready</h1>
           </div>
           <div className="topbar-actions">
+            <div className="music-control">
+              <label>
+                <span>Volume</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="100"
+                  value={musicVolume}
+                  onChange={(event) => updateMusicVolume(event.target.value)}
+                  aria-label="Music volume"
+                />
+              </label>
+            </div>
             <button
               className={`secondary music-toggle ${musicEnabled ? 'active' : ''}`}
-              onClick={toggleShadowsMusic}
+              onClick={toggleMusic}
               aria-pressed={musicEnabled}
             >
               {musicEnabled ? 'Music On' : 'Music Off'}
@@ -382,7 +546,9 @@ export function Dashboard({ home, onLogout }: Props) {
           </div>
         </header>
 
-        <audio ref={shadowsAudioRef} src={activeTrack.src} onEnded={playNextTrack} preload="auto" />
+        {renderLauncherUpdateNotice()}
+
+        <audio ref={launcherAudioRef} src={activeTrack.src} onEnded={playNextTrack} preload="auto" />
 
         <section className="shadows-adventure-banner">
           <div className="shadows-landscape" aria-hidden="true">
@@ -543,6 +709,8 @@ export function Dashboard({ home, onLogout }: Props) {
           </button>
         </div>
       </header>
+
+      {renderLauncherUpdateNotice()}
 
       <section className="home-hero">
         <img src="/images/play-aethro-hero.png" alt="" />
