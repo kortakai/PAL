@@ -1233,12 +1233,12 @@ async fn open_minecraft_launcher(app_handle: tauri::AppHandle) -> Result<String,
 
         if let Ok(program_files) = env::var("ProgramFiles") {
             launcher_paths.push(
-                PathBuf::from(program_files)
+                PathBuf::from(&program_files)
                     .join("Minecraft Launcher")
                     .join("MinecraftLauncher.exe"),
             );
             launcher_paths.push(
-                PathBuf::from(program_files)
+                PathBuf::from(&program_files)
                     .join("WindowsApps")
                     .join("Microsoft.4297127D64EC6_8wekyb3d8bbwe")
                     .join("Minecraft.exe"),
@@ -1273,41 +1273,43 @@ async fn open_minecraft_launcher(app_handle: tauri::AppHandle) -> Result<String,
     }
 
     #[cfg(not(target_os = "windows"))]
-    if open::that("minecraft://").is_ok() {
-        return Ok("Minecraft Launcher opened.".to_string());
-    }
-
-    #[cfg(target_os = "macos")]
     {
-        let app_paths = [
-            "/Applications/Minecraft.app",
-            "/Applications/Minecraft Launcher.app",
-        ];
+        if open::that("minecraft://").is_ok() {
+            return Ok("Minecraft Launcher opened.".to_string());
+        }
 
-        for app_path in app_paths {
-            if Path::new(app_path).exists() {
-                let status = Command::new("/usr/bin/open")
-                    .arg(app_path)
-                    .status()
-                    .map_err(|e| format!("Unable to open {app_path}: {e}"))?;
+        #[cfg(target_os = "macos")]
+        {
+            let app_paths = [
+                "/Applications/Minecraft.app",
+                "/Applications/Minecraft Launcher.app",
+            ];
 
-                if status.success() {
-                    return Ok("Minecraft Launcher opened.".to_string());
+            for app_path in app_paths {
+                if Path::new(app_path).exists() {
+                    let status = Command::new("/usr/bin/open")
+                        .arg(app_path)
+                        .status()
+                        .map_err(|e| format!("Unable to open {app_path}: {e}"))?;
+
+                    if status.success() {
+                        return Ok("Minecraft Launcher opened.".to_string());
+                    }
                 }
+            }
+
+            let status = Command::new("/usr/bin/open")
+                .args(["-a", "Minecraft"])
+                .status()
+                .map_err(|e| format!("Unable to open Minecraft by app name: {e}"))?;
+
+            if status.success() {
+                return Ok("Minecraft Launcher opened.".to_string());
             }
         }
 
-        let status = Command::new("/usr/bin/open")
-            .args(["-a", "Minecraft"])
-            .status()
-            .map_err(|e| format!("Unable to open Minecraft by app name: {e}"))?;
-
-        if status.success() {
-            return Ok("Minecraft Launcher opened.".to_string());
-        }
+        Err("Unable to open Minecraft Launcher. Install it, then open Minecraft Launcher once so your system registers it.".to_string())
     }
-
-    Err("Unable to open Minecraft Launcher. Install it, then open Minecraft Launcher once so your system registers it.".to_string())
 }
 
 #[tauri::command]
