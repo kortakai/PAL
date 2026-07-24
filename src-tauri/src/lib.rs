@@ -1505,13 +1505,26 @@ async fn fetch_text(url: String) -> Result<String, String> {
         return Err("URL is not allowed by the launcher.".to_string());
     }
 
+    let mut request_url =
+        reqwest::Url::parse(&url).map_err(|e| format!("Invalid RSS feed URL: {e}"))?;
+    let cache_bust = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs()
+        .to_string();
+    request_url
+        .query_pairs_mut()
+        .append_pair("launcher_t", &cache_bust);
+
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(HTTP_TIMEOUT_SECONDS))
         .build()
         .map_err(|e| format!("Unable to create RSS HTTP client: {e}"))?;
 
     let response = client
-        .get(&url)
+        .get(request_url)
+        .header(reqwest::header::CACHE_CONTROL, "no-cache")
+        .header(reqwest::header::PRAGMA, "no-cache")
         .send()
         .await
         .map_err(|e| format!("Unable to fetch RSS feed: {e}"))?;
