@@ -15,7 +15,7 @@ export function App() {
   useEffect(() => {
     getVersion()
       .then(setAppVersion)
-      .catch(() => setAppVersion('dev'));
+      .catch(() => setAppVersion(import.meta.env.VITE_APP_VERSION));
   }, []);
 
   useEffect(() => {

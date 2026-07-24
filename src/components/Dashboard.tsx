@@ -27,6 +27,11 @@ const SHADOWS_TRACKS = [
   { title: 'Moss on My Boots', src: '/audio/shadows/moss-on-my-boots.mp3' }
 ];
 
+const SHADOWS_EVENT = {
+  title: 'Sunfire Isles',
+  url: 'https://playaethro.online/games/shadows-of-aethro/pages/sunfire-isles'
+};
+
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat(undefined, {
     month: 'short',
@@ -522,6 +527,10 @@ export function Dashboard({ home, onLogout }: Props) {
           </div>
           <div className="topbar-actions">
             <div className="music-control">
+              <div className="topbar-now-playing">
+                <span>Now Playing</span>
+                <strong>{activeTrack.title}</strong>
+              </div>
               <label>
                 <span>Volume</span>
                 <input
@@ -583,9 +592,13 @@ export function Dashboard({ home, onLogout }: Props) {
               </p>
             </div>
 
-            <div className="music-now-playing">
-              <span className="eyebrow">Now Playing</span>
-              <strong>{activeTrack.title}</strong>
+            <div className="current-event-box">
+              <span className="eyebrow">Current Event</span>
+              <strong>{SHADOWS_EVENT.title}</strong>
+              <button className="link-button icon-button" onClick={() => openExternal(SHADOWS_EVENT.url)}>
+                Event Details
+                <span className="button-icon icon-external" aria-hidden="true" />
+              </button>
             </div>
 
             <div className={`install-status install-status-${installState}`}>
