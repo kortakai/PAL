@@ -3,7 +3,7 @@ import { listen } from '@tauri-apps/api/event';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { check as checkLauncherUpdate, type Update } from '@tauri-apps/plugin-updater';
-import { checkShadowsInstall, detectLocalMinecraftProfile, openMinecraftLauncher, repairShadowsInstall } from '../lib/api';
+import { checkShadowsInstall, detectLocalMinecraftProfile, getLauncherNews, openMinecraftLauncher, repairShadowsInstall } from '../lib/api';
 import type { LauncherHome, LocalMinecraftProfile, ModpackCheckResult, ModpackFileStatus, NewsFeedId, ShadowsRepairProgress } from '../lib/types';
 
 type Props = {
@@ -13,6 +13,7 @@ type Props = {
 
 type ShadowsInstallState = 'notChecked' | 'checking' | 'needsUpdate' | 'installing' | 'ready' | 'failed';
 type LauncherUpdateState = 'idle' | 'checking' | 'available' | 'installing' | 'restarting' | 'failed';
+type NewsRefreshState = 'idle' | 'refreshing' | 'failed';
 
 const FEED_TABS: Array<{ id: 'all' | NewsFeedId; label: string }> = [
   { id: 'all', label: 'All News' },
@@ -90,8 +91,12 @@ function worldCardClass(gameId: string) {
 export function Dashboard({ home, onLogout }: Props) {
   const launcherAudioRef = useRef<HTMLAudioElement | null>(null);
   const checkedLocalMinecraftProfileRef = useRef(false);
+  const refreshedShadowsNewsRef = useRef(false);
   const [activeFeed, setActiveFeed] = useState<'all' | NewsFeedId>('all');
   const [view, setView] = useState<'home' | 'shadows' | 'aethro-online'>('home');
+  const [news, setNews] = useState(home.news);
+  const [newsRefreshState, setNewsRefreshState] = useState<NewsRefreshState>('idle');
+  const [newsRefreshMessage, setNewsRefreshMessage] = useState('');
   const [musicEnabled, setMusicEnabled] = useState(true);
   const [musicVolume, setMusicVolume] = useState(42);
   const [trackIndex, setTrackIndex] = useState(0);
@@ -127,15 +132,44 @@ export function Dashboard({ home, onLogout }: Props) {
     alert(`${gameId} launcher flow not wired yet.`);
   }
 
-  const visibleNews = useMemo(() => {
-    if (activeFeed === 'all') return home.news;
-    return home.news.filter((item) => item.feedId === activeFeed);
-  }, [activeFeed, home.news]);
+  useEffect(() => {
+    setNews(home.news);
+  }, [home.news]);
 
-  const shadowsNews = useMemo(() => home.news.filter((item) => item.feedId === 'shadows'), [home.news]);
-  const aethroOnlineNews = useMemo(() => home.news.filter((item) => item.feedId === 'aethro-online'), [home.news]);
+  const visibleNews = useMemo(() => {
+    if (activeFeed === 'all') return news;
+    return news.filter((item) => item.feedId === activeFeed);
+  }, [activeFeed, news]);
+
+  const shadowsNews = useMemo(() => news.filter((item) => item.feedId === 'shadows'), [news]);
+  const aethroOnlineNews = useMemo(() => news.filter((item) => item.feedId === 'aethro-online'), [news]);
   const activeTrack = SHADOWS_TRACKS[trackIndex];
   const accountInitial = (home.user.displayName || home.user.username || 'A').slice(0, 1).toUpperCase();
+
+  async function refreshNews() {
+    setNewsRefreshState('refreshing');
+    setNewsRefreshMessage('');
+
+    try {
+      const freshNews = await getLauncherNews();
+      const freshShadowsCount = freshNews.filter((item) => item.feedId === 'shadows').length;
+
+      setNews(freshNews);
+      setNewsRefreshState('idle');
+      setNewsRefreshMessage(`News refreshed. ${freshShadowsCount} Shadows article${freshShadowsCount === 1 ? '' : 's'} loaded.`);
+    } catch (err) {
+      console.warn('News refresh failed.', err);
+      setNewsRefreshState('failed');
+      setNewsRefreshMessage(err instanceof Error ? err.message : String(err || 'Unable to refresh news.'));
+    }
+  }
+
+  useEffect(() => {
+    if (view !== 'shadows' || refreshedShadowsNewsRef.current) return;
+
+    refreshedShadowsNewsRef.current = true;
+    void refreshNews();
+  }, [view]);
 
   async function checkForLauncherUpdate(showErrors = false) {
     setLauncherUpdateState('checking');
@@ -670,8 +704,19 @@ export function Dashboard({ home, onLogout }: Props) {
           <div className="panel">
             <div className="panel-heading">
               <h2>Shadows News</h2>
-              <span>{shadowsNews.length} article{shadowsNews.length === 1 ? '' : 's'}</span>
+              <div className="news-heading-actions">
+                <span>{shadowsNews.length} article{shadowsNews.length === 1 ? '' : 's'}</span>
+                <button className="secondary compact-button" onClick={refreshNews} disabled={newsRefreshState === 'refreshing'}>
+                  {newsRefreshState === 'refreshing' ? 'Refreshing...' : 'Refresh'}
+                </button>
+              </div>
             </div>
+
+            {newsRefreshMessage && (
+              <p className={`news-refresh-message ${newsRefreshState === 'failed' ? 'error' : ''}`}>
+                {newsRefreshMessage}
+              </p>
+            )}
 
             <div className="news-list">
               {shadowsNews.length === 0 ? (

@@ -271,7 +271,7 @@ function parseRss(xml: string, feedId: NewsFeedId, feedName: string): LauncherNe
   });
 }
 
-async function getLauncherNews(): Promise<LauncherNewsItem[]> {
+export async function getLauncherNews(): Promise<LauncherNewsItem[]> {
   const settled = await Promise.allSettled(
     RSS_FEEDS.map(async (feed) => {
       console.info(`Loading ${feed.name} RSS`, feed.url);

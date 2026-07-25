@@ -1024,6 +1024,23 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
   font-size: 0.8rem;
 }
 
+.news-heading-actions {
+  align-items: center;
+  display: flex;
+  gap: 0.65rem;
+}
+
+.compact-button {
+  min-height: 0;
+  padding: 0.45rem 0.7rem;
+}
+
+.news-refresh-message {
+  color: #fff1c0;
+  font-size: 0.85rem;
+  margin: 0.3rem 0 0.85rem;
+}
+
 .feed-tabs {
   display: flex;
   flex-wrap: wrap;
