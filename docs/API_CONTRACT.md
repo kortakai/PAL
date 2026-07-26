@@ -136,7 +136,7 @@ https://aethro.net/rss.php?division=minecraft-survival
 
 ## Shadows Launch Proof
 
-`POST /account/game-launches/`
+`POST https://playaethro.online/api/account/game-launches/`
 
 Headers:
 

@@ -10,10 +10,11 @@ import type {
 } from './types';
 
 const API_BASE = 'https://aethro.net/api';
+const PLAY_AETHRO_API_BASE = 'https://playaethro.online/api';
 const SESSION_STORAGE_KEY = 'aethro.launcher.session.v1';
 const USERINFO_TIMEOUT_MS = 8_000;
 const RSS_TIMEOUT_MS = 8_000;
-const SHADOWS_LAUNCH_EVENT_PATH = '/account/game-launches/';
+const SHADOWS_LAUNCH_EVENT_URL = `${PLAY_AETHRO_API_BASE}/account/game-launches/`;
 
 const OAUTH_CONFIG = {
   clientId: 'ath_XuN_R2q4KK7VUFDYvGiksCgx',
@@ -105,8 +106,7 @@ export function clearSavedSession(): void {
   localStorage.removeItem(SESSION_STORAGE_KEY);
 }
 
-async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
-  const url = `${API_BASE}${path}`;
+async function apiRequestUrl<T>(url: string, options: ApiRequestOptions = {}): Promise<T> {
   const headers: Record<string, string> = {
     Accept: 'application/json'
   };
@@ -120,6 +120,10 @@ async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Pro
     headers,
     body: options.body === undefined ? null : JSON.stringify(options.body)
   });
+}
+
+async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
+  return apiRequestUrl<T>(`${API_BASE}${path}`, options);
 }
 
 function devSession(identifier: string): AuthSession {
@@ -249,7 +253,7 @@ export async function recordShadowsLaunch(session: AuthSession, minecraft: Local
     launched_at: new Date().toISOString()
   };
 
-  await apiRequest<unknown>(SHADOWS_LAUNCH_EVENT_PATH, {
+  await apiRequestUrl<unknown>(SHADOWS_LAUNCH_EVENT_URL, {
     method: 'POST',
     token: session.accessToken,
     body: payload

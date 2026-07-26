@@ -1549,7 +1549,14 @@ async fn api_request_json(
     let parsed = reqwest::Url::parse(&url).map_err(|e| format!("Invalid API URL: {e}"))?;
     let host = parsed.host_str().unwrap_or_default();
 
-    let allowed_hosts = ["aethro.net", "api.aethro.net", "localhost", "127.0.0.1"];
+    let allowed_hosts = [
+        "aethro.net",
+        "api.aethro.net",
+        "playaethro.online",
+        "www.playaethro.online",
+        "localhost",
+        "127.0.0.1",
+    ];
     if !allowed_hosts.contains(&host) {
         return Err(format!("API host is not allowed by the launcher: {host}"));
     }
