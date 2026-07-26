@@ -3,10 +3,11 @@ import { listen } from '@tauri-apps/api/event';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { check as checkLauncherUpdate, type Update } from '@tauri-apps/plugin-updater';
-import { checkShadowsInstall, detectLocalMinecraftProfile, getLauncherNews, openMinecraftLauncher, repairShadowsInstall } from '../lib/api';
-import type { LauncherHome, LocalMinecraftProfile, ModpackCheckResult, ModpackFileStatus, NewsFeedId, ShadowsRepairProgress } from '../lib/types';
+import { checkShadowsInstall, detectLocalMinecraftProfile, getLauncherNews, openMinecraftLauncher, recordShadowsLaunch, repairShadowsInstall } from '../lib/api';
+import type { AuthSession, LauncherHome, LocalMinecraftProfile, ModpackCheckResult, ModpackFileStatus, NewsFeedId, ShadowsRepairProgress } from '../lib/types';
 
 type Props = {
+  session: AuthSession;
   home: LauncherHome;
   onLogout: () => void;
 };
@@ -88,7 +89,7 @@ function worldCardClass(gameId: string) {
   return 'world-card';
 }
 
-export function Dashboard({ home, onLogout }: Props) {
+export function Dashboard({ session, home, onLogout }: Props) {
   const launcherAudioRef = useRef<HTMLAudioElement | null>(null);
   const checkedLocalMinecraftProfileRef = useRef(false);
   const refreshedShadowsNewsRef = useRef(false);
@@ -409,7 +410,29 @@ export function Dashboard({ home, onLogout }: Props) {
     setShadowsError(null);
 
     try {
+      let minecraftProfile: LocalMinecraftProfile = {
+        name: home.user.minecraftName || localMinecraftProfile?.name || '',
+        uuid: home.user.minecraftUuid || localMinecraftProfile?.uuid,
+        source: home.user.minecraftName ? 'Aethro account' : localMinecraftProfile?.source || 'Minecraft Launcher'
+      };
+
+      if (!minecraftProfile.name || !minecraftProfile.uuid) {
+        const detectedProfile = await detectLocalMinecraftProfile();
+        setLocalMinecraftProfile(detectedProfile);
+
+        minecraftProfile = {
+          name: home.user.minecraftName || detectedProfile?.name || '',
+          uuid: home.user.minecraftUuid || detectedProfile?.uuid,
+          source: home.user.minecraftName ? 'Aethro account' : detectedProfile?.source || 'Minecraft Launcher'
+        };
+      }
+
+      if (!minecraftProfile.name || !minecraftProfile.uuid) {
+        throw new Error('Unable to verify your Minecraft username and UUID. Open the Minecraft Launcher once, sign into Java Edition, then try again.');
+      }
+
       await openMinecraftLauncher();
+      await recordShadowsLaunch(session, minecraftProfile);
     } catch (err) {
       setShadowsError(err instanceof Error ? err.message : String(err || 'Unable to open Minecraft Launcher.'));
     } finally {

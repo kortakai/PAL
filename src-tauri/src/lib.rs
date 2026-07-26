@@ -1595,6 +1595,10 @@ async fn api_request_json(
         return Err(format!("API returned HTTP {status}: {message}"));
     }
 
+    if text.trim().is_empty() {
+        return Ok(serde_json::Value::Null);
+    }
+
     serde_json::from_str(&text).map_err(|e| format!("Unable to parse API JSON: {e}"))
 }
 

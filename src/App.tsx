@@ -103,7 +103,7 @@ export function App() {
   return (
     <>
       {versionBadge}
-      <Dashboard home={home} onLogout={logout} />
+      <Dashboard session={session} home={home} onLogout={logout} />
     </>
   );
 }

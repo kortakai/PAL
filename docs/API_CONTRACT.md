@@ -134,6 +134,30 @@ https://aethro.net/rss.php?division=aethro-online
 https://aethro.net/rss.php?division=minecraft-survival
 ```
 
+## Shadows Launch Proof
+
+`POST /account/game-launches/`
+
+Headers:
+
+```txt
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+```
+
+Request:
+
+```json
+{
+  "game": "shadows-of-aethro",
+  "minecraft_uuid": "player-minecraft-uuid",
+  "minecraft_username": "PlayerName",
+  "launched_at": "2026-07-25T12:00:00.000Z"
+}
+```
+
+The launcher must not send install paths, device details, launcher state, hardware data, or local file paths.
+
 ## MUD Login Later
 
 Aethro Online should use your existing flow:

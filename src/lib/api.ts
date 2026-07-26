@@ -13,6 +13,7 @@ const API_BASE = 'https://aethro.net/api';
 const SESSION_STORAGE_KEY = 'aethro.launcher.session.v1';
 const USERINFO_TIMEOUT_MS = 8_000;
 const RSS_TIMEOUT_MS = 8_000;
+const SHADOWS_LAUNCH_EVENT_PATH = '/account/game-launches/';
 
 const OAUTH_CONFIG = {
   clientId: 'ath_XuN_R2q4KK7VUFDYvGiksCgx',
@@ -50,6 +51,13 @@ type ApiRequestOptions = {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   token?: string;
   body?: unknown;
+};
+
+type ShadowsLaunchProof = {
+  game: 'shadows-of-aethro';
+  minecraft_uuid: string;
+  minecraft_username: string;
+  launched_at: string;
 };
 
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
@@ -227,6 +235,25 @@ export async function detectLocalMinecraftProfile(): Promise<LocalMinecraftProfi
 
 export async function openMinecraftLauncher(): Promise<string> {
   return invoke<string>('open_minecraft_launcher');
+}
+
+export async function recordShadowsLaunch(session: AuthSession, minecraft: LocalMinecraftProfile): Promise<void> {
+  if (!minecraft.uuid || !minecraft.name) {
+    throw new Error('A verified Minecraft username and UUID are required before launching Shadows.');
+  }
+
+  const payload: ShadowsLaunchProof = {
+    game: 'shadows-of-aethro',
+    minecraft_uuid: minecraft.uuid,
+    minecraft_username: minecraft.name,
+    launched_at: new Date().toISOString()
+  };
+
+  await apiRequest<unknown>(SHADOWS_LAUNCH_EVENT_PATH, {
+    method: 'POST',
+    token: session.accessToken,
+    body: payload
+  });
 }
 
 async function fetchText(url: string): Promise<string> {
