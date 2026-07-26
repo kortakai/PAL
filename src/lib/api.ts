@@ -14,7 +14,7 @@ const PLAY_AETHRO_API_BASE = 'https://playaethro.online/api';
 const SESSION_STORAGE_KEY = 'aethro.launcher.session.v1';
 const USERINFO_TIMEOUT_MS = 8_000;
 const RSS_TIMEOUT_MS = 8_000;
-const SHADOWS_LAUNCH_EVENT_URL = `${PLAY_AETHRO_API_BASE}/account/game-launches/`;
+const SHADOWS_LAUNCH_EVENT_URL = `${PLAY_AETHRO_API_BASE}/account/game-launches`;
 
 const OAUTH_CONFIG = {
   clientId: 'ath_XuN_R2q4KK7VUFDYvGiksCgx',
