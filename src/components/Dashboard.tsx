@@ -129,6 +129,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
   const refreshedShadowsNewsRef = useRef(false);
   const kalismorTerminalRef = useRef<HTMLDivElement | null>(null);
   const kalismorTerminalInstanceRef = useRef<Terminal | null>(null);
+  const kalismorMudSessionIdRef = useRef<string | null>(null);
   const kalismorSocketRef = useRef<WebSocket | null>(null);
   const [activeFeed, setActiveFeed] = useState<'all' | NewsFeedId>('all');
   const [view, setView] = useState<LauncherView>('home');
@@ -160,6 +161,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
   const [creatingKalismorCharacter, setCreatingKalismorCharacter] = useState(false);
   const [kalismorClientChoice, setKalismorClientChoice] = useState<KalismorClientChoice>('launcher');
   const [kalismorLoginToken, setKalismorLoginToken] = useState<KalismorLoginToken | null>(null);
+  const [kalismorCommandInput, setKalismorCommandInput] = useState('');
   const [startingKalismor, setStartingKalismor] = useState(false);
   const [kalismorTerminalOpen, setKalismorTerminalOpen] = useState(false);
 
@@ -169,6 +171,33 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
 
   async function withFreshSession<T>(action: (activeSession: AuthSession) => Promise<T>): Promise<T> {
     return runWithFreshAethroSession(session, onSessionUpdated, action);
+  }
+
+  function resizeKalismorTerminal() {
+    const terminal = kalismorTerminalInstanceRef.current;
+    const container = kalismorTerminalRef.current;
+    if (!terminal || !container) return;
+
+    const cols = Math.max(80, Math.floor(container.clientWidth / 8.5));
+    const rows = Math.max(24, Math.floor(container.clientHeight / 18));
+    terminal.resize(cols, rows);
+  }
+
+  async function sendKalismorCommand(command: string) {
+    const line = `${command}\r\n`;
+    const terminal = kalismorTerminalInstanceRef.current;
+
+    if (kalismorSocketRef.current?.readyState === WebSocket.OPEN) {
+      kalismorSocketRef.current.send(line);
+      return;
+    }
+
+    if (!kalismorMudSessionIdRef.current) {
+      terminal?.writeln('Kalismor terminal is still connecting.');
+      return;
+    }
+
+    await sendMudTerminalInput(kalismorMudSessionIdRef.current, line);
   }
 
   function routeDeepLink(url: string) {
@@ -464,6 +493,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
 
     kalismorSocketRef.current?.close();
     kalismorTerminalInstanceRef.current?.dispose();
+    kalismorMudSessionIdRef.current = null;
     let disposed = false;
     let mudSessionId: string | null = null;
     let unlistenMudOutput: (() => void) | undefined;
@@ -483,6 +513,9 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
 
     kalismorTerminalInstanceRef.current = terminal;
     terminal.open(kalismorTerminalRef.current);
+    resizeKalismorTerminal();
+    const resizeTerminal = () => resizeKalismorTerminal();
+    window.addEventListener('resize', resizeTerminal);
     terminal.writeln('Aethro Online: Chronicles of Kalismor');
     terminal.writeln(`Character: ${selectedKalismorCharacter.name}`);
 
@@ -534,7 +567,9 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
             return;
           }
           mudSessionId = sessionId;
+          kalismorMudSessionIdRef.current = sessionId;
           terminal.writeln('Connected. Login token sent.');
+          resizeKalismorTerminal();
         })
         .catch((err) => {
           terminal.writeln(err instanceof Error ? err.message : String(err || 'Unable to connect to Kalismor.'));
@@ -556,8 +591,10 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
 
     return () => {
       disposed = true;
+      window.removeEventListener('resize', resizeTerminal);
       unlistenMudOutput?.();
       if (mudSessionId) void disconnectMudTerminal(mudSessionId);
+      kalismorMudSessionIdRef.current = null;
       kalismorSocketRef.current?.close();
       kalismorSocketRef.current = null;
       kalismorTerminalInstanceRef.current?.dispose();
@@ -570,6 +607,8 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     appWindow.setFullscreen(kalismorTerminalOpen).catch((err) => {
       console.warn('Unable to toggle Kalismor fullscreen mode.', err);
     });
+    window.setTimeout(resizeKalismorTerminal, 150);
+    window.setTimeout(resizeKalismorTerminal, 500);
 
     return () => {
       if (kalismorTerminalOpen) {
@@ -755,6 +794,25 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
               <span>{kalismorLoginToken.websocketUrl ? 'Gateway ready' : 'Token ready'}</span>
             </div>
             <div ref={kalismorTerminalRef} className="kalismor-terminal" />
+            <form
+              className="kalismor-terminal-input"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void sendKalismorCommand(kalismorCommandInput).then(() => {
+                  setKalismorCommandInput('');
+                });
+              }}
+            >
+              <span aria-hidden="true">&gt;</span>
+              <input
+                value={kalismorCommandInput}
+                onChange={(event) => setKalismorCommandInput(event.target.value)}
+                placeholder="Type a command..."
+                autoComplete="off"
+                autoFocus
+              />
+              <button type="submit">Send</button>
+            </form>
           </section>
         </main>
       );

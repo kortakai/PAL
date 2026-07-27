@@ -881,15 +881,17 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
   grid-template-rows: auto minmax(0, 1fr);
   height: 100vh;
   overflow: hidden;
+  padding: 12px;
 }
 .kalismor-terminal-shell {
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 12px;
   min-height: 0;
   border: 1px solid rgba(198, 174, 113, .18);
-  border-radius: 14px;
+  border-radius: 10px;
   padding: 18px;
   background: rgba(4, 5, 8, .84);
   box-shadow: 0 22px 70px rgba(0,0,0,.38);
@@ -898,12 +900,48 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
   overflow: hidden;
   min-height: 0;
   border: 1px solid rgba(94, 204, 193, .16);
-  border-radius: 10px;
+  border-radius: 8px;
   padding: 10px;
   background: #050609;
 }
-.kalismor-terminal .xterm {
-  height: 100%;
+.kalismor-terminal .xterm,
+.kalismor-terminal .xterm-viewport,
+.kalismor-terminal .xterm-screen {
+  width: 100% !important;
+  height: 100% !important;
+}
+.kalismor-terminal-input {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(94, 204, 193, .2);
+  border-radius: 8px;
+  padding: 8px;
+  background: rgba(2, 7, 9, .92);
+}
+.kalismor-terminal-input span {
+  color: #f2dfad;
+  font-family: Menlo, Monaco, Consolas, monospace;
+  font-weight: 900;
+}
+.kalismor-terminal-input input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: rgba(255,255,255,.08);
+  color: #fff1c0;
+  font: 15px Menlo, Monaco, Consolas, monospace;
+}
+.kalismor-terminal-input input::placeholder {
+  color: rgba(255, 241, 192, .45);
+}
+.kalismor-terminal-input button {
+  border-radius: 6px;
+  padding: 10px 14px;
 }
 .wide-hero { min-height: 180px; padding: 34px; margin-bottom: 24px; display: flex; align-items: end; background: linear-gradient(135deg, rgba(248,193,92,.22), rgba(98,37,135,.40)); }
 .wide-hero h2 { margin: 0 0 8px; font-size: 40px; }
