@@ -10,9 +10,15 @@ use std::{
     net::{TcpListener, TcpStream},
     path::{Component, Path, PathBuf},
     process::Command,
+    sync::Arc,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
 use tauri::{Emitter, Manager};
+use tokio::{
+    io::{AsyncReadExt, AsyncWriteExt},
+    net::TcpStream as TokioTcpStream,
+    sync::{mpsc, Mutex},
+};
 
 const HTTP_TIMEOUT_SECONDS: u64 = 12;
 const DOWNLOAD_TIMEOUT_SECONDS: u64 = 300;
@@ -206,6 +212,33 @@ struct AuthSession {
     refresh_token: Option<String>,
     expires_at: Option<String>,
     user: UserProfile,
+}
+
+#[derive(Default)]
+struct MudTerminalState {
+    sessions: Arc<Mutex<HashMap<String, mpsc::UnboundedSender<String>>>>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct MudTerminalConnectRequest {
+    host: String,
+    port: u16,
+    token: String,
+    character_name: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MudTerminalConnectResponse {
+    session_id: String,
+}
+
+#[derive(Clone, Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct MudTerminalOutput {
+    session_id: String,
+    data: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -1552,6 +1585,8 @@ async fn api_request_json(
     let allowed_hosts = [
         "aethro.net",
         "api.aethro.net",
+        "aethro.online",
+        "www.aethro.online",
         "playaethro.online",
         "www.playaethro.online",
         "localhost",
@@ -1609,7 +1644,7 @@ async fn api_request_json(
     serde_json::from_str(&text).map_err(|e| format!("Unable to parse API JSON: {e}"))
 }
 
-async fn exchange_authorization_code(
+async fn exchange_oauth_token(
     client: &reqwest::Client,
     config: &OAuthLoginRequest,
     form: &HashMap<String, String>,
@@ -1643,7 +1678,7 @@ async fn exchange_authorization_code(
 
     let response =
         request.form(&token_form).send().await.map_err(|e| {
-            format!("Unable to exchange Aethro login code using {auth_method}: {e}")
+            format!("Unable to call Aethro token endpoint using {auth_method}: {e}")
         })?;
 
     let status = response.status();
@@ -1653,6 +1688,59 @@ async fn exchange_authorization_code(
         .map_err(|e| format!("Unable to read Aethro token response using {auth_method}: {e}"))?;
 
     Ok((status, text, auth_method))
+}
+
+fn token_expires_at(token: &TokenResponse) -> Option<String> {
+    token.expires_at.clone().or_else(|| {
+        token.expires_in.map(|seconds| {
+            let unix = std::time::SystemTime::now()
+                .checked_add(Duration::from_secs(seconds))
+                .unwrap_or(std::time::SystemTime::now())
+                .duration_since(std::time::UNIX_EPOCH)
+                .unwrap_or_default()
+                .as_secs();
+            format!("unix:{unix}")
+        })
+    })
+}
+
+async fn auth_session_from_token(
+    client: &reqwest::Client,
+    config: &OAuthLoginRequest,
+    token: TokenResponse,
+) -> Result<AuthSession, String> {
+    let user_response = client
+        .get(&config.userinfo_url)
+        .header(reqwest::header::ACCEPT, "application/json")
+        .bearer_auth(&token.access_token)
+        .send()
+        .await
+        .map_err(|e| format!("Unable to load Aethro user info: {e}"))?;
+
+    let user_status = user_response.status();
+    let user_text = user_response
+        .text()
+        .await
+        .map_err(|e| format!("Unable to read Aethro user info response: {e}"))?;
+
+    if !user_status.is_success() {
+        return Err(format!(
+            "Aethro user info endpoint returned HTTP {user_status}: {}",
+            user_text.chars().take(300).collect::<String>()
+        ));
+    }
+
+    let user_json: serde_json::Value = serde_json::from_str(&user_text)
+        .map_err(|e| format!("Unable to parse Aethro user info JSON: {e}. Body: {user_text}"))?;
+    let info = extract_user_info(user_json)?;
+    let expires_at = token_expires_at(&token);
+
+    Ok(AuthSession {
+        access_token: token.access_token,
+        refresh_token: token.refresh_token,
+        expires_at,
+        user: user_profile_from_info(info),
+    })
 }
 
 #[tauri::command]
@@ -1706,7 +1794,7 @@ async fn oauth_login(config: OAuthLoginRequest) -> Result<AuthSession, String> {
     }
 
     let (token_status, token_text, auth_method) =
-        exchange_authorization_code(&client, &config, &form).await?;
+        exchange_oauth_token(&client, &config, &form).await?;
 
     if !token_status.is_success() {
         return Err(format!(
@@ -1719,49 +1807,194 @@ async fn oauth_login(config: OAuthLoginRequest) -> Result<AuthSession, String> {
         .map_err(|e| format!("Unable to parse Aethro token JSON: {e}. Body: {token_text}"))?;
     let token = extract_token_response(token_json)?;
 
-    let user_response = client
-        .get(&config.userinfo_url)
-        .header(reqwest::header::ACCEPT, "application/json")
-        .bearer_auth(&token.access_token)
-        .send()
-        .await
-        .map_err(|e| format!("Unable to load Aethro user info: {e}"))?;
+    auth_session_from_token(&client, &config, token).await
+}
 
-    let user_status = user_response.status();
-    let user_text = user_response
-        .text()
-        .await
-        .map_err(|e| format!("Unable to read Aethro user info response: {e}"))?;
+#[tauri::command]
+async fn oauth_refresh(
+    config: OAuthLoginRequest,
+    refresh_token: String,
+) -> Result<AuthSession, String> {
+    if refresh_token.trim().is_empty() {
+        return Err("Aethro refresh token is missing.".to_string());
+    }
 
-    if !user_status.is_success() {
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(HTTP_TIMEOUT_SECONDS))
+        .build()
+        .map_err(|e| format!("Unable to create OAuth HTTP client: {e}"))?;
+    let mut form = HashMap::<String, String>::new();
+    form.insert("grant_type".to_string(), "refresh_token".to_string());
+    form.insert("refresh_token".to_string(), refresh_token);
+
+    let (token_status, token_text, auth_method) =
+        exchange_oauth_token(&client, &config, &form).await?;
+
+    if !token_status.is_success() {
         return Err(format!(
-            "Aethro user info endpoint returned HTTP {user_status}: {}",
-            user_text.chars().take(300).collect::<String>()
+            "Aethro refresh endpoint returned HTTP {token_status} using {auth_method}: {}",
+            token_text.chars().take(500).collect::<String>()
         ));
     }
 
-    let user_json: serde_json::Value = serde_json::from_str(&user_text)
-        .map_err(|e| format!("Unable to parse Aethro user info JSON: {e}. Body: {user_text}"))?;
-    let info = extract_user_info(user_json)?;
+    let token_json: serde_json::Value = serde_json::from_str(&token_text)
+        .map_err(|e| format!("Unable to parse Aethro refresh JSON: {e}. Body: {token_text}"))?;
+    let token = extract_token_response(token_json)?;
 
-    let expires_at = token.expires_at.or_else(|| {
-        token.expires_in.map(|seconds| {
-            let unix = std::time::SystemTime::now()
-                .checked_add(Duration::from_secs(seconds))
-                .unwrap_or(std::time::SystemTime::now())
-                .duration_since(std::time::UNIX_EPOCH)
-                .unwrap_or_default()
-                .as_secs();
-            format!("unix:{unix}")
-        })
+    auth_session_from_token(&client, &config, token).await
+}
+
+fn validate_mud_host(host: &str) -> Result<String, String> {
+    let normalized = host.trim().to_ascii_lowercase();
+    let allowed_hosts = [
+        "aethro.online",
+        "www.aethro.online",
+        "127.0.0.1",
+        "localhost",
+    ];
+
+    if allowed_hosts.contains(&normalized.as_str()) {
+        Ok(normalized)
+    } else {
+        Err(format!("Kalismor host is not allowed: {host}"))
+    }
+}
+
+#[tauri::command]
+async fn mud_terminal_connect(
+    app_handle: tauri::AppHandle,
+    state: tauri::State<'_, MudTerminalState>,
+    request: MudTerminalConnectRequest,
+) -> Result<MudTerminalConnectResponse, String> {
+    let host = validate_mud_host(&request.host)?;
+    if request.port == 0 {
+        return Err("Kalismor port is missing.".to_string());
+    }
+    if request.token.trim().is_empty() {
+        return Err("Kalismor login token is missing.".to_string());
+    }
+
+    let address = format!("{host}:{}", request.port);
+    let stream = TokioTcpStream::connect(&address)
+        .await
+        .map_err(|e| format!("Unable to connect to Kalismor at {address}: {e}"))?;
+    let _ = stream.set_nodelay(true);
+
+    let session_id = random_string(24);
+    let (tx, mut rx) = mpsc::unbounded_channel::<String>();
+    {
+        let mut sessions = state.sessions.lock().await;
+        sessions.insert(session_id.clone(), tx);
+    }
+
+    let (mut reader, mut writer) = stream.into_split();
+    let sessions_for_reader = state.sessions.clone();
+    let read_session_id = session_id.clone();
+    let read_app_handle = app_handle.clone();
+    tokio::spawn(async move {
+        let mut buffer = vec![0_u8; 4096];
+        loop {
+            match reader.read(&mut buffer).await {
+                Ok(0) => {
+                    let _ = read_app_handle.emit(
+                        "mud-terminal-output",
+                        MudTerminalOutput {
+                            session_id: read_session_id.clone(),
+                            data: "\r\nConnection closed.\r\n".to_string(),
+                        },
+                    );
+                    break;
+                }
+                Ok(read) => {
+                    let data = String::from_utf8_lossy(&buffer[..read]).to_string();
+                    let _ = read_app_handle.emit(
+                        "mud-terminal-output",
+                        MudTerminalOutput {
+                            session_id: read_session_id.clone(),
+                            data,
+                        },
+                    );
+                }
+                Err(error) => {
+                    let _ = read_app_handle.emit(
+                        "mud-terminal-output",
+                        MudTerminalOutput {
+                            session_id: read_session_id.clone(),
+                            data: format!("\r\nConnection error: {error}\r\n"),
+                        },
+                    );
+                    break;
+                }
+            }
+        }
+
+        sessions_for_reader.lock().await.remove(&read_session_id);
     });
 
-    Ok(AuthSession {
-        access_token: token.access_token,
-        refresh_token: token.refresh_token,
-        expires_at,
-        user: user_profile_from_info(info),
-    })
+    let write_session_id = session_id.clone();
+    let write_app_handle = app_handle.clone();
+    let login_line = format!("AUTH_TOKEN {}\r\n", request.token.trim());
+    tokio::spawn(async move {
+        if let Some(character_name) = request.character_name.as_deref() {
+            let _ = write_app_handle.emit(
+                "mud-terminal-output",
+                MudTerminalOutput {
+                    session_id: write_session_id.clone(),
+                    data: format!("Connecting as {character_name}...\r\n"),
+                },
+            );
+        }
+
+        if let Err(error) = writer.write_all(login_line.as_bytes()).await {
+            let _ = write_app_handle.emit(
+                "mud-terminal-output",
+                MudTerminalOutput {
+                    session_id: write_session_id.clone(),
+                    data: format!("Unable to send Kalismor login token: {error}\r\n"),
+                },
+            );
+            return;
+        }
+
+        while let Some(data) = rx.recv().await {
+            if let Err(error) = writer.write_all(data.as_bytes()).await {
+                let _ = write_app_handle.emit(
+                    "mud-terminal-output",
+                    MudTerminalOutput {
+                        session_id: write_session_id.clone(),
+                        data: format!("\r\nUnable to send terminal input: {error}\r\n"),
+                    },
+                );
+                break;
+            }
+        }
+    });
+
+    Ok(MudTerminalConnectResponse { session_id })
+}
+
+#[tauri::command]
+async fn mud_terminal_send(
+    state: tauri::State<'_, MudTerminalState>,
+    session_id: String,
+    data: String,
+) -> Result<(), String> {
+    let sessions = state.sessions.lock().await;
+    let sender = sessions
+        .get(&session_id)
+        .ok_or_else(|| "Kalismor terminal session is not connected.".to_string())?;
+    sender
+        .send(data)
+        .map_err(|_| "Kalismor terminal session is closed.".to_string())
+}
+
+#[tauri::command]
+async fn mud_terminal_disconnect(
+    state: tauri::State<'_, MudTerminalState>,
+    session_id: String,
+) -> Result<(), String> {
+    state.sessions.lock().await.remove(&session_id);
+    Ok(())
 }
 
 #[tauri::command]
@@ -1772,6 +2005,9 @@ fn launch_placeholder(game_id: String) -> Result<String, String> {
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .manage(MudTerminalState::default())
+        .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {}))
+        .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
@@ -1785,6 +2021,10 @@ pub fn run() {
             fetch_text,
             api_request_json,
             oauth_login,
+            oauth_refresh,
+            mud_terminal_connect,
+            mud_terminal_send,
+            mud_terminal_disconnect,
             open_minecraft_launcher,
             launch_placeholder
         ])

@@ -1,20 +1,51 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { getCurrent, onOpenUrl } from '@tauri-apps/plugin-deep-link';
 import { listen } from '@tauri-apps/api/event';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { check as checkLauncherUpdate, type Update } from '@tauri-apps/plugin-updater';
-import { checkShadowsInstall, detectLocalMinecraftProfile, getLauncherNews, openMinecraftLauncher, recordShadowsLaunch, repairShadowsInstall } from '../lib/api';
-import type { AuthSession, LauncherHome, LocalMinecraftProfile, ModpackCheckResult, ModpackFileStatus, NewsFeedId, ShadowsRepairProgress } from '../lib/types';
+import { Terminal } from '@xterm/xterm';
+import {
+  checkShadowsInstall,
+  connectMudTerminal,
+  createKalismorCharacter,
+  detectLocalMinecraftProfile,
+  disconnectMudTerminal,
+  getKalismorCharacters,
+  getLauncherNews,
+  openMinecraftLauncher,
+  recordShadowsLaunch,
+  repairShadowsInstall,
+  runWithFreshAethroSession,
+  requestKalismorLoginToken,
+  sendMudTerminalInput,
+  type MudTerminalOutput
+} from '../lib/api';
+import type {
+  AuthSession,
+  KalismorCharacter,
+  KalismorLoginToken,
+  LauncherHome,
+  LocalMinecraftProfile,
+  ModpackCheckResult,
+  ModpackFileStatus,
+  NewsFeedId,
+  ShadowsRepairProgress
+} from '../lib/types';
 
 type Props = {
   session: AuthSession;
   home: LauncherHome;
   onLogout: () => void;
+  onSessionUpdated: (session: AuthSession) => void;
 };
 
+type LauncherView = 'home' | 'shadows' | 'aethro-online';
 type ShadowsInstallState = 'notChecked' | 'checking' | 'needsUpdate' | 'installing' | 'ready' | 'failed';
 type LauncherUpdateState = 'idle' | 'checking' | 'available' | 'installing' | 'restarting' | 'failed';
 type NewsRefreshState = 'idle' | 'refreshing' | 'failed';
+type KalismorClientChoice = 'launcher' | 'external';
 
 const FEED_TABS: Array<{ id: 'all' | NewsFeedId; label: string }> = [
   { id: 'all', label: 'All News' },
@@ -33,6 +64,9 @@ const SHADOWS_EVENT = {
   title: 'Sunfire Isles',
   url: 'https://playaethro.online/games/shadows-of-aethro/pages/sunfire-isles'
 };
+
+const AETHRO_ONLINE_STORE_URL = 'https://aethro.online/store';
+const AETHRO_ONLINE_FORUMS_URL = 'https://aethro.online/forums';
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat(undefined, {
@@ -89,12 +123,15 @@ function worldCardClass(gameId: string) {
   return 'world-card';
 }
 
-export function Dashboard({ session, home, onLogout }: Props) {
+export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) {
   const launcherAudioRef = useRef<HTMLAudioElement | null>(null);
   const checkedLocalMinecraftProfileRef = useRef(false);
   const refreshedShadowsNewsRef = useRef(false);
+  const kalismorTerminalRef = useRef<HTMLDivElement | null>(null);
+  const kalismorTerminalInstanceRef = useRef<Terminal | null>(null);
+  const kalismorSocketRef = useRef<WebSocket | null>(null);
   const [activeFeed, setActiveFeed] = useState<'all' | NewsFeedId>('all');
-  const [view, setView] = useState<'home' | 'shadows' | 'aethro-online'>('home');
+  const [view, setView] = useState<LauncherView>('home');
   const [news, setNews] = useState(home.news);
   const [newsRefreshState, setNewsRefreshState] = useState<NewsRefreshState>('idle');
   const [newsRefreshMessage, setNewsRefreshMessage] = useState('');
@@ -114,9 +151,47 @@ export function Dashboard({ session, home, onLogout }: Props) {
   const [launcherUpdateState, setLauncherUpdateState] = useState<LauncherUpdateState>('idle');
   const [launcherUpdateMessage, setLauncherUpdateMessage] = useState('');
   const [launcherUpdateProgress, setLauncherUpdateProgress] = useState(0);
+  const [kalismorCharacters, setKalismorCharacters] = useState<KalismorCharacter[]>([]);
+  const [kalismorCharactersLoaded, setKalismorCharactersLoaded] = useState(false);
+  const [kalismorLoading, setKalismorLoading] = useState(false);
+  const [kalismorError, setKalismorError] = useState<string | null>(null);
+  const [selectedKalismorCharacterId, setSelectedKalismorCharacterId] = useState('');
+  const [newKalismorCharacterName, setNewKalismorCharacterName] = useState('');
+  const [creatingKalismorCharacter, setCreatingKalismorCharacter] = useState(false);
+  const [kalismorClientChoice, setKalismorClientChoice] = useState<KalismorClientChoice>('launcher');
+  const [kalismorLoginToken, setKalismorLoginToken] = useState<KalismorLoginToken | null>(null);
+  const [startingKalismor, setStartingKalismor] = useState(false);
+  const [kalismorTerminalOpen, setKalismorTerminalOpen] = useState(false);
 
   async function openExternal(url: string) {
     await openUrl(url);
+  }
+
+  async function withFreshSession<T>(action: (activeSession: AuthSession) => Promise<T>): Promise<T> {
+    return runWithFreshAethroSession(session, onSessionUpdated, action);
+  }
+
+  function routeDeepLink(url: string) {
+    let parsed: URL;
+    try {
+      parsed = new URL(url);
+    } catch {
+      return;
+    }
+
+    if (parsed.protocol !== 'aethro:') return;
+
+    const target = parsed.hostname || parsed.pathname.replace(/^\/+/, '');
+    if (target === 'shadows') {
+      setKalismorTerminalOpen(false);
+      setView('shadows');
+      return;
+    }
+
+    if (target === 'kalismor' || target === 'aethro-online') {
+      setKalismorTerminalOpen(false);
+      setView('aethro-online');
+    }
   }
 
   function playGame(gameId: string) {
@@ -134,6 +209,24 @@ export function Dashboard({ session, home, onLogout }: Props) {
   }
 
   useEffect(() => {
+    let unlisten: (() => void) | undefined;
+
+    getCurrent()
+      .then((urls) => urls?.forEach(routeDeepLink))
+      .catch((err) => console.warn('Unable to read startup deep link.', err));
+
+    onOpenUrl((urls) => urls.forEach(routeDeepLink))
+      .then((handler) => {
+        unlisten = handler;
+      })
+      .catch((err) => console.warn('Unable to listen for deep links.', err));
+
+    return () => {
+      unlisten?.();
+    };
+  }, []);
+
+  useEffect(() => {
     setNews(home.news);
   }, [home.news]);
 
@@ -144,6 +237,10 @@ export function Dashboard({ session, home, onLogout }: Props) {
 
   const shadowsNews = useMemo(() => news.filter((item) => item.feedId === 'shadows'), [news]);
   const aethroOnlineNews = useMemo(() => news.filter((item) => item.feedId === 'aethro-online'), [news]);
+  const selectedKalismorCharacter = useMemo(
+    () => kalismorCharacters.find((character) => character.id === selectedKalismorCharacterId) ?? null,
+    [kalismorCharacters, selectedKalismorCharacterId]
+  );
   const activeTrack = SHADOWS_TRACKS[trackIndex];
   const accountInitial = (home.user.displayName || home.user.username || 'A').slice(0, 1).toUpperCase();
 
@@ -323,7 +420,7 @@ export function Dashboard({ session, home, onLogout }: Props) {
     const audio = launcherAudioRef.current;
     if (!audio) return;
 
-    if ((view !== 'shadows' && view !== 'aethro-online') || !musicEnabled) {
+    if (view !== 'shadows' || !musicEnabled) {
       audio.pause();
       return;
     }
@@ -356,6 +453,132 @@ export function Dashboard({ session, home, onLogout }: Props) {
         setCheckingMinecraftProfile(false);
       });
   }, [home.user.minecraftName, localMinecraftProfile, view]);
+
+  useEffect(() => {
+    if (view !== 'aethro-online' || kalismorCharactersLoaded || kalismorLoading) return;
+    void loadKalismorCharacters();
+  }, [view, kalismorCharactersLoaded, kalismorLoading]);
+
+  useEffect(() => {
+    if (!kalismorTerminalOpen || !kalismorTerminalRef.current || !selectedKalismorCharacter || !kalismorLoginToken) return;
+
+    kalismorSocketRef.current?.close();
+    kalismorTerminalInstanceRef.current?.dispose();
+    let disposed = false;
+    let mudSessionId: string | null = null;
+    let unlistenMudOutput: (() => void) | undefined;
+
+    const terminal = new Terminal({
+      cursorBlink: true,
+      convertEol: true,
+      fontFamily: 'Menlo, Monaco, Consolas, monospace',
+      fontSize: 14,
+      theme: {
+        background: '#050609',
+        foreground: '#f2dfad',
+        cursor: '#c6ae71',
+        selectionBackground: '#3b3442'
+      }
+    });
+
+    kalismorTerminalInstanceRef.current = terminal;
+    terminal.open(kalismorTerminalRef.current);
+    terminal.writeln('Aethro Online: Chronicles of Kalismor');
+    terminal.writeln(`Character: ${selectedKalismorCharacter.name}`);
+
+    if (kalismorLoginToken.websocketUrl) {
+      terminal.writeln('Connecting to Kalismor gateway...');
+      const socket = new WebSocket(kalismorLoginToken.websocketUrl);
+      kalismorSocketRef.current = socket;
+
+      socket.addEventListener('open', () => {
+        socket.send(JSON.stringify({ token: kalismorLoginToken.token }));
+        terminal.writeln('Login token sent.');
+      });
+      socket.addEventListener('message', (event) => {
+        terminal.write(typeof event.data === 'string' ? event.data : String(event.data));
+      });
+      socket.addEventListener('close', () => {
+        terminal.writeln('');
+        terminal.writeln('Connection closed.');
+      });
+      socket.addEventListener('error', () => {
+        terminal.writeln('');
+        terminal.writeln('Connection error.');
+      });
+      terminal.onData((data) => {
+        if (socket.readyState === WebSocket.OPEN) socket.send(data);
+      });
+    } else if (kalismorLoginToken.host && kalismorLoginToken.port) {
+      terminal.writeln(`Connecting to ${kalismorLoginToken.host}:${kalismorLoginToken.port}...`);
+
+      listen<MudTerminalOutput>('mud-terminal-output', (event) => {
+        if (mudSessionId && event.payload.sessionId !== mudSessionId) return;
+        terminal.write(event.payload.data);
+      })
+        .then((cleanup) => {
+          if (disposed) {
+            cleanup();
+          } else {
+            unlistenMudOutput = cleanup;
+          }
+        })
+        .catch((err) => {
+          terminal.writeln(`Unable to listen for Kalismor terminal output: ${err}`);
+        });
+
+      connectMudTerminal(kalismorLoginToken, selectedKalismorCharacter.name)
+        .then((sessionId) => {
+          if (disposed) {
+            void disconnectMudTerminal(sessionId);
+            return;
+          }
+          mudSessionId = sessionId;
+          terminal.writeln('Connected. Login token sent.');
+        })
+        .catch((err) => {
+          terminal.writeln(err instanceof Error ? err.message : String(err || 'Unable to connect to Kalismor.'));
+        });
+
+      terminal.onData((data) => {
+        if (!mudSessionId) return;
+        void sendMudTerminalInput(mudSessionId, data === '\r' ? '\r\n' : data).catch((err) => {
+          terminal.writeln(err instanceof Error ? err.message : String(err || 'Unable to send terminal input.'));
+        });
+      });
+    } else {
+      terminal.writeln('');
+      terminal.writeln('Login token issued.');
+      terminal.writeln('No terminal host, port, or websocket gateway URL was returned yet.');
+      terminal.writeln('');
+      terminal.writeln(`Token: ${kalismorLoginToken.token}`);
+    }
+
+    return () => {
+      disposed = true;
+      unlistenMudOutput?.();
+      if (mudSessionId) void disconnectMudTerminal(mudSessionId);
+      kalismorSocketRef.current?.close();
+      kalismorSocketRef.current = null;
+      kalismorTerminalInstanceRef.current?.dispose();
+      kalismorTerminalInstanceRef.current = null;
+    };
+  }, [kalismorTerminalOpen, kalismorLoginToken, selectedKalismorCharacter]);
+
+  useEffect(() => {
+    const appWindow = getCurrentWindow();
+    appWindow.setFullscreen(kalismorTerminalOpen).catch((err) => {
+      console.warn('Unable to toggle Kalismor fullscreen mode.', err);
+    });
+
+    return () => {
+      if (kalismorTerminalOpen) {
+        appWindow.setFullscreen(false).catch((err) => {
+          console.warn('Unable to leave Kalismor fullscreen mode.', err);
+        });
+      }
+    };
+  }, [kalismorTerminalOpen]);
 
   function toggleMusic() {
     setMusicEnabled((enabled) => !enabled);
@@ -432,7 +655,7 @@ export function Dashboard({ session, home, onLogout }: Props) {
       }
 
       await openMinecraftLauncher();
-      await recordShadowsLaunch(session, minecraftProfile);
+      await withFreshSession((activeSession) => recordShadowsLaunch(activeSession, minecraftProfile));
     } catch (err) {
       setShadowsError(err instanceof Error ? err.message : String(err || 'Unable to open Minecraft Launcher.'));
     } finally {
@@ -440,7 +663,103 @@ export function Dashboard({ session, home, onLogout }: Props) {
     }
   }
 
+  async function loadKalismorCharacters() {
+    setKalismorLoading(true);
+    setKalismorError(null);
+
+    try {
+      const characters = await withFreshSession((activeSession) => getKalismorCharacters(activeSession));
+      setKalismorCharacters(characters);
+      setKalismorCharactersLoaded(true);
+      setSelectedKalismorCharacterId((current) => current || characters[0]?.id || '');
+    } catch (err) {
+      setKalismorCharacters([]);
+      setKalismorCharactersLoaded(true);
+      setKalismorError(err instanceof Error ? err.message : String(err || 'Unable to load Kalismor characters.'));
+    } finally {
+      setKalismorLoading(false);
+    }
+  }
+
+  async function createKalismorCharacterFromForm() {
+    const name = newKalismorCharacterName.trim();
+    if (!name) {
+      setKalismorError('Enter a character name first.');
+      return;
+    }
+
+    setCreatingKalismorCharacter(true);
+    setKalismorError(null);
+
+    try {
+      const character = await withFreshSession((activeSession) => createKalismorCharacter(activeSession, name));
+      setKalismorCharacters((characters) => [character, ...characters.filter((item) => item.id !== character.id)]);
+      setSelectedKalismorCharacterId(character.id);
+      setNewKalismorCharacterName('');
+      setKalismorCharactersLoaded(true);
+    } catch (err) {
+      setKalismorError(err instanceof Error ? err.message : String(err || 'Unable to create Kalismor character.'));
+    } finally {
+      setCreatingKalismorCharacter(false);
+    }
+  }
+
+  async function startKalismorLogin() {
+    if (!selectedKalismorCharacter) {
+      setKalismorError('Select a character first.');
+      return;
+    }
+
+    setStartingKalismor(true);
+    setKalismorError(null);
+
+    try {
+      const token = await withFreshSession((activeSession) =>
+        requestKalismorLoginToken(activeSession, selectedKalismorCharacter.id)
+      );
+      setKalismorLoginToken(token);
+
+      if (kalismorClientChoice === 'launcher') {
+        setKalismorTerminalOpen(true);
+      } else if (token.launchUrl) {
+        await openExternal(token.launchUrl);
+      }
+    } catch (err) {
+      setKalismorError(err instanceof Error ? err.message : String(err || 'Unable to start Kalismor login.'));
+    } finally {
+      setStartingKalismor(false);
+    }
+  }
+
   if (view === 'aethro-online') {
+    if (kalismorTerminalOpen && selectedKalismorCharacter && kalismorLoginToken) {
+      return (
+        <main className="dashboard kalismor-page kalismor-terminal-page">
+          <header className="topbar kalismor-topbar">
+            <div>
+              <span className="eyebrow">Chronicles of Kalismor</span>
+              <h1>{selectedKalismorCharacter.name}</h1>
+            </div>
+            <div className="topbar-actions">
+              <button className="secondary" onClick={() => setKalismorTerminalOpen(false)}>Exit Terminal</button>
+              <button className="secondary" onClick={() => { setKalismorTerminalOpen(false); setView('home'); }}>Back Home</button>
+            </div>
+          </header>
+
+          <section className="kalismor-terminal-shell">
+            <div className="panel-heading">
+              <div>
+                <span className="eyebrow">Live Client</span>
+                <h2>Kalismor Terminal</h2>
+              </div>
+              <span>{kalismorLoginToken.websocketUrl ? 'Gateway ready' : 'Token ready'}</span>
+            </div>
+            <div ref={kalismorTerminalRef} className="kalismor-terminal" />
+          </section>
+        </main>
+      );
+    }
+
     return (
       <main className="dashboard kalismor-page">
         <header className="topbar kalismor-topbar">
@@ -449,26 +768,6 @@ export function Dashboard({ session, home, onLogout }: Props) {
             <h1>Chronicles of Kalismor</h1>
           </div>
           <div className="topbar-actions">
-            <div className="music-control kalismor-music-control">
-              <button
-                className={`secondary music-toggle ${musicEnabled ? 'active' : ''}`}
-                onClick={toggleMusic}
-                aria-pressed={musicEnabled}
-              >
-                {musicEnabled ? 'Music On' : 'Music Off'}
-              </button>
-              <label>
-                <span>Volume</span>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={musicVolume}
-                  onChange={(event) => updateMusicVolume(event.target.value)}
-                  aria-label="Music volume"
-                />
-              </label>
-            </div>
             <button className="secondary" onClick={() => setView('home')}>Back</button>
             <button className="secondary" onClick={onLogout}>Log out</button>
           </div>
@@ -476,47 +775,133 @@ export function Dashboard({ session, home, onLogout }: Props) {
 
         {renderLauncherUpdateNotice()}
 
-        <audio ref={launcherAudioRef} src={activeTrack.src} onEnded={playNextTrack} preload="auto" />
-
         <section className="kalismor-hero">
           <div className="kalismor-sigil" aria-hidden="true">
             <span />
           </div>
           <div className="kalismor-hero-copy">
-            <span className="eyebrow">The Gate Is Sealed</span>
-            <h2>Kalismor waits beneath a black sky.</h2>
+            <span className="eyebrow">The Gate Is Stirring</span>
+            <h2>Choose a character and open the way into Kalismor.</h2>
             <p>
-              Character binding, terminal launch, and live realm access are being prepared.
-              For now, this page will carry Chronicles news and the shape of what is coming.
+              Pull your Chronicles roster, create a new name, then choose whether to enter
+              through your own MUD client or the launcher terminal.
             </p>
-            <button className="secondary coming-soon-button" disabled>
-              Coming Soon
-            </button>
+            <div className="kalismor-actions">
+              <button className="icon-button" onClick={() => openExternal(AETHRO_ONLINE_STORE_URL)}>
+                Store
+                <span className="button-icon icon-external" aria-hidden="true" />
+              </button>
+              <button className="secondary icon-button" onClick={() => openExternal(AETHRO_ONLINE_FORUMS_URL)}>
+                Forums
+                <span className="button-icon icon-external" aria-hidden="true" />
+              </button>
+            </div>
           </div>
         </section>
 
         <section className="aethro-online-layout">
           <div className="panel">
             <div className="panel-heading">
-              <h2>Account</h2>
+              <h2>Characters</h2>
               <span>{home.user.displayName}</span>
             </div>
 
-            <div className="identity-box">
-              <span className="eyebrow">Character</span>
-              <strong>Not selected yet</strong>
-              <p>Chronicles character selection will appear here once the Kalismor account bridge is ready.</p>
-            </div>
-
-            <div className="music-now-playing">
-              <span className="eyebrow">Now Playing</span>
-              <strong>{activeTrack.title}</strong>
-            </div>
-
-            <div className="patch-actions">
-              <button disabled>
-                Coming Soon
+            <div className="kalismor-panel-actions">
+              <button className="secondary compact-button" onClick={loadKalismorCharacters} disabled={kalismorLoading}>
+                {kalismorLoading ? 'Loading...' : 'Refresh'}
               </button>
+            </div>
+
+            {kalismorError && <p className="error">{kalismorError}</p>}
+
+            <div className="kalismor-character-list">
+              {kalismorLoading && !kalismorCharactersLoaded ? (
+                <div className="identity-box">
+                  <span className="eyebrow">Roster</span>
+                  <strong>Calling the gate...</strong>
+                  <p>Loading your Kalismor characters.</p>
+                </div>
+              ) : kalismorCharacters.length === 0 ? (
+                <div className="identity-box">
+                  <span className="eyebrow">Roster</span>
+                  <strong>No characters yet</strong>
+                  <p>Create your first Chronicles character below.</p>
+                </div>
+              ) : kalismorCharacters.map((character) => (
+                <button
+                  key={character.id}
+                  className={`kalismor-character-card ${selectedKalismorCharacterId === character.id ? 'active' : ''}`}
+                  onClick={() => setSelectedKalismorCharacterId(character.id)}
+                >
+                  <span className="eyebrow">{character.race || 'Chronicles'}</span>
+                  <strong>{character.name}</strong>
+                  <span className="kalismor-character-meta">
+                    {character.className || 'Adventurer'}
+                    {character.level ? ` / Level ${character.level}` : ''}
+                    {character.location ? ` / ${character.location}` : ''}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            <form className="kalismor-form" onSubmit={(event) => { event.preventDefault(); void createKalismorCharacterFromForm(); }}>
+              <label>
+                <span>Create Character</span>
+                <input
+                  value={newKalismorCharacterName}
+                  onChange={(event) => setNewKalismorCharacterName(event.target.value)}
+                  placeholder="Character name"
+                  autoComplete="off"
+                />
+              </label>
+              <button type="submit" disabled={creatingKalismorCharacter}>
+                {creatingKalismorCharacter ? 'Creating...' : 'Create'}
+              </button>
+            </form>
+
+            <div className="kalismor-login-summary">
+              <span className="eyebrow">Login</span>
+              <strong>{selectedKalismorCharacter ? selectedKalismorCharacter.name : 'Select a character'}</strong>
+              <p>Choose how you want to connect after the launcher requests a fresh character token.</p>
+
+              <div className="kalismor-client-options">
+                <button
+                  className={`kalismor-client-option ${kalismorClientChoice === 'launcher' ? 'active' : ''}`}
+                  onClick={() => setKalismorClientChoice('launcher')}
+                  type="button"
+                >
+                  Launcher Terminal
+                </button>
+                <button
+                  className={`kalismor-client-option ${kalismorClientChoice === 'external' ? 'active' : ''}`}
+                  onClick={() => setKalismorClientChoice('external')}
+                  type="button"
+                >
+                  External Client
+                </button>
+              </div>
+
+              <button onClick={startKalismorLogin} disabled={startingKalismor || !selectedKalismorCharacter}>
+                {startingKalismor ? 'Starting...' : 'Start Login'}
+              </button>
+
+              {kalismorLoginToken && kalismorClientChoice === 'external' && (
+                <div className="kalismor-token-box">
+                  <span className="eyebrow">External Client Token</span>
+                  <code>{kalismorLoginToken.token}</code>
+                  {(kalismorLoginToken.host || kalismorLoginToken.port) && (
+                    <p>
+                      {kalismorLoginToken.host || 'Server host pending'}
+                      {kalismorLoginToken.port ? `:${kalismorLoginToken.port}` : ''}
+                    </p>
+                  )}
+                  {kalismorLoginToken.launchUrl && (
+                    <button className="secondary compact-button" onClick={() => openExternal(kalismorLoginToken.launchUrl!)}>
+                      Open External Client
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 

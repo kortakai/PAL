@@ -3,6 +3,8 @@ import type {
   AuthSession,
   LauncherHome,
   LauncherNewsItem,
+  KalismorCharacter,
+  KalismorLoginToken,
   LocalMinecraftProfile,
   ModpackCheckResult,
   NewsFeedId,
@@ -11,9 +13,12 @@ import type {
 
 const API_BASE = 'https://aethro.net/api';
 const PLAY_AETHRO_API_BASE = 'https://playaethro.online/api';
+const AETHRO_ONLINE_API_BASE = 'https://aethro.online/api';
 const SESSION_STORAGE_KEY = 'aethro.launcher.session.v1';
 const USERINFO_TIMEOUT_MS = 8_000;
 const RSS_TIMEOUT_MS = 8_000;
+const KALISMOR_TIMEOUT_MS = 10_000;
+const KALISMOR_PUBLIC_MUD_PORT = 25_000;
 const SHADOWS_LAUNCH_EVENT_URL = `${PLAY_AETHRO_API_BASE}/account/game-launches`;
 
 const OAUTH_CONFIG = {
@@ -61,6 +66,26 @@ type ShadowsLaunchProof = {
   launched_at: string;
 };
 
+type MudTerminalOutput = {
+  sessionId: string;
+  data: string;
+};
+
+function stringFrom(value: unknown): string | undefined {
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number') return String(value);
+  return undefined;
+}
+
+function numberFrom(value: unknown): number | undefined {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string' && value.trim()) {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+  return undefined;
+}
+
 function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): Promise<T> {
   return new Promise((resolve, reject) => {
     const timeout = window.setTimeout(() => {
@@ -73,9 +98,40 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number, label: string): 
   });
 }
 
+function sessionExpiryMs(session: AuthSession): number | null {
+  if (!session.expiresAt) return null;
+  if (session.expiresAt.startsWith('unix:')) {
+    const seconds = Number(session.expiresAt.slice(5));
+    return Number.isFinite(seconds) ? seconds * 1000 : 0;
+  }
+
+  const parsed = Date.parse(session.expiresAt);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
 function isProbablyExpired(session: AuthSession): boolean {
-  if (!session.expiresAt) return false;
-  return Date.parse(session.expiresAt) <= Date.now() + 30_000;
+  const expiresAt = sessionExpiryMs(session);
+  if (expiresAt === null) return false;
+  return expiresAt <= Date.now() + 30_000;
+}
+
+export function isAuthRejection(err: unknown): boolean {
+  const message = err instanceof Error ? err.message : String(err || '');
+  return /401|unauthorized|invalid.*token|token.*invalid|expired/i.test(message);
+}
+
+function oauthInvokeConfig() {
+  return {
+    clientId: OAUTH_CONFIG.clientId,
+    clientSecret: OAUTH_CONFIG.clientSecret,
+    redirectUri: OAUTH_CONFIG.redirectUri,
+    scope: OAUTH_CONFIG.scope,
+    usePkce: OAUTH_CONFIG.usePkce,
+    tokenAuthMethod: OAUTH_CONFIG.tokenAuthMethod,
+    authorizeUrl: OAUTH_CONFIG.authorizeUrl,
+    tokenUrl: OAUTH_CONFIG.tokenUrl,
+    userinfoUrl: OAUTH_CONFIG.userinfoUrl
+  };
 }
 
 export function loadSavedSession(): AuthSession | null {
@@ -88,6 +144,11 @@ export function loadSavedSession(): AuthSession | null {
     // Older dev builds created fake sessions named "Aethro Hero".
     // Do not keep those once real OAuth is wired.
     if (session.accessToken.startsWith('dev-session-token-')) {
+      localStorage.removeItem(SESSION_STORAGE_KEY);
+      return null;
+    }
+
+    if (isProbablyExpired(session) && !session.refreshToken) {
       localStorage.removeItem(SESSION_STORAGE_KEY);
       return null;
     }
@@ -126,6 +187,14 @@ async function apiRequest<T>(path: string, options: ApiRequestOptions = {}): Pro
   return apiRequestUrl<T>(`${API_BASE}${path}`, options);
 }
 
+async function aethroOnlineRequest<T>(path: string, options: ApiRequestOptions = {}): Promise<T> {
+  return withTimeout(
+    apiRequestUrl<T>(`${AETHRO_ONLINE_API_BASE}${path}`, options),
+    KALISMOR_TIMEOUT_MS,
+    'Kalismor API'
+  );
+}
+
 function devSession(identifier: string): AuthSession {
   const displayName = identifier.includes('@') ? identifier.split('@')[0] : identifier;
   return {
@@ -143,17 +212,7 @@ function devSession(identifier: string): AuthSession {
 export async function loginWithAethro(remember: boolean): Promise<AuthSession> {
   try {
     const session = await invoke<AuthSession>('oauth_login', {
-      config: {
-        clientId: OAUTH_CONFIG.clientId,
-        clientSecret: OAUTH_CONFIG.clientSecret,
-        redirectUri: OAUTH_CONFIG.redirectUri,
-        scope: OAUTH_CONFIG.scope,
-        usePkce: OAUTH_CONFIG.usePkce,
-        tokenAuthMethod: OAUTH_CONFIG.tokenAuthMethod,
-        authorizeUrl: OAUTH_CONFIG.authorizeUrl,
-        tokenUrl: OAUTH_CONFIG.tokenUrl,
-        userinfoUrl: OAUTH_CONFIG.userinfoUrl
-      }
+      config: oauthInvokeConfig()
     });
 
     if (remember) saveSession(session);
@@ -163,11 +222,59 @@ export async function loginWithAethro(remember: boolean): Promise<AuthSession> {
   }
 }
 
+export async function refreshAethroSession(session: AuthSession): Promise<AuthSession | null> {
+  if (session.accessToken.startsWith('dev-session-token-')) return session;
+  if (!session.refreshToken) return null;
+
+  try {
+    const refreshed = await invoke<AuthSession>('oauth_refresh', {
+      config: oauthInvokeConfig(),
+      refreshToken: session.refreshToken
+    });
+
+    const nextSession: AuthSession = {
+      ...refreshed,
+      refreshToken: refreshed.refreshToken || session.refreshToken,
+      user: {
+        ...(session.user ?? { id: 'aethro-user', displayName: 'Aethro Hero' }),
+        ...(refreshed.user ?? {}),
+        displayName: refreshed.user?.displayName || session.user?.displayName || 'Aethro Hero'
+      }
+    };
+
+    saveSession(nextSession);
+    return nextSession;
+  } catch (err) {
+    console.warn('Aethro token refresh failed.', err);
+    return null;
+  }
+}
+
 export async function refreshSession(session: AuthSession): Promise<AuthSession | null> {
-  // If Aethro returns refresh tokens, we can wire them here later. For now,
-  // keep the saved token and validate it by calling userinfo during boot.
   if (!isProbablyExpired(session)) return session;
-  return session.refreshToken ? session : null;
+  return refreshAethroSession(session);
+}
+
+export async function runWithFreshAethroSession<T>(
+  session: AuthSession,
+  onSessionUpdated: (session: AuthSession) => void,
+  action: (session: AuthSession) => Promise<T>
+): Promise<T> {
+  const refreshedBeforeRequest = isProbablyExpired(session) ? await refreshAethroSession(session) : null;
+  const activeSession = refreshedBeforeRequest ?? session;
+  if (refreshedBeforeRequest) onSessionUpdated(refreshedBeforeRequest);
+
+  try {
+    return await action(activeSession);
+  } catch (err) {
+    if (!isAuthRejection(err)) throw err;
+
+    const refreshedAfterRejection = await refreshAethroSession(activeSession);
+    if (!refreshedAfterRejection) throw err;
+
+    onSessionUpdated(refreshedAfterRejection);
+    return action(refreshedAfterRejection);
+  }
 }
 
 export async function getCurrentUser(session: AuthSession): Promise<UserProfile> {
@@ -194,6 +301,9 @@ export async function getCurrentUser(session: AuthSession): Promise<UserProfile>
       displayName: userInfo.displayName || userInfo.username || session.user?.displayName || 'Aethro Hero'
     };
   } catch (err) {
+    if (isAuthRejection(err)) {
+      throw err instanceof Error ? err : new Error(String(err || 'Aethro session expired.'));
+    }
     if (session.user) return session.user;
     throw err instanceof Error ? err : new Error(String(err || 'Unable to load account profile.'));
   }
@@ -259,6 +369,131 @@ export async function recordShadowsLaunch(session: AuthSession, minecraft: Local
     body: payload
   });
 }
+
+function normalizeKalismorCharacter(raw: unknown): KalismorCharacter | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const item = raw as Record<string, unknown>;
+  const id = stringFrom(item.id ?? item.character_id ?? item.characterId);
+  const name = stringFrom(item.name ?? item.character_name ?? item.characterName);
+  if (!id || !name) return null;
+
+  return {
+    id,
+    name,
+    level: numberFrom(item.level),
+    className: stringFrom(item.class ?? item.class_name ?? item.className),
+    race: stringFrom(item.race),
+    location: stringFrom(item.location),
+    lastPlayedAt: stringFrom(item.last_played_at ?? item.lastPlayedAt)
+  };
+}
+
+function normalizeKalismorCharacters(response: unknown): KalismorCharacter[] {
+  const candidate = Array.isArray(response)
+    ? response
+    : response && typeof response === 'object'
+      ? (response as Record<string, unknown>).characters ?? (response as Record<string, unknown>).data
+      : [];
+
+  return Array.isArray(candidate)
+    ? candidate.map(normalizeKalismorCharacter).filter((character): character is KalismorCharacter => Boolean(character))
+    : [];
+}
+
+function normalizeKalismorMudPort(host: string | undefined, port: unknown): number | undefined {
+  const normalizedHost = host?.trim().toLowerCase();
+  if (normalizedHost === 'aethro.online' || normalizedHost === 'www.aethro.online') {
+    return KALISMOR_PUBLIC_MUD_PORT;
+  }
+
+  return numberFrom(port);
+}
+
+function normalizeKalismorLoginToken(response: unknown): KalismorLoginToken {
+  const candidate = response && typeof response === 'object'
+    ? (response as Record<string, unknown>).token && typeof (response as Record<string, unknown>).token === 'object'
+      ? (response as Record<string, unknown>).token as Record<string, unknown>
+      : response as Record<string, unknown>
+    : {};
+
+  const token = stringFrom(candidate.token ?? candidate.login_token ?? candidate.loginToken ?? candidate.value);
+  if (!token) throw new Error('Kalismor did not return a login token.');
+  const host = stringFrom(candidate.host);
+
+  return {
+    token,
+    expiresAt: stringFrom(candidate.expires_at ?? candidate.expiresAt),
+    host,
+    port: normalizeKalismorMudPort(host, candidate.port),
+    websocketUrl: stringFrom(candidate.websocket_url ?? candidate.websocketUrl ?? candidate.ws_url ?? candidate.wsUrl),
+    launchUrl: stringFrom(candidate.launch_url ?? candidate.launchUrl)
+  };
+}
+
+export async function getKalismorCharacters(session: AuthSession): Promise<KalismorCharacter[]> {
+  const response = await aethroOnlineRequest<unknown>('/mud/characters', {
+    token: session.accessToken
+  });
+  return normalizeKalismorCharacters(response);
+}
+
+export async function createKalismorCharacter(session: AuthSession, name: string): Promise<KalismorCharacter> {
+  const response = await aethroOnlineRequest<unknown>('/mud/characters', {
+    method: 'POST',
+    token: session.accessToken,
+    body: { name }
+  });
+  const character = normalizeKalismorCharacter(
+    response && typeof response === 'object'
+      ? (response as Record<string, unknown>).character ?? (response as Record<string, unknown>).data ?? response
+      : response
+  );
+  if (!character) throw new Error('Kalismor did not return the created character.');
+  return character;
+}
+
+export async function requestKalismorLoginToken(session: AuthSession, characterId: string): Promise<KalismorLoginToken> {
+  const response = await aethroOnlineRequest<unknown>(`/mud/characters/${encodeURIComponent(characterId)}/token`, {
+    method: 'POST',
+    token: session.accessToken
+  });
+  return normalizeKalismorLoginToken(response);
+}
+
+export async function connectMudTerminal(
+  token: KalismorLoginToken,
+  characterName: string
+): Promise<string> {
+  if (!token.host || !token.port) {
+    throw new Error('Kalismor did not return a terminal host and port.');
+  }
+
+  const response = await invoke<{ sessionId: string }>('mud_terminal_connect', {
+    request: {
+      host: token.host,
+      port: token.port,
+      token: token.token,
+      characterName
+    }
+  });
+
+  return response.sessionId;
+}
+
+export async function sendMudTerminalInput(sessionId: string, data: string): Promise<void> {
+  await invoke('mud_terminal_send', {
+    sessionId,
+    data
+  });
+}
+
+export async function disconnectMudTerminal(sessionId: string): Promise<void> {
+  await invoke('mud_terminal_disconnect', {
+    sessionId
+  });
+}
+
+export type { MudTerminalOutput };
 
 async function fetchText(url: string): Promise<string> {
   // Rust-side request avoids browser CORS problems inside the Tauri webview.
@@ -327,6 +562,12 @@ export async function getLauncherHome(session: AuthSession): Promise<LauncherHom
   ]);
 
   const news = newsResult.status === 'fulfilled' ? newsResult.value : [];
+  if (userResult.status === 'rejected' && isAuthRejection(userResult.reason)) {
+    throw userResult.reason instanceof Error
+      ? userResult.reason
+      : new Error(String(userResult.reason || 'Aethro session expired.'));
+  }
+
   const user = userResult.status === 'fulfilled'
     ? userResult.value
     : session.user ?? {

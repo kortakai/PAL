@@ -2,7 +2,16 @@ import { useEffect, useState } from 'react';
 import { getVersion } from '@tauri-apps/api/app';
 import { Dashboard } from './components/Dashboard';
 import { LoginScreen } from './components/LoginScreen';
-import { clearSavedSession, createLauncherHome, getLauncherHome, loadSavedSession, logoutSession, refreshSession } from './lib/api';
+import {
+  clearSavedSession,
+  createLauncherHome,
+  getLauncherHome,
+  isAuthRejection,
+  loadSavedSession,
+  logoutSession,
+  refreshAethroSession,
+  refreshSession
+} from './lib/api';
 import type { AuthSession, LauncherHome } from './lib/types';
 
 export function App() {
@@ -31,7 +40,7 @@ export function App() {
     setBootError(null);
 
     async function boot() {
-      const activeSession = await refreshSession(currentSession);
+      let activeSession = await refreshSession(currentSession);
       if (!activeSession) {
         clearSavedSession();
         if (!cancelled) {
@@ -41,7 +50,19 @@ export function App() {
         return;
       }
 
-      const launcherHome = await getLauncherHome(activeSession);
+      let launcherHome: LauncherHome;
+      try {
+        launcherHome = await getLauncherHome(activeSession);
+      } catch (err) {
+        if (!isAuthRejection(err)) throw err;
+
+        const refreshedSession = await refreshAethroSession(activeSession);
+        if (!refreshedSession) throw err;
+
+        activeSession = refreshedSession;
+        launcherHome = await getLauncherHome(activeSession);
+      }
+
       if (!cancelled) {
         setSession(activeSession);
         setHome(launcherHome);
@@ -103,7 +124,7 @@ export function App() {
   return (
     <>
       {versionBadge}
-      <Dashboard session={session} home={home} onLogout={logout} />
+      <Dashboard session={session} home={home} onLogout={logout} onSessionUpdated={setSession} />
     </>
   );
 }

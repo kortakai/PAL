@@ -94,3 +94,22 @@ export type ModpackCheckResult = {
   ready: boolean;
   files: ModpackFileStatus[];
 };
+
+export type KalismorCharacter = {
+  id: string;
+  name: string;
+  level?: number;
+  className?: string;
+  race?: string;
+  location?: string;
+  lastPlayedAt?: string;
+};
+
+export type KalismorLoginToken = {
+  token: string;
+  expiresAt?: string;
+  host?: string;
+  port?: number;
+  websocketUrl?: string;
+  launchUrl?: string;
+};
