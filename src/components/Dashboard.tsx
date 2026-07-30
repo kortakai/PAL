@@ -17,6 +17,7 @@ import {
   disconnectMudTerminal,
   getKalismorCharacters,
   getLauncherNews,
+  getReforgedProfile,
   openMinecraftLauncher,
   openReforgedClient,
   recordShadowsLaunch,
@@ -38,6 +39,7 @@ import type {
   ModpackCheckResult,
   ModpackFileStatus,
   NewsFeedId,
+  ReforgedProfile,
   ShadowsRepairProgress
 } from '../lib/types';
 
@@ -74,6 +76,7 @@ const SHADOWS_EVENT = {
 
 const AETHRO_ONLINE_STORE_URL = 'https://aethro.online/store';
 const AETHRO_ONLINE_FORUMS_URL = 'https://aethro.online/forums';
+const PLAY_AETHRO_ACCOUNT_REFORGED_URL = 'https://playaethro.online/account#game-reforged';
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat(undefined, {
@@ -177,6 +180,9 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
   const [reforgedInstallState, setReforgedInstallState] = useState<ShadowsInstallState>('notChecked');
   const [reforgedProgress, setReforgedProgress] = useState<ShadowsRepairProgress | null>(null);
   const [reforgedAccount, setReforgedAccount] = useState<LocalReforgedAccount | null>(null);
+  const [reforgedProfile, setReforgedProfile] = useState<ReforgedProfile | null>(null);
+  const [reforgedProfileLoaded, setReforgedProfileLoaded] = useState(false);
+  const [reforgedProfileLoading, setReforgedProfileLoading] = useState(false);
   const [choosingReforgedFolder, setChoosingReforgedFolder] = useState(false);
   const [checkingReforgedFiles, setCheckingReforgedFiles] = useState(false);
   const [repairingReforgedFiles, setRepairingReforgedFiles] = useState(false);
@@ -579,6 +585,11 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
   }, [view, reforgedCheck?.installDir]);
 
   useEffect(() => {
+    if (view !== 'reforged' || reforgedProfileLoaded || reforgedProfileLoading) return;
+    void loadReforgedProfile();
+  }, [view, reforgedProfileLoaded, reforgedProfileLoading]);
+
+  useEffect(() => {
     if (!kalismorTerminalOpen || !kalismorTerminalRef.current || !selectedKalismorCharacter || !kalismorLoginToken) return;
 
     kalismorSocketRef.current?.close();
@@ -821,9 +832,25 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
   async function refreshReforgedAccount() {
     try {
       setReforgedAccount(await detectLocalReforgedAccount());
+      await loadReforgedProfile();
     } catch (err) {
       setReforgedAccount(null);
       setReforgedError(err instanceof Error ? err.message : String(err || 'Unable to read Reforged folder.'));
+    }
+  }
+
+  async function loadReforgedProfile() {
+    setReforgedProfileLoading(true);
+    setReforgedError(null);
+
+    try {
+      const profile = await withFreshSession((activeSession) => getReforgedProfile(activeSession));
+      setReforgedProfile(profile);
+    } catch (err) {
+      setReforgedError(err instanceof Error ? err.message : String(err || 'Unable to load your Reforged account.'));
+    } finally {
+      setReforgedProfileLoaded(true);
+      setReforgedProfileLoading(false);
     }
   }
 
@@ -1081,19 +1108,26 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
           <div className="panel">
             <div className="panel-heading">
               <h2>Account</h2>
-              <button className="secondary compact-button" onClick={refreshReforgedAccount}>Refresh</button>
+              <button className="secondary compact-button" onClick={refreshReforgedAccount} disabled={reforgedProfileLoading}>
+                {reforgedProfileLoading ? 'Refreshing' : 'Refresh'}
+              </button>
             </div>
 
             <div className="identity-box">
-              <span className="eyebrow">WoW Account</span>
-              <strong>{reforgedAccount?.accountName || 'Not found yet'}</strong>
+              <span className="eyebrow">Aethro Account</span>
+              <strong>{reforgedProfile?.account.username || (reforgedProfileLoading ? 'Loading...' : 'Not loaded yet')}</strong>
               <p>
-                {reforgedAccount?.accountName
-                  ? `Found from ${reforgedAccount.source}.`
-                  : hasReforgedClient
-                    ? 'Open Reforged once, log in, then the launcher can read the saved account name.'
-                    : 'Choose your installed WoW 3.3.5a client folder first.'}
+                {reforgedProfileLoading
+                  ? 'Loading your Play Aethro Reforged account.'
+                  : reforgedProfile?.account.passwordSet
+                  ? 'This is the Reforged login linked to your Play Aethro account.'
+                  : 'Set your Aethro: Reforged password on your Play Aethro account before connecting.'}
               </p>
+              {reforgedProfile && !reforgedProfile.account.passwordSet && (
+                <button className="secondary compact-button" onClick={() => openExternal(PLAY_AETHRO_ACCOUNT_REFORGED_URL)}>
+                  Account
+                </button>
+              )}
             </div>
 
             <div className="reforged-roster-box">
@@ -1108,8 +1142,32 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
 
             <div className="reforged-roster-box">
               <span className="eyebrow">Characters</span>
-              <strong>Roster sync next</strong>
-              <p>Website character lookup will attach to this account once the Reforged realm database endpoint is ready.</p>
+              <strong>
+                {reforgedProfileLoading
+                  ? 'Loading roster'
+                  : reforgedProfile?.characters.length
+                    ? `${reforgedProfile.characters.length} found`
+                    : 'No characters yet'}
+              </strong>
+              {!reforgedProfile?.charactersAvailable && (
+                <p>Character lookup is temporarily unavailable.</p>
+              )}
+              {reforgedProfile?.charactersAvailable && reforgedProfile?.characters.length === 0 && (
+                <p>Your characters will appear here after you create them on the realm.</p>
+              )}
+              {reforgedProfile?.characters.length ? (
+                <div className="reforged-character-list">
+                  {reforgedProfile.characters.slice(0, 5).map((character) => (
+                    <div key={character.id} className="reforged-character-row">
+                      <div>
+                        <strong>{character.name}</strong>
+                        <span>Level {character.level}</span>
+                      </div>
+                      <span>{character.online ? 'Online' : character.lastPlayedAt ? formatDate(character.lastPlayedAt) : 'Offline'}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </div>
 
             <div className="reforged-roster-box">

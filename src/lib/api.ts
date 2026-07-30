@@ -9,6 +9,9 @@ import type {
   LocalReforgedAccount,
   ModpackCheckResult,
   NewsFeedId,
+  ReforgedCharacter,
+  ReforgedProfile,
+  ReforgedServerAccount,
   UserProfile
 } from './types';
 
@@ -19,8 +22,10 @@ const SESSION_STORAGE_KEY = 'aethro.launcher.session.v1';
 const USERINFO_TIMEOUT_MS = 8_000;
 const RSS_TIMEOUT_MS = 8_000;
 const KALISMOR_TIMEOUT_MS = 10_000;
+const REFORGED_TIMEOUT_MS = 10_000;
 const KALISMOR_PUBLIC_MUD_PORT = 25_000;
 const SHADOWS_LAUNCH_EVENT_URL = `${PLAY_AETHRO_API_BASE}/account/game-launches`;
+const REFORGED_PROFILE_URL = `${PLAY_AETHRO_API_BASE}/account/games/aethro-reforged`;
 
 const OAUTH_CONFIG = {
   clientId: 'ath_XuN_R2q4KK7VUFDYvGiksCgx',
@@ -432,6 +437,61 @@ function normalizeKalismorMudPort(host: string | undefined, port: unknown): numb
   return numberFrom(port);
 }
 
+function normalizeReforgedAccount(raw: unknown): ReforgedServerAccount {
+  const account = raw && typeof raw === 'object' ? raw as Record<string, unknown> : {};
+  const username = stringFrom(account.username ?? account.account_name ?? account.accountName);
+
+  return {
+    exists: Boolean(account.exists),
+    username: username || 'Not created yet',
+    passwordSet: Boolean(account.passwordSet ?? account.password_set),
+    azerothcoreAccountId: numberFrom(account.azerothcoreAccountId ?? account.azerothcore_account_id),
+    syncedAt: stringFrom(account.syncedAt ?? account.synced_at),
+    lastPasswordChangedAt: stringFrom(account.lastPasswordChangedAt ?? account.last_password_changed_at)
+  };
+}
+
+function normalizeReforgedCharacter(raw: unknown): ReforgedCharacter | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const item = raw as Record<string, unknown>;
+  const id = stringFrom(item.id ?? item.guid ?? item.character_id ?? item.characterId);
+  const name = stringFrom(item.name ?? item.character_name ?? item.characterName);
+  if (!id || !name) return null;
+
+  return {
+    id,
+    name,
+    level: numberFrom(item.level) ?? 1,
+    raceId: numberFrom(item.raceId ?? item.race_id ?? item.race),
+    classId: numberFrom(item.classId ?? item.class_id ?? item.class),
+    genderId: numberFrom(item.genderId ?? item.gender_id ?? item.gender),
+    zoneId: numberFrom(item.zoneId ?? item.zone_id ?? item.zone),
+    mapId: numberFrom(item.mapId ?? item.map_id ?? item.map),
+    online: typeof item.online === 'boolean' ? item.online : Boolean(numberFrom(item.online)),
+    lastPlayedAt: stringFrom(item.lastPlayedAt ?? item.last_played_at),
+    playTimeSeconds: numberFrom(item.playTimeSeconds ?? item.play_time_seconds ?? item.totaltime)
+  };
+}
+
+function normalizeReforgedProfile(response: unknown): ReforgedProfile {
+  const candidate = response && typeof response === 'object'
+    ? (response as Record<string, unknown>).data && typeof (response as Record<string, unknown>).data === 'object'
+      ? (response as Record<string, unknown>).data as Record<string, unknown>
+      : response as Record<string, unknown>
+    : {};
+  const rawCharacters = Array.isArray(candidate.characters) ? candidate.characters : [];
+
+  return {
+    account: normalizeReforgedAccount(candidate.account),
+    characters: rawCharacters
+      .map(normalizeReforgedCharacter)
+      .filter((character): character is ReforgedCharacter => Boolean(character)),
+    charactersAvailable: (candidate.charactersAvailable ?? candidate.characters_available) === undefined
+      ? true
+      : Boolean(candidate.charactersAvailable ?? candidate.characters_available)
+  };
+}
+
 function normalizeKalismorLoginToken(response: unknown): KalismorLoginToken {
   const candidate = response && typeof response === 'object'
     ? (response as Record<string, unknown>).token && typeof (response as Record<string, unknown>).token === 'object'
@@ -458,6 +518,18 @@ export async function getKalismorCharacters(session: AuthSession): Promise<Kalis
     token: session.accessToken
   });
   return normalizeKalismorCharacters(response);
+}
+
+export async function getReforgedProfile(session: AuthSession): Promise<ReforgedProfile> {
+  const response = await withTimeout(
+    apiRequestUrl<unknown>(REFORGED_PROFILE_URL, {
+      token: session.accessToken
+    }),
+    REFORGED_TIMEOUT_MS,
+    'Aethro: Reforged account'
+  );
+
+  return normalizeReforgedProfile(response);
 }
 
 export async function createKalismorCharacter(session: AuthSession, name: string): Promise<KalismorCharacter> {

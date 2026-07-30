@@ -80,6 +80,35 @@ export type LocalReforgedAccount = {
   message?: string;
 };
 
+export type ReforgedServerAccount = {
+  exists: boolean;
+  username: string;
+  passwordSet: boolean;
+  azerothcoreAccountId?: number;
+  syncedAt?: string;
+  lastPasswordChangedAt?: string;
+};
+
+export type ReforgedCharacter = {
+  id: string;
+  name: string;
+  level: number;
+  raceId?: number;
+  classId?: number;
+  genderId?: number;
+  zoneId?: number;
+  mapId?: number;
+  online?: boolean;
+  lastPlayedAt?: string;
+  playTimeSeconds?: number;
+};
+
+export type ReforgedProfile = {
+  account: ReforgedServerAccount;
+  characters: ReforgedCharacter[];
+  charactersAvailable: boolean;
+};
+
 export type ShadowsRepairProgress = {
   phase: 'checking' | 'installing' | 'setup' | 'verifying' | 'ready' | 'needsUpdate' | 'failed';
   message: string;
