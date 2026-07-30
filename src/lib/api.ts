@@ -6,6 +6,7 @@ import type {
   KalismorCharacter,
   KalismorLoginToken,
   LocalMinecraftProfile,
+  LocalReforgedAccount,
   ModpackCheckResult,
   NewsFeedId,
   UserProfile
@@ -343,12 +344,34 @@ export async function repairShadowsInstall(): Promise<ModpackCheckResult> {
   return invoke<ModpackCheckResult>('repair_shadows_install');
 }
 
+export async function checkReforgedInstall(): Promise<ModpackCheckResult> {
+  return invoke<ModpackCheckResult>('check_reforged_install');
+}
+
+export async function repairReforgedInstall(): Promise<ModpackCheckResult> {
+  return invoke<ModpackCheckResult>('repair_reforged_install');
+}
+
 export async function detectLocalMinecraftProfile(): Promise<LocalMinecraftProfile | null> {
   return invoke<LocalMinecraftProfile | null>('detect_local_minecraft_profile');
 }
 
+export async function detectLocalReforgedAccount(): Promise<LocalReforgedAccount | null> {
+  return invoke<LocalReforgedAccount | null>('detect_local_reforged_account');
+}
+
+export async function setReforgedInstallDir(installDir: string): Promise<LocalReforgedAccount> {
+  return invoke<LocalReforgedAccount>('set_reforged_install_dir', {
+    installDir
+  });
+}
+
 export async function openMinecraftLauncher(): Promise<string> {
   return invoke<string>('open_minecraft_launcher');
+}
+
+export async function openReforgedClient(): Promise<string> {
+  return invoke<string>('open_reforged_client');
 }
 
 export async function recordShadowsLaunch(session: AuthSession, minecraft: LocalMinecraftProfile): Promise<void> {
@@ -604,6 +627,13 @@ export function createLauncherHome(user: UserProfile, news: LauncherNewsItem[] =
         description: 'A dark fantasy MUD gateway being prepared.',
         status: 'maintenance',
         actionLabel: 'View Kalismor'
+      },
+      {
+        id: 'reforged',
+        title: 'Aethro: Reforged',
+        description: 'Connect with your own WoW 3.3.5a client.',
+        status: 'unknown',
+        actionLabel: 'Play Reforged'
       }
     ],
     links: {

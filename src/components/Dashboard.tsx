@@ -3,23 +3,29 @@ import { getCurrent, onOpenUrl } from '@tauri-apps/plugin-deep-link';
 import { listen } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
 import { openUrl } from '@tauri-apps/plugin-opener';
+import { open as openDialog } from '@tauri-apps/plugin-dialog';
 import { relaunch } from '@tauri-apps/plugin-process';
 import { check as checkLauncherUpdate, type Update } from '@tauri-apps/plugin-updater';
 import { Terminal } from '@xterm/xterm';
 import {
+  checkReforgedInstall,
   checkShadowsInstall,
   connectMudTerminal,
   createKalismorCharacter,
   detectLocalMinecraftProfile,
+  detectLocalReforgedAccount,
   disconnectMudTerminal,
   getKalismorCharacters,
   getLauncherNews,
   openMinecraftLauncher,
+  openReforgedClient,
   recordShadowsLaunch,
+  repairReforgedInstall,
   repairShadowsInstall,
   runWithFreshAethroSession,
   requestKalismorLoginToken,
   sendMudTerminalInput,
+  setReforgedInstallDir,
   type MudTerminalOutput
 } from '../lib/api';
 import type {
@@ -28,6 +34,7 @@ import type {
   KalismorLoginToken,
   LauncherHome,
   LocalMinecraftProfile,
+  LocalReforgedAccount,
   ModpackCheckResult,
   ModpackFileStatus,
   NewsFeedId,
@@ -41,7 +48,7 @@ type Props = {
   onSessionUpdated: (session: AuthSession) => void;
 };
 
-type LauncherView = 'home' | 'shadows' | 'aethro-online';
+type LauncherView = 'home' | 'shadows' | 'aethro-online' | 'reforged';
 type ShadowsInstallState = 'notChecked' | 'checking' | 'needsUpdate' | 'installing' | 'ready' | 'failed';
 type LauncherUpdateState = 'idle' | 'checking' | 'available' | 'installing' | 'restarting' | 'failed';
 type NewsRefreshState = 'idle' | 'refreshing' | 'failed';
@@ -117,9 +124,27 @@ function installStateLabel(state: ShadowsInstallState) {
   }
 }
 
+function reforgedUpdateStateLabel(state: ShadowsInstallState) {
+  switch (state) {
+    case 'notChecked':
+      return 'Not checked';
+    case 'checking':
+      return 'Checking updates';
+    case 'needsUpdate':
+      return 'Updates needed';
+    case 'installing':
+      return 'Updating';
+    case 'ready':
+      return 'Ready';
+    case 'failed':
+      return 'Failed';
+  }
+}
+
 function worldCardClass(gameId: string) {
   if (gameId === 'shadows') return 'world-card shadows-world-card';
   if (gameId === 'aethro-online') return 'world-card kalismor-world-card';
+  if (gameId === 'reforged') return 'world-card reforged-world-card';
   return 'world-card';
 }
 
@@ -148,6 +173,15 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
   const [repairingFiles, setRepairingFiles] = useState(false);
   const [launchingMinecraft, setLaunchingMinecraft] = useState(false);
   const [shadowsError, setShadowsError] = useState<string | null>(null);
+  const [reforgedCheck, setReforgedCheck] = useState<ModpackCheckResult | null>(null);
+  const [reforgedInstallState, setReforgedInstallState] = useState<ShadowsInstallState>('notChecked');
+  const [reforgedProgress, setReforgedProgress] = useState<ShadowsRepairProgress | null>(null);
+  const [reforgedAccount, setReforgedAccount] = useState<LocalReforgedAccount | null>(null);
+  const [choosingReforgedFolder, setChoosingReforgedFolder] = useState(false);
+  const [checkingReforgedFiles, setCheckingReforgedFiles] = useState(false);
+  const [repairingReforgedFiles, setRepairingReforgedFiles] = useState(false);
+  const [launchingReforged, setLaunchingReforged] = useState(false);
+  const [reforgedError, setReforgedError] = useState<string | null>(null);
   const [launcherUpdate, setLauncherUpdate] = useState<Update | null>(null);
   const [launcherUpdateState, setLauncherUpdateState] = useState<LauncherUpdateState>('idle');
   const [launcherUpdateMessage, setLauncherUpdateMessage] = useState('');
@@ -220,6 +254,12 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     if (target === 'kalismor' || target === 'aethro-online') {
       setKalismorTerminalOpen(false);
       setView('aethro-online');
+      return;
+    }
+
+    if (target === 'reforged') {
+      setKalismorTerminalOpen(false);
+      setView('reforged');
     }
   }
 
@@ -231,6 +271,11 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
 
     if (gameId === 'aethro-online') {
       setView('aethro-online');
+      return;
+    }
+
+    if (gameId === 'reforged') {
+      setView('reforged');
       return;
     }
 
@@ -442,6 +487,43 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
   }, []);
 
   useEffect(() => {
+    let unlisten: (() => void) | undefined;
+    let mounted = true;
+
+    try {
+      listen<ShadowsRepairProgress>('reforged-repair-progress', (event) => {
+        const progress = event.payload;
+        setReforgedProgress(progress);
+
+        if (progress.phase === 'checking' || progress.phase === 'verifying') {
+          setReforgedInstallState('checking');
+        } else if (progress.phase === 'installing' || progress.phase === 'setup') {
+          setReforgedInstallState('installing');
+        } else if (progress.phase === 'ready') {
+          setReforgedInstallState('ready');
+        } else if (progress.phase === 'needsUpdate') {
+          setReforgedInstallState('needsUpdate');
+        } else if (progress.phase === 'failed') {
+          setReforgedInstallState('failed');
+        }
+      })
+        .then((cleanup) => {
+          if (mounted) unlisten = cleanup;
+        })
+        .catch((err) => {
+          console.warn('Reforged progress listener unavailable.', err);
+        });
+    } catch (err) {
+      console.warn('Reforged progress listener unavailable.', err);
+    }
+
+    return () => {
+      mounted = false;
+      unlisten?.();
+    };
+  }, []);
+
+  useEffect(() => {
     checkForLauncherUpdate();
   }, []);
 
@@ -487,6 +569,14 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     if (view !== 'aethro-online' || kalismorCharactersLoaded || kalismorLoading) return;
     void loadKalismorCharacters();
   }, [view, kalismorCharactersLoaded, kalismorLoading]);
+
+  useEffect(() => {
+    if (view !== 'reforged') return;
+
+    detectLocalReforgedAccount()
+      .then((account) => setReforgedAccount(account))
+      .catch(() => setReforgedAccount(null));
+  }, [view, reforgedCheck?.installDir]);
 
   useEffect(() => {
     if (!kalismorTerminalOpen || !kalismorTerminalRef.current || !selectedKalismorCharacter || !kalismorLoginToken) return;
@@ -702,6 +792,93 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     }
   }
 
+  async function chooseReforgedFolder() {
+    setChoosingReforgedFolder(true);
+    setReforgedError(null);
+
+    try {
+      const selected = await openDialog({
+        title: 'Choose your World of Warcraft 3.3.5a folder',
+        directory: true,
+        multiple: false,
+        canCreateDirectories: false
+      });
+
+      if (!selected || Array.isArray(selected)) return;
+
+      const account = await setReforgedInstallDir(selected);
+      setReforgedAccount(account);
+      setReforgedCheck(null);
+      setReforgedProgress(null);
+      setReforgedInstallState('notChecked');
+    } catch (err) {
+      setReforgedError(err instanceof Error ? err.message : String(err || 'Unable to save Reforged folder.'));
+    } finally {
+      setChoosingReforgedFolder(false);
+    }
+  }
+
+  async function refreshReforgedAccount() {
+    try {
+      setReforgedAccount(await detectLocalReforgedAccount());
+    } catch (err) {
+      setReforgedAccount(null);
+      setReforgedError(err instanceof Error ? err.message : String(err || 'Unable to read Reforged folder.'));
+    }
+  }
+
+  async function verifyReforgedFiles() {
+    setCheckingReforgedFiles(true);
+    setReforgedInstallState('checking');
+    setReforgedProgress(null);
+    setReforgedError(null);
+
+    try {
+      const result = await checkReforgedInstall();
+      setReforgedCheck(result);
+      setReforgedInstallState(result.ready ? 'ready' : 'needsUpdate');
+      await refreshReforgedAccount();
+    } catch (err) {
+      setReforgedInstallState('failed');
+      setReforgedError(err instanceof Error ? err.message : String(err || 'Unable to verify Reforged updates.'));
+    } finally {
+      setCheckingReforgedFiles(false);
+    }
+  }
+
+  async function repairReforgedFiles() {
+    setRepairingReforgedFiles(true);
+    setReforgedInstallState('checking');
+    setReforgedProgress(null);
+    setReforgedError(null);
+
+    try {
+      const result = await repairReforgedInstall();
+      setReforgedCheck(result);
+      setReforgedInstallState(result.ready ? 'ready' : 'needsUpdate');
+      await refreshReforgedAccount();
+    } catch (err) {
+      setReforgedInstallState('failed');
+      setReforgedError(err instanceof Error ? err.message : String(err || 'Unable to apply Reforged updates.'));
+    } finally {
+      setRepairingReforgedFiles(false);
+    }
+  }
+
+  async function launchReforgedClient() {
+    setLaunchingReforged(true);
+    setReforgedError(null);
+
+    try {
+      await refreshReforgedAccount();
+      await openReforgedClient();
+    } catch (err) {
+      setReforgedError(err instanceof Error ? err.message : String(err || 'Unable to open Reforged.'));
+    } finally {
+      setLaunchingReforged(false);
+    }
+  }
+
   async function loadKalismorCharacters() {
     setKalismorLoading(true);
     setKalismorError(null);
@@ -768,6 +945,182 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     } finally {
       setStartingKalismor(false);
     }
+  }
+
+  if (view === 'reforged') {
+    const hasReforgedClient = reforgedAccount?.isClientInstalled ?? false;
+    const updatesReady = reforgedCheck?.ready ?? false;
+    const progressPercent = reforgedProgress?.totalBytes
+      ? Math.min(100, Math.round((reforgedProgress.downloadedBytes / reforgedProgress.totalBytes) * 100))
+      : updatesReady
+        ? 100
+        : reforgedCheck?.totalFiles
+          ? Math.round((reforgedCheck.okFiles / reforgedCheck.totalFiles) * 100)
+          : 0;
+    const progressDetail = reforgedProgress?.totalFiles
+      ? `${reforgedProgress.currentIndex}/${reforgedProgress.totalFiles} files`
+      : reforgedCheck
+        ? `${reforgedCheck.okFiles}/${reforgedCheck.totalFiles} update files verified`
+        : reforgedInstallState === 'checking'
+          ? 'Starting scan'
+          : reforgedInstallState === 'installing'
+            ? 'Applying updates'
+            : hasReforgedClient
+              ? 'No update check yet'
+              : 'No client selected';
+    const statusMessage = reforgedProgress?.message
+      || (reforgedCheck ? reforgedCheck.installDir : hasReforgedClient
+        ? 'Check for Aethro updates before connecting.'
+        : 'Choose your World of Warcraft 3.3.5a folder. If you do not have the client installed, you must acquire it before connecting.');
+
+    return (
+      <main className="dashboard reforged-page">
+        <header className="topbar reforged-topbar">
+          <div>
+            <span className="eyebrow">Aethro: Reforged</span>
+            <h1>Realm Client</h1>
+          </div>
+          <div className="topbar-actions">
+            <button className="secondary" onClick={() => setView('home')}>Back</button>
+            <button className="secondary" onClick={onLogout}>Log out</button>
+          </div>
+        </header>
+
+        {renderLauncherUpdateNotice()}
+
+        <section className="reforged-hero">
+          <div className="reforged-gate" aria-hidden="true">
+            <span />
+          </div>
+          <div className="reforged-hero-copy">
+            <span className="eyebrow">Wrath 3.3.5a</span>
+            <h2>Choose your WoW client, apply Aethro updates, then enter the realm.</h2>
+          </div>
+        </section>
+
+        <section className="reforged-layout">
+          <div className="panel">
+            <div className="panel-heading">
+              <h2>Client</h2>
+              <span>{home.user.displayName}</span>
+            </div>
+
+            <div className={`install-status install-status-${reforgedInstallState}`}>
+              <div className="install-status-heading">
+                <div>
+                  <span className="eyebrow">Client Status</span>
+                  <strong>
+                    {hasReforgedClient
+                      ? reforgedUpdateStateLabel(reforgedInstallState)
+                      : 'Client required'}
+                  </strong>
+                </div>
+                <span>{progressDetail}</span>
+              </div>
+
+              <div className="progress-track" aria-label="Reforged update progress">
+                <div className="progress-fill" style={{ width: `${progressPercent}%` }} />
+              </div>
+
+              <div className="install-status-detail">
+                <span>{statusMessage}</span>
+                {reforgedProgress?.totalBytes ? (
+                  <span>{formatBytes(reforgedProgress.downloadedBytes)} / {formatBytes(reforgedProgress.totalBytes)}</span>
+                ) : null}
+              </div>
+
+              {reforgedProgress?.currentFile ? <p>{reforgedProgress.currentFile}</p> : null}
+            </div>
+
+            <div className="patch-actions">
+              <button onClick={chooseReforgedFolder} disabled={choosingReforgedFolder || repairingReforgedFiles || checkingReforgedFiles}>
+                {choosingReforgedFolder ? 'Choosing...' : 'Choose WoW Folder'}
+              </button>
+              <button className="secondary" onClick={verifyReforgedFiles} disabled={checkingReforgedFiles || repairingReforgedFiles || !hasReforgedClient}>
+                {checkingReforgedFiles ? 'Checking...' : 'Check Updates'}
+              </button>
+              <button className="secondary" onClick={repairReforgedFiles} disabled={repairingReforgedFiles || checkingReforgedFiles || !hasReforgedClient}>
+                {repairingReforgedFiles ? 'Updating...' : 'Apply Updates'}
+              </button>
+              <button className="secondary" onClick={launchReforgedClient} disabled={launchingReforged || repairingReforgedFiles || !hasReforgedClient}>
+                {launchingReforged ? 'Opening...' : 'Open Reforged'}
+              </button>
+            </div>
+
+            {reforgedError && <p className="error">{reforgedError}</p>}
+
+            {reforgedCheck && (
+              <div className="patch-summary">
+                <div>
+                  <strong>{reforgedCheck.ready ? 'Updates ready' : 'Updates needed'}</strong>
+                  <span>{reforgedCheck.okFiles}/{reforgedCheck.totalFiles} update files verified</span>
+                </div>
+                <p>{reforgedCheck.installDir}</p>
+                <div className="patch-counts">
+                  <span>{reforgedCheck.missingFiles} missing</span>
+                  <span>{reforgedCheck.changedFiles} changed</span>
+                  <span>{reforgedCheck.invalidManifestFiles} manifest issues</span>
+                </div>
+              </div>
+            )}
+
+            {reforgedCheck && reforgedCheck.files.length > 0 && (
+              <div className="file-list">
+                {reforgedCheck.files.slice(0, 8).map((file) => (
+                  <div key={file.path} className="file-row">
+                    <span>{file.path}</span>
+                    <strong className={`status ${fileStatusClass(file.status)}`}>
+                      {fileStatusLabel(file.status)}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="panel">
+            <div className="panel-heading">
+              <h2>Account</h2>
+              <button className="secondary compact-button" onClick={refreshReforgedAccount}>Refresh</button>
+            </div>
+
+            <div className="identity-box">
+              <span className="eyebrow">WoW Account</span>
+              <strong>{reforgedAccount?.accountName || 'Not found yet'}</strong>
+              <p>
+                {reforgedAccount?.accountName
+                  ? `Found from ${reforgedAccount.source}.`
+                  : hasReforgedClient
+                    ? 'Open Reforged once, log in, then the launcher can read the saved account name.'
+                    : 'Choose your installed WoW 3.3.5a client folder first.'}
+              </p>
+            </div>
+
+            <div className="reforged-roster-box">
+              <span className="eyebrow">Selected Folder</span>
+              <strong>{reforgedAccount?.installDir || 'No folder selected'}</strong>
+              <p>
+                {hasReforgedClient
+                  ? 'This folder contains the WoW client Reforged will use.'
+                  : reforgedAccount?.message || 'If you do not have the client installed, acquire it first before connecting.'}
+              </p>
+            </div>
+
+            <div className="reforged-roster-box">
+              <span className="eyebrow">Characters</span>
+              <strong>Roster sync next</strong>
+              <p>Website character lookup will attach to this account once the Reforged realm database endpoint is ready.</p>
+            </div>
+
+            <div className="reforged-roster-box">
+              <span className="eyebrow">Realm</span>
+              <strong>Aethro: Reforged</strong>
+              <p>The launcher provides Aethro updates for your selected client, not the full World of Warcraft install.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    );
   }
 
   if (view === 'aethro-online') {
@@ -1241,11 +1594,15 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
         <div className="home-hero-copy">
           <span className="eyebrow">Gateway Open</span>
           <h2>Choose your world</h2>
-          <p>Launch Shadows, step into Kalismor, or catch up on the latest Aethro updates.</p>
+          <p>Launch Shadows, step into Kalismor, boot Reforged, or catch up on the latest Aethro updates.</p>
           <div className="home-hero-actions">
             <button className="icon-button" onClick={() => playGame('shadows')}>
               <span className="button-icon icon-play" aria-hidden="true" />
               Play Shadows
+            </button>
+            <button className="secondary icon-button" onClick={() => playGame('reforged')}>
+              <span className="button-icon icon-play" aria-hidden="true" />
+              Reforged
             </button>
             <button className="secondary icon-button" onClick={() => playGame('aethro-online')}>
               <span className="button-icon icon-star" aria-hidden="true" />
@@ -1281,7 +1638,9 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
                 <div className="world-card-content">
                   <div className="world-card-title">
                     <div>
-                      <span className="eyebrow">{game.id === 'aethro-online' ? 'Chronicles' : 'Adventure'}</span>
+                      <span className="eyebrow">
+                        {game.id === 'aethro-online' ? 'Chronicles' : game.id === 'reforged' ? 'Realm' : 'Adventure'}
+                      </span>
                       <h3>{game.title}</h3>
                     </div>
                     <span className={`status ${game.status}`}>{game.status}</span>

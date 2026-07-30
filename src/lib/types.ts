@@ -35,7 +35,7 @@ export type LauncherNewsItem = {
 };
 
 export type LauncherGame = {
-  id: 'shadows' | 'aethro-online' | string;
+  id: 'shadows' | 'aethro-online' | 'reforged' | string;
   title: string;
   description: string;
   status: 'online' | 'offline' | 'maintenance' | 'unknown';
@@ -69,6 +69,15 @@ export type LocalMinecraftProfile = {
   name: string;
   uuid?: string;
   source: string;
+};
+
+export type LocalReforgedAccount = {
+  installDir?: string;
+  isClientInstalled: boolean;
+  accountName?: string;
+  source?: string;
+  configPath?: string;
+  message?: string;
 };
 
 export type ShadowsRepairProgress = {

@@ -23,6 +23,11 @@ use tokio::{
 const HTTP_TIMEOUT_SECONDS: u64 = 12;
 const DOWNLOAD_TIMEOUT_SECONDS: u64 = 300;
 const SHADOWS_MANIFEST_URL: &str = "https://aethro.net/launcher/shadows/stable/manifest.json";
+const REFORGED_MANIFEST_URL: &str =
+    "https://aethro.net/launcher/reforged/stable/updates/manifest.json";
+const SHADOWS_DOWNLOAD_PATH_PREFIX: &str = "/launcher/shadows/stable/files/";
+const REFORGED_DOWNLOAD_PATH_PREFIX: &str = "/launcher/reforged/stable/updates/files/";
+const REFORGED_INSTALL_CONFIG_FILE: &str = "reforged-install.json";
 
 #[derive(Debug, Serialize, Deserialize)]
 struct HashResult {
@@ -76,6 +81,23 @@ struct LocalMinecraftProfile {
     source: String,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct LocalReforgedAccount {
+    install_dir: Option<String>,
+    is_client_installed: bool,
+    account_name: Option<String>,
+    source: Option<String>,
+    config_path: Option<String>,
+    message: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ReforgedInstallConfig {
+    install_dir: String,
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ShadowsManifest {
@@ -86,6 +108,23 @@ struct ShadowsManifest {
     launch: Option<ShadowsManifestLaunch>,
     remove_extra_files_under: Option<Vec<String>>,
     files: Vec<ShadowsManifestFile>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ReforgedManifest {
+    game_id: String,
+    channel: String,
+    display_name: String,
+    launch: Option<ReforgedManifestLaunch>,
+    files: Vec<ShadowsManifestFile>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ReforgedManifestLaunch {
+    executable: Option<String>,
+    args: Option<Vec<String>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -620,6 +659,39 @@ async fn load_shadows_manifest() -> Result<ShadowsManifest, String> {
     }
 }
 
+async fn load_reforged_manifest() -> Result<ReforgedManifest, String> {
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(HTTP_TIMEOUT_SECONDS))
+        .build()
+        .map_err(|e| format!("Unable to create Reforged manifest client: {e}"))?;
+    let cache_bust = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_secs();
+    let manifest_url = format!("{REFORGED_MANIFEST_URL}?t={cache_bust}");
+
+    let response = client
+        .get(&manifest_url)
+        .send()
+        .await
+        .map_err(|e| format!("Unable to load remote Reforged manifest: {e}"))?;
+
+    if !response.status().is_success() {
+        return Err(format!(
+            "Remote Reforged manifest returned HTTP {}.",
+            response.status()
+        ));
+    }
+
+    let text = response
+        .text()
+        .await
+        .map_err(|e| format!("Unable to read remote Reforged manifest: {e}"))?;
+
+    serde_json::from_str::<ReforgedManifest>(&text)
+        .map_err(|e| format!("Unable to parse remote Reforged manifest: {e}"))
+}
+
 fn shadows_install_dir(
     app_handle: &tauri::AppHandle,
     manifest: &ShadowsManifest,
@@ -633,20 +705,101 @@ fn shadows_install_dir(
         .join(&manifest.channel))
 }
 
-fn check_shadows_manifest_files(
-    manifest: &ShadowsManifest,
+fn is_reforged_client_dir(path: &Path) -> bool {
+    path.join("Wow.exe").exists()
+        || path.join("WTF").join("Config.wtf").exists()
+        || path.join("Data").exists()
+}
+
+fn is_valid_reforged_client_dir(path: &Path) -> bool {
+    path.is_dir() && path.join("Wow.exe").is_file() && path.join("Data").is_dir()
+}
+
+fn reforged_install_config_path(app_handle: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let app_data_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Unable to locate launcher data folder: {e}"))?;
+    Ok(app_data_dir.join(REFORGED_INSTALL_CONFIG_FILE))
+}
+
+fn load_saved_reforged_install_dir(
+    app_handle: &tauri::AppHandle,
+) -> Result<Option<PathBuf>, String> {
+    let config_path = reforged_install_config_path(app_handle)?;
+    if !config_path.exists() {
+        return Ok(None);
+    }
+
+    let text = fs::read_to_string(&config_path).map_err(|e| {
+        format!(
+            "Unable to read Reforged install settings from {}: {e}",
+            config_path.display()
+        )
+    })?;
+    let config = serde_json::from_str::<ReforgedInstallConfig>(&text)
+        .map_err(|e| format!("Unable to parse Reforged install settings: {e}"))?;
+
+    Ok(Some(PathBuf::from(config.install_dir)))
+}
+
+fn save_reforged_install_dir(
+    app_handle: &tauri::AppHandle,
+    install_dir: &Path,
+) -> Result<(), String> {
+    let config_path = reforged_install_config_path(app_handle)?;
+    if let Some(parent) = config_path.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Unable to create launcher settings folder: {e}"))?;
+    }
+
+    let config = ReforgedInstallConfig {
+        install_dir: install_dir.to_string_lossy().to_string(),
+    };
+    fs::write(
+        &config_path,
+        format!(
+            "{}\n",
+            serde_json::to_string_pretty(&config)
+                .map_err(|e| format!("Unable to serialize Reforged install settings: {e}"))?
+        ),
+    )
+    .map_err(|e| format!("Unable to save Reforged install settings: {e}"))
+}
+
+fn required_reforged_install_dir(app_handle: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let install_dir = load_saved_reforged_install_dir(app_handle)?.ok_or_else(|| {
+        "Choose your World of Warcraft 3.3.5a install folder first. If you do not have the client installed, you must acquire it before connecting to Aethro: Reforged.".to_string()
+    })?;
+
+    if !is_valid_reforged_client_dir(&install_dir) {
+        return Err(format!(
+            "The selected Reforged folder is not a valid WoW 3.3.5a client: {}. It must contain Wow.exe and Data.",
+            install_dir.display()
+        ));
+    }
+
+    Ok(install_dir)
+}
+
+fn check_manifest_files(
+    _game_name: &str,
+    game_id: &str,
+    display_name: &str,
+    channel: &str,
+    manifest_files: &[ShadowsManifestFile],
     install_dir: &Path,
     app_handle: Option<&tauri::AppHandle>,
+    progress_event: &str,
 ) -> Result<ModpackCheckResult, String> {
-    let mut files = Vec::with_capacity(manifest.files.len());
-    let total_bytes = manifest
-        .files
+    let mut files = Vec::with_capacity(manifest_files.len());
+    let total_bytes = manifest_files
         .iter()
         .filter_map(|file| file.size_bytes)
         .sum::<u64>();
     let mut checked_bytes = 0_u64;
 
-    for (index, manifest_file) in manifest.files.iter().enumerate() {
+    for (index, manifest_file) in manifest_files.iter().enumerate() {
         if !is_real_sha256(&manifest_file.sha256) {
             files.push(ModpackFileStatus {
                 path: manifest_file.path.clone(),
@@ -657,13 +810,14 @@ fn check_shadows_manifest_files(
             });
             checked_bytes += manifest_file.size_bytes.unwrap_or(0);
             if let Some(app_handle) = app_handle {
-                emit_shadows_progress(
+                emit_managed_progress(
                     app_handle,
+                    progress_event,
                     "checking",
                     format!("Checking {}", manifest_file.path),
                     Some(manifest_file.path.clone()),
                     index + 1,
-                    manifest.files.len(),
+                    manifest_files.len(),
                     checked_bytes,
                     total_bytes,
                 );
@@ -682,13 +836,14 @@ fn check_shadows_manifest_files(
             });
             checked_bytes += manifest_file.size_bytes.unwrap_or(0);
             if let Some(app_handle) = app_handle {
-                emit_shadows_progress(
+                emit_managed_progress(
                     app_handle,
+                    progress_event,
                     "checking",
                     format!("Checking {}", manifest_file.path),
                     Some(manifest_file.path.clone()),
                     index + 1,
-                    manifest.files.len(),
+                    manifest_files.len(),
                     checked_bytes,
                     total_bytes,
                 );
@@ -712,13 +867,14 @@ fn check_shadows_manifest_files(
         });
         checked_bytes += manifest_file.size_bytes.unwrap_or(0);
         if let Some(app_handle) = app_handle {
-            emit_shadows_progress(
+            emit_managed_progress(
                 app_handle,
+                progress_event,
                 "checking",
                 format!("Checking {}", manifest_file.path),
                 Some(manifest_file.path.clone()),
                 index + 1,
-                manifest.files.len(),
+                manifest_files.len(),
                 checked_bytes,
                 total_bytes,
             );
@@ -734,9 +890,9 @@ fn check_shadows_manifest_files(
         .count();
 
     Ok(ModpackCheckResult {
-        game_id: manifest.game_id.clone(),
-        display_name: manifest.display_name.clone(),
-        channel: manifest.channel.clone(),
+        game_id: game_id.to_string(),
+        display_name: display_name.to_string(),
+        channel: channel.to_string(),
         install_dir: install_dir.to_string_lossy().to_string(),
         total_files: files.len(),
         ok_files,
@@ -746,6 +902,104 @@ fn check_shadows_manifest_files(
         ready: missing_files == 0 && changed_files == 0 && invalid_manifest_files == 0,
         files,
     })
+}
+
+fn check_shadows_manifest_files(
+    manifest: &ShadowsManifest,
+    install_dir: &Path,
+    app_handle: Option<&tauri::AppHandle>,
+) -> Result<ModpackCheckResult, String> {
+    check_manifest_files(
+        "Shadows",
+        &manifest.game_id,
+        &manifest.display_name,
+        &manifest.channel,
+        &manifest.files,
+        install_dir,
+        app_handle,
+        "shadows-repair-progress",
+    )
+}
+
+fn check_reforged_manifest_files(
+    manifest: &ReforgedManifest,
+    install_dir: &Path,
+    app_handle: Option<&tauri::AppHandle>,
+) -> Result<ModpackCheckResult, String> {
+    check_manifest_files(
+        "Reforged",
+        &manifest.game_id,
+        &manifest.display_name,
+        &manifest.channel,
+        &manifest.files,
+        install_dir,
+        app_handle,
+        "reforged-repair-progress",
+    )
+}
+
+fn parse_wow_account_name(config_text: &str) -> Option<String> {
+    config_text.lines().find_map(|line| {
+        let trimmed = line.trim();
+        let rest = trimmed.strip_prefix("SET accountName ")?;
+        let account_name = rest.trim().trim_matches('"').trim();
+        if account_name.is_empty() {
+            None
+        } else {
+            Some(account_name.to_string())
+        }
+    })
+}
+
+fn detect_reforged_account_in_dir(install_dir: &Path) -> Option<LocalReforgedAccount> {
+    if !is_reforged_client_dir(install_dir) {
+        return Some(LocalReforgedAccount {
+            install_dir: Some(install_dir.to_string_lossy().to_string()),
+            is_client_installed: false,
+            account_name: None,
+            source: None,
+            config_path: None,
+            message: Some("Selected folder does not look like a WoW 3.3.5a client. Choose the folder that contains Wow.exe and Data.".to_string()),
+        });
+    }
+
+    let config_path = install_dir.join("WTF").join("Config.wtf");
+    let config_text = fs::read_to_string(&config_path).ok();
+    let config_path_display = config_text
+        .as_ref()
+        .map(|_| config_path.to_string_lossy().to_string());
+    let account_name = config_text.as_deref().and_then(parse_wow_account_name);
+
+    Some(LocalReforgedAccount {
+        install_dir: Some(install_dir.to_string_lossy().to_string()),
+        is_client_installed: is_valid_reforged_client_dir(install_dir),
+        account_name,
+        source: config_path_display
+            .as_ref()
+            .map(|_| "WoW 3.3.5a Config.wtf".to_string()),
+        config_path: config_path_display,
+        message: None,
+    })
+}
+
+fn find_reforged_executable(
+    install_dir: &Path,
+    launch: Option<&ReforgedManifestLaunch>,
+) -> Result<PathBuf, String> {
+    let executable = launch
+        .and_then(|launch| launch.executable.as_deref())
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or("Wow.exe");
+    let executable_path = safe_join(install_dir, executable)?;
+
+    if !executable_path.exists() {
+        return Err(format!(
+            "Aethro: Reforged is missing {}. Choose the folder that contains your WoW 3.3.5a client.",
+            executable
+        ));
+    }
+
+    Ok(executable_path)
 }
 
 fn collect_regular_files(root: &Path, files: &mut Vec<PathBuf>) -> Result<(), String> {
@@ -823,15 +1077,16 @@ fn manifest_path_from_file(install_dir: &Path, file_path: &Path) -> Result<Strin
 }
 
 fn cleanup_extra_manifest_files(
-    manifest: &ShadowsManifest,
+    game_name: &str,
+    remove_extra_files_under: Option<&[String]>,
+    manifest_files: &[ShadowsManifestFile],
     install_dir: &Path,
 ) -> Result<usize, String> {
-    let cleanup_roots = match manifest.remove_extra_files_under.as_deref() {
+    let cleanup_roots = match remove_extra_files_under {
         Some(roots) if !roots.is_empty() => roots,
         _ => return Ok(0),
     };
-    let manifest_paths = manifest
-        .files
+    let manifest_paths = manifest_files
         .iter()
         .map(|file| file.path.as_str())
         .collect::<HashSet<_>>();
@@ -850,7 +1105,7 @@ fn cleanup_extra_manifest_files(
 
             fs::remove_file(&installed_file).map_err(|e| {
                 format!(
-                    "Unable to remove old Shadows file {}: {e}",
+                    "Unable to remove old {game_name} file {}: {e}",
                     installed_file.display()
                 )
             })?;
@@ -863,25 +1118,31 @@ fn cleanup_extra_manifest_files(
     Ok(removed)
 }
 
-fn validate_shadows_download_url(url: &str) -> Result<reqwest::Url, String> {
-    let parsed = reqwest::Url::parse(url).map_err(|e| format!("Invalid Shadows file URL: {e}"))?;
+fn validate_manifest_download_url(
+    url: &str,
+    game_name: &str,
+    path_prefix: &str,
+) -> Result<reqwest::Url, String> {
+    let parsed =
+        reqwest::Url::parse(url).map_err(|e| format!("Invalid {game_name} file URL: {e}"))?;
     let host = parsed.host_str().unwrap_or_default();
 
     if parsed.scheme() != "https" || host != "aethro.net" {
-        return Err(format!("Shadows file URL is not allowed: {url}"));
+        return Err(format!("{game_name} file URL is not allowed: {url}"));
     }
 
-    if !parsed.path().starts_with("/launcher/shadows/stable/files/") {
+    if !parsed.path().starts_with(path_prefix) {
         return Err(format!(
-            "Shadows file URL is outside the pack folder: {url}"
+            "{game_name} file URL is outside the game folder: {url}"
         ));
     }
 
     Ok(parsed)
 }
 
-fn emit_shadows_progress(
+fn emit_managed_progress(
     app_handle: &tauri::AppHandle,
+    event_name: &str,
     phase: &str,
     message: impl Into<String>,
     current_file: Option<String>,
@@ -891,7 +1152,7 @@ fn emit_shadows_progress(
     total_bytes: u64,
 ) {
     let _ = app_handle.emit(
-        "shadows-repair-progress",
+        event_name,
         ShadowsRepairProgress {
             phase: phase.to_string(),
             message: message.into(),
@@ -904,10 +1165,58 @@ fn emit_shadows_progress(
     );
 }
 
+fn emit_shadows_progress(
+    app_handle: &tauri::AppHandle,
+    phase: &str,
+    message: impl Into<String>,
+    current_file: Option<String>,
+    current_index: usize,
+    total_files: usize,
+    downloaded_bytes: u64,
+    total_bytes: u64,
+) {
+    emit_managed_progress(
+        app_handle,
+        "shadows-repair-progress",
+        phase,
+        message,
+        current_file,
+        current_index,
+        total_files,
+        downloaded_bytes,
+        total_bytes,
+    );
+}
+
+fn emit_reforged_progress(
+    app_handle: &tauri::AppHandle,
+    phase: &str,
+    message: impl Into<String>,
+    current_file: Option<String>,
+    current_index: usize,
+    total_files: usize,
+    downloaded_bytes: u64,
+    total_bytes: u64,
+) {
+    emit_managed_progress(
+        app_handle,
+        "reforged-repair-progress",
+        phase,
+        message,
+        current_file,
+        current_index,
+        total_files,
+        downloaded_bytes,
+        total_bytes,
+    );
+}
+
 async fn download_manifest_file(
     client: &reqwest::Client,
     install_dir: &Path,
     manifest_file: &ShadowsManifestFile,
+    game_name: &str,
+    path_prefix: &str,
 ) -> Result<u64, String> {
     if !is_real_sha256(&manifest_file.sha256) {
         return Err(format!(
@@ -922,7 +1231,7 @@ async fn download_manifest_file(
             manifest_file.path
         )
     })?;
-    let parsed_url = validate_shadows_download_url(url)?;
+    let parsed_url = validate_manifest_download_url(url, game_name, path_prefix)?;
     let file_path = safe_join(install_dir, &manifest_file.path)?;
 
     if let Some(parent) = file_path.parent() {
@@ -1270,7 +1579,12 @@ async fn repair_shadows_install(
             total_manifest_bytes,
             total_manifest_bytes,
         );
-        let removed_files = cleanup_extra_manifest_files(&manifest, &install_dir)?;
+        let removed_files = cleanup_extra_manifest_files(
+            "Shadows",
+            manifest.remove_extra_files_under.as_deref(),
+            &manifest.files,
+            &install_dir,
+        )?;
         if removed_files > 0 {
             eprintln!("Removed {removed_files} old Shadows files.");
         }
@@ -1332,7 +1646,14 @@ async fn repair_shadows_install(
             total_download_bytes,
         );
 
-        downloaded_bytes += download_manifest_file(&client, &install_dir, manifest_file).await?;
+        downloaded_bytes += download_manifest_file(
+            &client,
+            &install_dir,
+            manifest_file,
+            "Shadows",
+            SHADOWS_DOWNLOAD_PATH_PREFIX,
+        )
+        .await?;
 
         emit_shadows_progress(
             &app_handle,
@@ -1356,7 +1677,12 @@ async fn repair_shadows_install(
         downloaded_bytes,
         total_download_bytes,
     );
-    let removed_files = cleanup_extra_manifest_files(&manifest, &install_dir)?;
+    let removed_files = cleanup_extra_manifest_files(
+        "Shadows",
+        manifest.remove_extra_files_under.as_deref(),
+        &manifest.files,
+        &install_dir,
+    )?;
     if removed_files > 0 {
         eprintln!("Removed {removed_files} old Shadows files.");
     }
@@ -1409,6 +1735,202 @@ async fn repair_shadows_install(
 }
 
 #[tauri::command]
+async fn check_reforged_install(
+    app_handle: tauri::AppHandle,
+) -> Result<ModpackCheckResult, String> {
+    let manifest = load_reforged_manifest().await?;
+    let install_dir = required_reforged_install_dir(&app_handle)?;
+    emit_reforged_progress(
+        &app_handle,
+        "checking",
+        "Checking Reforged updates",
+        None,
+        0,
+        manifest.files.len(),
+        0,
+        manifest
+            .files
+            .iter()
+            .filter_map(|file| file.size_bytes)
+            .sum(),
+    );
+    let result = check_reforged_manifest_files(&manifest, &install_dir, Some(&app_handle))?;
+    emit_reforged_progress(
+        &app_handle,
+        if result.ready { "ready" } else { "needsUpdate" },
+        if result.ready {
+            "Reforged is ready"
+        } else {
+            "Reforged needs updates"
+        },
+        None,
+        result.ok_files,
+        result.total_files,
+        result.files.iter().filter_map(|file| file.size_bytes).sum(),
+        result.files.iter().filter_map(|file| file.size_bytes).sum(),
+    );
+    Ok(result)
+}
+
+#[tauri::command]
+async fn repair_reforged_install(
+    app_handle: tauri::AppHandle,
+) -> Result<ModpackCheckResult, String> {
+    let manifest = load_reforged_manifest().await?;
+    let install_dir = required_reforged_install_dir(&app_handle)?;
+
+    emit_reforged_progress(
+        &app_handle,
+        "checking",
+        "Checking Reforged updates",
+        None,
+        0,
+        manifest.files.len(),
+        0,
+        manifest
+            .files
+            .iter()
+            .filter_map(|file| file.size_bytes)
+            .sum(),
+    );
+
+    let current = check_reforged_manifest_files(&manifest, &install_dir, Some(&app_handle))?;
+
+    if current.invalid_manifest_files > 0 {
+        emit_reforged_progress(
+            &app_handle,
+            "failed",
+            "Manifest has invalid hashes",
+            None,
+            0,
+            current.total_files,
+            0,
+            0,
+        );
+        return Err(
+            "Reforged manifest has invalid file hashes and cannot be repaired.".to_string(),
+        );
+    }
+
+    let repair_files = current
+        .files
+        .iter()
+        .filter(|file| file.status == "missing" || file.status == "changed")
+        .filter_map(|file_status| {
+            manifest
+                .files
+                .iter()
+                .find(|manifest_file| manifest_file.path == file_status.path)
+        })
+        .collect::<Vec<_>>();
+    let total_download_bytes = repair_files
+        .iter()
+        .filter_map(|file| file.size_bytes)
+        .sum::<u64>();
+    let total_manifest_bytes = manifest
+        .files
+        .iter()
+        .filter_map(|file| file.size_bytes)
+        .sum::<u64>();
+
+    if repair_files.is_empty() {
+        let final_check =
+            check_reforged_manifest_files(&manifest, &install_dir, Some(&app_handle))?;
+        emit_reforged_progress(
+            &app_handle,
+            if final_check.ready {
+                "ready"
+            } else {
+                "needsUpdate"
+            },
+            if final_check.ready {
+                "Reforged is ready"
+            } else {
+                "Reforged still needs updates"
+            },
+            None,
+            final_check.ok_files,
+            final_check.total_files,
+            total_manifest_bytes,
+            total_manifest_bytes,
+        );
+        return Ok(final_check);
+    }
+
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(DOWNLOAD_TIMEOUT_SECONDS))
+        .build()
+        .map_err(|e| format!("Unable to create Reforged download client: {e}"))?;
+
+    let mut downloaded_bytes = 0_u64;
+    for (index, manifest_file) in repair_files.iter().enumerate() {
+        emit_reforged_progress(
+            &app_handle,
+            "installing",
+            format!("Updating {}", manifest_file.path),
+            Some(manifest_file.path.clone()),
+            index + 1,
+            repair_files.len(),
+            downloaded_bytes,
+            total_download_bytes,
+        );
+
+        downloaded_bytes += download_manifest_file(
+            &client,
+            &install_dir,
+            manifest_file,
+            "Reforged",
+            REFORGED_DOWNLOAD_PATH_PREFIX,
+        )
+        .await?;
+
+        emit_reforged_progress(
+            &app_handle,
+            "installing",
+            format!("Updated {}", manifest_file.path),
+            Some(manifest_file.path.clone()),
+            index + 1,
+            repair_files.len(),
+            downloaded_bytes,
+            total_download_bytes,
+        );
+    }
+
+    emit_reforged_progress(
+        &app_handle,
+        "verifying",
+        "Verifying Reforged updates",
+        None,
+        repair_files.len(),
+        repair_files.len(),
+        downloaded_bytes,
+        total_download_bytes,
+    );
+
+    let final_check = check_reforged_manifest_files(&manifest, &install_dir, Some(&app_handle))?;
+    emit_reforged_progress(
+        &app_handle,
+        if final_check.ready {
+            "ready"
+        } else {
+            "needsUpdate"
+        },
+        if final_check.ready {
+            "Reforged is ready"
+        } else {
+            "Reforged still needs updates"
+        },
+        None,
+        final_check.ok_files,
+        final_check.total_files,
+        downloaded_bytes,
+        total_download_bytes,
+    );
+
+    Ok(final_check)
+}
+
+#[tauri::command]
 fn detect_local_minecraft_profile() -> Result<Option<LocalMinecraftProfile>, String> {
     for dir in minecraft_launcher_dirs() {
         if let Some(profile) = detect_from_launcher_accounts(&dir.join("launcher_accounts.json")) {
@@ -1421,6 +1943,34 @@ fn detect_local_minecraft_profile() -> Result<Option<LocalMinecraftProfile>, Str
     }
 
     Ok(None)
+}
+
+#[tauri::command]
+async fn detect_local_reforged_account(
+    app_handle: tauri::AppHandle,
+) -> Result<Option<LocalReforgedAccount>, String> {
+    let install_dir = match load_saved_reforged_install_dir(&app_handle)? {
+        Some(install_dir) => install_dir,
+        None => return Ok(None),
+    };
+
+    Ok(detect_reforged_account_in_dir(&install_dir))
+}
+
+#[tauri::command]
+fn set_reforged_install_dir(
+    app_handle: tauri::AppHandle,
+    install_dir: String,
+) -> Result<LocalReforgedAccount, String> {
+    let install_dir = PathBuf::from(install_dir);
+
+    if !is_valid_reforged_client_dir(&install_dir) {
+        return Err("Choose your World of Warcraft 3.3.5a client folder. It must contain Wow.exe and Data. If you do not have the client installed, you must acquire it before connecting to Aethro: Reforged.".to_string());
+    }
+
+    save_reforged_install_dir(&app_handle, &install_dir)?;
+    detect_reforged_account_in_dir(&install_dir)
+        .ok_or_else(|| "Unable to read the selected Reforged folder.".to_string())
 }
 
 #[tauri::command]
@@ -1523,6 +2073,41 @@ async fn open_minecraft_launcher(app_handle: tauri::AppHandle) -> Result<String,
         }
 
         Err("Unable to open Minecraft Launcher. Install it, then open Minecraft Launcher once so your system registers it.".to_string())
+    }
+}
+
+#[tauri::command]
+async fn open_reforged_client(app_handle: tauri::AppHandle) -> Result<String, String> {
+    let install_dir = required_reforged_install_dir(&app_handle)?;
+    let manifest = load_reforged_manifest().await.ok();
+    let executable_path = find_reforged_executable(
+        &install_dir,
+        manifest
+            .as_ref()
+            .and_then(|manifest| manifest.launch.as_ref()),
+    )?;
+    let launch_args = manifest
+        .as_ref()
+        .and_then(|manifest| manifest.launch.as_ref())
+        .and_then(|launch| launch.args.clone())
+        .unwrap_or_default();
+
+    #[cfg(target_os = "windows")]
+    {
+        Command::new(&executable_path)
+            .current_dir(&install_dir)
+            .args(launch_args)
+            .spawn()
+            .map_err(|e| format!("Unable to open {}: {e}", executable_path.display()))?;
+
+        return Ok("Aethro: Reforged opened.".to_string());
+    }
+
+    #[cfg(not(target_os = "windows"))]
+    {
+        let _ = executable_path;
+        let _ = launch_args;
+        Err("Aethro: Reforged uses the Windows WoW 3.3.5a client. Launching is supported on Windows once the game is installed.".to_string())
     }
 }
 
@@ -2008,6 +2593,7 @@ pub fn run() {
         .manage(MudTerminalState::default())
         .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {}))
         .plugin(tauri_plugin_deep_link::init())
+        .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
@@ -2017,7 +2603,11 @@ pub fn run() {
             hash_file,
             check_shadows_install,
             repair_shadows_install,
+            check_reforged_install,
+            repair_reforged_install,
             detect_local_minecraft_profile,
+            detect_local_reforged_account,
+            set_reforged_install_dir,
             fetch_text,
             api_request_json,
             oauth_login,
@@ -2026,6 +2616,7 @@ pub fn run() {
             mud_terminal_send,
             mud_terminal_disconnect,
             open_minecraft_launcher,
+            open_reforged_client,
             launch_placeholder
         ])
         .run(tauri::generate_context!())
