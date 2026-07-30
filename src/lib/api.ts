@@ -1,6 +1,7 @@
 import { invoke } from '@tauri-apps/api/core';
 import type {
   AuthSession,
+  LauncherGame,
   LauncherHome,
   LauncherNewsItem,
   KalismorCharacter,
@@ -26,6 +27,11 @@ const REFORGED_TIMEOUT_MS = 10_000;
 const KALISMOR_PUBLIC_MUD_PORT = 25_000;
 const SHADOWS_LAUNCH_EVENT_URL = `${PLAY_AETHRO_API_BASE}/account/game-launches`;
 const REFORGED_PROFILE_URL = `${PLAY_AETHRO_API_BASE}/account/games/aethro-reforged`;
+
+const GAME_SERVER_STATUS_TARGETS = [
+  { id: 'shadows', host: 'mc.aethro.net', port: 25_567 },
+  { id: 'reforged', host: 'aethro.net', port: 3_724 }
+] as const;
 
 const OAUTH_CONFIG = {
   clientId: 'ath_XuN_R2q4KK7VUFDYvGiksCgx',
@@ -588,6 +594,28 @@ export async function disconnectMudTerminal(sessionId: string): Promise<void> {
   });
 }
 
+function normalizeGameServerStatus(value: unknown): LauncherGame['status'] {
+  return value === 'online' ? 'online' : 'offline';
+}
+
+export async function getGameServerStatuses(): Promise<Partial<Record<LauncherGame['id'], LauncherGame['status']>>> {
+  const settled = await Promise.allSettled(
+    GAME_SERVER_STATUS_TARGETS.map(async (target) => ({
+      id: target.id,
+      status: normalizeGameServerStatus(await invoke<string>('check_game_server_status', {
+        host: target.host,
+        port: target.port
+      }))
+    }))
+  );
+
+  return settled.reduce<Partial<Record<LauncherGame['id'], LauncherGame['status']>>>((statuses, result, index) => {
+    const target = GAME_SERVER_STATUS_TARGETS[index];
+    statuses[target.id] = result.status === 'fulfilled' ? result.value.status : 'offline';
+    return statuses;
+  }, {});
+}
+
 export type { MudTerminalOutput };
 
 async function fetchText(url: string): Promise<string> {
@@ -651,12 +679,14 @@ export async function getLauncherNews(): Promise<LauncherNewsItem[]> {
 }
 
 export async function getLauncherHome(session: AuthSession): Promise<LauncherHome> {
-  const [newsResult, userResult] = await Promise.allSettled([
+  const [newsResult, userResult, serverStatusResult] = await Promise.allSettled([
     getLauncherNews(),
-    getCurrentUser(session)
+    getCurrentUser(session),
+    getGameServerStatuses()
   ]);
 
   const news = newsResult.status === 'fulfilled' ? newsResult.value : [];
+  const gameStatuses = serverStatusResult.status === 'fulfilled' ? serverStatusResult.value : {};
   if (userResult.status === 'rejected' && isAuthRejection(userResult.reason)) {
     throw userResult.reason instanceof Error
       ? userResult.reason
@@ -672,11 +702,16 @@ export async function getLauncherHome(session: AuthSession): Promise<LauncherHom
 
   if (newsResult.status === 'rejected') console.warn('Launcher news failed to load.', newsResult.reason);
   if (userResult.status === 'rejected') console.warn('Aethro profile refresh failed.', userResult.reason);
+  if (serverStatusResult.status === 'rejected') console.warn('Game server status failed to load.', serverStatusResult.reason);
 
-  return createLauncherHome(user, news);
+  return createLauncherHome(user, news, gameStatuses);
 }
 
-export function createLauncherHome(user: UserProfile, news: LauncherNewsItem[] = []): LauncherHome {
+export function createLauncherHome(
+  user: UserProfile,
+  news: LauncherNewsItem[] = [],
+  gameStatuses: Partial<Record<LauncherGame['id'], LauncherGame['status']>> = {}
+): LauncherHome {
   return {
     user,
     hero: {
@@ -690,7 +725,7 @@ export function createLauncherHome(user: UserProfile, news: LauncherNewsItem[] =
         id: 'shadows',
         title: 'Shadows of Aethro',
         description: 'Fabric 1.21.1 modded Minecraft adventure.',
-        status: 'unknown',
+        status: gameStatuses.shadows ?? 'offline',
         actionLabel: 'Play Shadows'
       },
       {
@@ -704,7 +739,7 @@ export function createLauncherHome(user: UserProfile, news: LauncherNewsItem[] =
         id: 'reforged',
         title: 'Aethro: Reforged',
         description: 'Connect with your own WoW 3.3.5a client.',
-        status: 'unknown',
+        status: gameStatuses.reforged ?? 'offline',
         actionLabel: 'Play Reforged'
       }
     ],

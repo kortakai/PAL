@@ -18,6 +18,7 @@ use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::TcpStream as TokioTcpStream,
     sync::{mpsc, Mutex},
+    time::timeout,
 };
 
 const HTTP_TIMEOUT_SECONDS: u64 = 12;
@@ -28,6 +29,7 @@ const REFORGED_MANIFEST_URL: &str =
 const SHADOWS_DOWNLOAD_PATH_PREFIX: &str = "/launcher/shadows/stable/files/";
 const REFORGED_DOWNLOAD_PATH_PREFIX: &str = "/launcher/reforged/stable/updates/files/";
 const REFORGED_INSTALL_CONFIG_FILE: &str = "reforged-install.json";
+const GAME_SERVER_STATUS_TIMEOUT_SECONDS: u64 = 2;
 
 #[derive(Debug, Serialize, Deserialize)]
 struct HashResult {
@@ -2583,6 +2585,27 @@ async fn mud_terminal_disconnect(
 }
 
 #[tauri::command]
+async fn check_game_server_status(host: String, port: u16) -> Result<String, String> {
+    if host.trim().is_empty() {
+        return Err("Server host is missing.".to_string());
+    }
+
+    if port == 0 {
+        return Err("Server port is missing.".to_string());
+    }
+
+    let address = format!("{}:{port}", host.trim());
+    let connected = timeout(
+        Duration::from_secs(GAME_SERVER_STATUS_TIMEOUT_SECONDS),
+        TokioTcpStream::connect(address),
+    )
+    .await
+    .is_ok_and(|result| result.is_ok());
+
+    Ok(if connected { "online" } else { "offline" }.to_string())
+}
+
+#[tauri::command]
 fn launch_placeholder(game_id: String) -> Result<String, String> {
     Ok(format!("Launch flow placeholder for {game_id}"))
 }
@@ -2615,6 +2638,7 @@ pub fn run() {
             mud_terminal_connect,
             mud_terminal_send,
             mud_terminal_disconnect,
+            check_game_server_status,
             open_minecraft_launcher,
             open_reforged_client,
             launch_placeholder

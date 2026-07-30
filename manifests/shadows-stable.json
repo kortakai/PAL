@@ -762,7 +762,7 @@
     ],
     "gameArgs": [
       "--quickPlayMultiplayer",
-      "shadows.playaethro.com"
+      "mc.aethro.net:25567"
     ]
   }
 }

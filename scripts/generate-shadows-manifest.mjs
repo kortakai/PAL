@@ -93,7 +93,7 @@ async function buildManifest(sourceDir, baseUrl) {
     removeExtraFilesUnder: ['mods'],
     launch: {
       jvmArgs: ['-Xmx6G', '-Xms2G'],
-      gameArgs: ['--quickPlayMultiplayer', 'shadows.playaethro.com']
+      gameArgs: ['--quickPlayMultiplayer', 'mc.aethro.net:25567']
     }
   };
 }
