@@ -129,9 +129,10 @@ Current starter opens this URL in the user's browser. The return-to-launcher cal
 These are fetched by the Rust side of the launcher to avoid webview CORS problems:
 
 ```txt
-https://aethro.net/rss.php?division=play-aethro
-https://aethro.net/rss.php?division=aethro-online
-https://aethro.net/rss.php?division=minecraft-survival
+https://playaethro.online/news/aethro-online.rss
+https://playaethro.online/news/aethro-reforged.rss
+https://playaethro.online/news/shadows-of-aethro.rss
+https://playaethro.online/news/play-aethro-launcher.rss
 ```
 
 ## Shadows Launch Proof

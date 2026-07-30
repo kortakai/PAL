@@ -2116,9 +2116,10 @@ async fn open_reforged_client(app_handle: tauri::AppHandle) -> Result<String, St
 #[tauri::command]
 async fn fetch_text(url: String) -> Result<String, String> {
     let allowed = [
-        "https://aethro.net/rss.php?division=play-aethro",
-        "https://aethro.net/rss.php?division=aethro-online",
-        "https://aethro.net/rss.php?division=minecraft-survival",
+        "https://playaethro.online/news/aethro-online.rss",
+        "https://playaethro.online/news/aethro-reforged.rss",
+        "https://playaethro.online/news/shadows-of-aethro.rss",
+        "https://playaethro.online/news/play-aethro-launcher.rss",
     ];
 
     if !allowed.contains(&url.as_str()) {

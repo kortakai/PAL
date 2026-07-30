@@ -58,9 +58,10 @@ type KalismorClientChoice = 'launcher' | 'external';
 
 const FEED_TABS: Array<{ id: 'all' | NewsFeedId; label: string }> = [
   { id: 'all', label: 'All News' },
-  { id: 'play-aethro', label: 'Play Aethro' },
+  { id: 'play-aethro-launcher', label: 'Launcher' },
   { id: 'aethro-online', label: 'Aethro Online' },
-  { id: 'shadows', label: 'Shadows' }
+  { id: 'aethro-reforged', label: 'Reforged' },
+  { id: 'shadows-of-aethro', label: 'Shadows' }
 ];
 
 const SHADOWS_TRACKS = [
@@ -315,7 +316,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     return news.filter((item) => item.feedId === activeFeed);
   }, [activeFeed, news]);
 
-  const shadowsNews = useMemo(() => news.filter((item) => item.feedId === 'shadows'), [news]);
+  const shadowsNews = useMemo(() => news.filter((item) => item.feedId === 'shadows-of-aethro'), [news]);
   const aethroOnlineNews = useMemo(() => news.filter((item) => item.feedId === 'aethro-online'), [news]);
   const selectedKalismorCharacter = useMemo(
     () => kalismorCharacters.find((character) => character.id === selectedKalismorCharacterId) ?? null,
@@ -330,7 +331,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
 
     try {
       const freshNews = await getLauncherNews();
-      const freshShadowsCount = freshNews.filter((item) => item.feedId === 'shadows').length;
+      const freshShadowsCount = freshNews.filter((item) => item.feedId === 'shadows-of-aethro').length;
 
       setNews(freshNews);
       setNewsRefreshState('idle');

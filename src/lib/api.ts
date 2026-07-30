@@ -49,19 +49,24 @@ const OAUTH_CONFIG = {
 
 const RSS_FEEDS: Array<{ id: NewsFeedId; name: string; url: string }> = [
   {
-    id: 'play-aethro',
-    name: 'Play Aethro',
-    url: 'https://aethro.net/rss.php?division=play-aethro'
+    id: 'play-aethro-launcher',
+    name: 'Play Aethro Launcher',
+    url: 'https://playaethro.online/news/play-aethro-launcher.rss'
   },
   {
     id: 'aethro-online',
     name: 'Aethro Online',
-    url: 'https://aethro.net/rss.php?division=aethro-online'
+    url: 'https://playaethro.online/news/aethro-online.rss'
   },
   {
-    id: 'shadows',
+    id: 'aethro-reforged',
+    name: 'Aethro: Reforged',
+    url: 'https://playaethro.online/news/aethro-reforged.rss'
+  },
+  {
+    id: 'shadows-of-aethro',
     name: 'Shadows of Aethro',
-    url: 'https://aethro.net/rss.php?division=minecraft-survival'
+    url: 'https://playaethro.online/news/shadows-of-aethro.rss'
   }
 ];
 

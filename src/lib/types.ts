@@ -22,7 +22,7 @@ export type LoginResponse = {
   user: UserProfile;
 };
 
-export type NewsFeedId = 'play-aethro' | 'aethro-online' | 'shadows';
+export type NewsFeedId = 'play-aethro-launcher' | 'aethro-online' | 'aethro-reforged' | 'shadows-of-aethro';
 
 export type LauncherNewsItem = {
   id: string;
