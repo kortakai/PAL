@@ -27,8 +27,9 @@ const SHADOWS_MANIFEST_URL: &str = "https://aethro.net/launcher/shadows/stable/m
 const REFORGED_MANIFEST_URL: &str =
     "https://aethro.net/launcher/reforged/stable/updates/manifest.json";
 const SHADOWS_DOWNLOAD_PATH_PREFIX: &str = "/launcher/shadows/stable/files/";
-const REFORGED_DOWNLOAD_PATH_PREFIX: &str = "/launcher/reforged/stable/updates/files/";
 const REFORGED_INSTALL_CONFIG_FILE: &str = "reforged-install.json";
+const REFORGED_CONFIG_RELATIVE_PATH: &str = "WTF/Config.wtf";
+const REFORGED_REALMLIST_HOST: &str = "aethro.online";
 const GAME_SERVER_STATUS_TIMEOUT_SECONDS: u64 = 2;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -115,11 +116,7 @@ struct ShadowsManifest {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ReforgedManifest {
-    game_id: String,
-    channel: String,
-    display_name: String,
     launch: Option<ReforgedManifestLaunch>,
-    files: Vec<ShadowsManifestFile>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -923,23 +920,6 @@ fn check_shadows_manifest_files(
     )
 }
 
-fn check_reforged_manifest_files(
-    manifest: &ReforgedManifest,
-    install_dir: &Path,
-    app_handle: Option<&tauri::AppHandle>,
-) -> Result<ModpackCheckResult, String> {
-    check_manifest_files(
-        "Reforged",
-        &manifest.game_id,
-        &manifest.display_name,
-        &manifest.channel,
-        &manifest.files,
-        install_dir,
-        app_handle,
-        "reforged-repair-progress",
-    )
-}
-
 fn parse_wow_account_name(config_text: &str) -> Option<String> {
     config_text.lines().find_map(|line| {
         let trimmed = line.trim();
@@ -951,6 +931,96 @@ fn parse_wow_account_name(config_text: &str) -> Option<String> {
             Some(account_name.to_string())
         }
     })
+}
+
+fn reforged_config_path(install_dir: &Path) -> PathBuf {
+    install_dir.join("WTF").join("Config.wtf")
+}
+
+fn is_wow_realm_list_line(line: &str) -> bool {
+    line.trim()
+        .to_ascii_lowercase()
+        .starts_with("set realmlist ")
+}
+
+fn parse_wow_realm_list(config_text: &str) -> Option<String> {
+    config_text.lines().find_map(|line| {
+        let trimmed = line.trim();
+        if !is_wow_realm_list_line(trimmed) {
+            return None;
+        }
+
+        trimmed
+            .split_once(' ')
+            .and_then(|(_, rest)| rest.trim().split_once(' '))
+            .map(|(_, value)| value.trim().trim_matches('"').trim().to_string())
+            .filter(|value| !value.is_empty())
+    })
+}
+
+fn check_reforged_realm_list(install_dir: &Path) -> ModpackCheckResult {
+    let config_path = reforged_config_path(install_dir);
+    let config_text = fs::read_to_string(&config_path).ok();
+    let status = match config_text.as_deref().and_then(parse_wow_realm_list) {
+        Some(realm_list) if realm_list.eq_ignore_ascii_case(REFORGED_REALMLIST_HOST) => "ok",
+        Some(_) => "changed",
+        None if config_path.exists() => "changed",
+        None => "missing",
+    };
+    let size_bytes = config_text.as_ref().map(|text| text.len() as u64);
+
+    ModpackCheckResult {
+        game_id: "reforged".to_string(),
+        display_name: "Aethro: Reforged".to_string(),
+        channel: "realm-config".to_string(),
+        install_dir: install_dir.to_string_lossy().to_string(),
+        total_files: 1,
+        ok_files: usize::from(status == "ok"),
+        missing_files: usize::from(status == "missing"),
+        changed_files: usize::from(status == "changed"),
+        invalid_manifest_files: 0,
+        ready: status == "ok",
+        files: vec![ModpackFileStatus {
+            path: REFORGED_CONFIG_RELATIVE_PATH.to_string(),
+            status: status.to_string(),
+            expected_sha256: None,
+            actual_sha256: None,
+            size_bytes,
+        }],
+    }
+}
+
+fn update_reforged_realm_list(install_dir: &Path) -> Result<(), String> {
+    let config_path = reforged_config_path(install_dir);
+    let lines = fs::read_to_string(&config_path)
+        .map(|text| text.lines().map(str::to_string).collect::<Vec<_>>())
+        .unwrap_or_default();
+    let desired_line = format!("SET realmList \"{REFORGED_REALMLIST_HOST}\"");
+    let mut updated_lines = Vec::with_capacity(lines.len() + 1);
+    let mut found = false;
+
+    for line in lines {
+        if is_wow_realm_list_line(&line) {
+            if !found {
+                updated_lines.push(desired_line.clone());
+                found = true;
+            }
+            continue;
+        }
+
+        updated_lines.push(line);
+    }
+
+    if !found {
+        updated_lines.push(desired_line);
+    }
+
+    let parent = config_path
+        .parent()
+        .ok_or_else(|| "Unable to resolve Reforged WTF folder.".to_string())?;
+    fs::create_dir_all(parent).map_err(|e| format!("Unable to create Reforged WTF folder: {e}"))?;
+    fs::write(&config_path, format!("{}\n", updated_lines.join("\n")))
+        .map_err(|e| format!("Unable to update Reforged realmlist: {e}"))
 }
 
 fn detect_reforged_account_in_dir(install_dir: &Path) -> Option<LocalReforgedAccount> {
@@ -965,7 +1035,7 @@ fn detect_reforged_account_in_dir(install_dir: &Path) -> Option<LocalReforgedAcc
         });
     }
 
-    let config_path = install_dir.join("WTF").join("Config.wtf");
+    let config_path = reforged_config_path(install_dir);
     let config_text = fs::read_to_string(&config_path).ok();
     let config_path_display = config_text
         .as_ref()
@@ -1740,36 +1810,31 @@ async fn repair_shadows_install(
 async fn check_reforged_install(
     app_handle: tauri::AppHandle,
 ) -> Result<ModpackCheckResult, String> {
-    let manifest = load_reforged_manifest().await?;
     let install_dir = required_reforged_install_dir(&app_handle)?;
     emit_reforged_progress(
         &app_handle,
         "checking",
-        "Checking Reforged updates",
+        "Checking Reforged realm",
         None,
         0,
-        manifest.files.len(),
+        1,
         0,
-        manifest
-            .files
-            .iter()
-            .filter_map(|file| file.size_bytes)
-            .sum(),
+        0,
     );
-    let result = check_reforged_manifest_files(&manifest, &install_dir, Some(&app_handle))?;
+    let result = check_reforged_realm_list(&install_dir);
     emit_reforged_progress(
         &app_handle,
         if result.ready { "ready" } else { "needsUpdate" },
         if result.ready {
-            "Reforged is ready"
+            "Reforged realm is ready"
         } else {
-            "Reforged needs updates"
+            "Reforged realm needs to be set"
         },
         None,
         result.ok_files,
         result.total_files,
-        result.files.iter().filter_map(|file| file.size_bytes).sum(),
-        result.files.iter().filter_map(|file| file.size_bytes).sum(),
+        0,
+        0,
     );
     Ok(result)
 }
@@ -1778,138 +1843,32 @@ async fn check_reforged_install(
 async fn repair_reforged_install(
     app_handle: tauri::AppHandle,
 ) -> Result<ModpackCheckResult, String> {
-    let manifest = load_reforged_manifest().await?;
     let install_dir = required_reforged_install_dir(&app_handle)?;
 
     emit_reforged_progress(
         &app_handle,
         "checking",
-        "Checking Reforged updates",
+        "Checking Reforged realm",
         None,
         0,
-        manifest.files.len(),
+        1,
         0,
-        manifest
-            .files
-            .iter()
-            .filter_map(|file| file.size_bytes)
-            .sum(),
+        0,
     );
-
-    let current = check_reforged_manifest_files(&manifest, &install_dir, Some(&app_handle))?;
-
-    if current.invalid_manifest_files > 0 {
-        emit_reforged_progress(
-            &app_handle,
-            "failed",
-            "Manifest has invalid hashes",
-            None,
-            0,
-            current.total_files,
-            0,
-            0,
-        );
-        return Err(
-            "Reforged manifest has invalid file hashes and cannot be repaired.".to_string(),
-        );
-    }
-
-    let repair_files = current
-        .files
-        .iter()
-        .filter(|file| file.status == "missing" || file.status == "changed")
-        .filter_map(|file_status| {
-            manifest
-                .files
-                .iter()
-                .find(|manifest_file| manifest_file.path == file_status.path)
-        })
-        .collect::<Vec<_>>();
-    let total_download_bytes = repair_files
-        .iter()
-        .filter_map(|file| file.size_bytes)
-        .sum::<u64>();
-    let total_manifest_bytes = manifest
-        .files
-        .iter()
-        .filter_map(|file| file.size_bytes)
-        .sum::<u64>();
-
-    if repair_files.is_empty() {
-        let final_check =
-            check_reforged_manifest_files(&manifest, &install_dir, Some(&app_handle))?;
-        emit_reforged_progress(
-            &app_handle,
-            if final_check.ready {
-                "ready"
-            } else {
-                "needsUpdate"
-            },
-            if final_check.ready {
-                "Reforged is ready"
-            } else {
-                "Reforged still needs updates"
-            },
-            None,
-            final_check.ok_files,
-            final_check.total_files,
-            total_manifest_bytes,
-            total_manifest_bytes,
-        );
-        return Ok(final_check);
-    }
-
-    let client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(DOWNLOAD_TIMEOUT_SECONDS))
-        .build()
-        .map_err(|e| format!("Unable to create Reforged download client: {e}"))?;
-
-    let mut downloaded_bytes = 0_u64;
-    for (index, manifest_file) in repair_files.iter().enumerate() {
-        emit_reforged_progress(
-            &app_handle,
-            "installing",
-            format!("Updating {}", manifest_file.path),
-            Some(manifest_file.path.clone()),
-            index + 1,
-            repair_files.len(),
-            downloaded_bytes,
-            total_download_bytes,
-        );
-
-        downloaded_bytes += download_manifest_file(
-            &client,
-            &install_dir,
-            manifest_file,
-            "Reforged",
-            REFORGED_DOWNLOAD_PATH_PREFIX,
-        )
-        .await?;
-
-        emit_reforged_progress(
-            &app_handle,
-            "installing",
-            format!("Updated {}", manifest_file.path),
-            Some(manifest_file.path.clone()),
-            index + 1,
-            repair_files.len(),
-            downloaded_bytes,
-            total_download_bytes,
-        );
-    }
 
     emit_reforged_progress(
         &app_handle,
-        "verifying",
-        "Verifying Reforged updates",
-        None,
-        repair_files.len(),
-        repair_files.len(),
-        downloaded_bytes,
-        total_download_bytes,
+        "installing",
+        "Setting Reforged realm",
+        Some(REFORGED_CONFIG_RELATIVE_PATH.to_string()),
+        1,
+        1,
+        0,
+        0,
     );
+    update_reforged_realm_list(&install_dir)?;
 
-    let final_check = check_reforged_manifest_files(&manifest, &install_dir, Some(&app_handle))?;
+    let final_check = check_reforged_realm_list(&install_dir);
     emit_reforged_progress(
         &app_handle,
         if final_check.ready {
@@ -1918,15 +1877,15 @@ async fn repair_reforged_install(
             "needsUpdate"
         },
         if final_check.ready {
-            "Reforged is ready"
+            "Reforged realm is ready"
         } else {
-            "Reforged still needs updates"
+            "Reforged realm still needs to be set"
         },
         None,
         final_check.ok_files,
         final_check.total_files,
-        downloaded_bytes,
-        total_download_bytes,
+        0,
+        0,
     );
 
     Ok(final_check)
