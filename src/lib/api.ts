@@ -27,6 +27,7 @@ const REFORGED_TIMEOUT_MS = 10_000;
 const KALISMOR_PUBLIC_MUD_PORT = 25_000;
 const SHADOWS_LAUNCH_EVENT_URL = `${PLAY_AETHRO_API_BASE}/account/game-launches`;
 const REFORGED_PROFILE_URL = `${PLAY_AETHRO_API_BASE}/account/games/aethro-reforged`;
+const REFORGED_PASSWORD_URL = `${REFORGED_PROFILE_URL}/password`;
 
 const GAME_SERVER_STATUS_TARGETS = [
   { id: 'shadows', host: 'mc.aethro.net', port: 25_567 },
@@ -538,6 +539,27 @@ export async function getReforgedProfile(session: AuthSession): Promise<Reforged
     }),
     REFORGED_TIMEOUT_MS,
     'Aethro: Reforged account'
+  );
+
+  return normalizeReforgedProfile(response);
+}
+
+export async function setReforgedGamePassword(
+  session: AuthSession,
+  password: string,
+  passwordConfirmation: string
+): Promise<ReforgedProfile> {
+  const response = await withTimeout(
+    apiRequestUrl<unknown>(REFORGED_PASSWORD_URL, {
+      method: 'POST',
+      token: session.accessToken,
+      body: {
+        password,
+        password_confirmation: passwordConfirmation
+      }
+    }),
+    REFORGED_TIMEOUT_MS,
+    'Aethro: Reforged password'
   );
 
   return normalizeReforgedProfile(response);

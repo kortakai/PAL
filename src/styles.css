@@ -250,6 +250,7 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
 .checkbox-row { display: flex; align-items: center; gap: 10px; }
 .checkbox-row input { width: auto; margin: 0; }
 .error { color: #ff9a9a; }
+.success { color: #b7ffcf; }
 .dashboard { padding: 32px; }
 .topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
 .topbar-actions { display: flex; gap: 12px; }
@@ -1301,6 +1302,23 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
 .reforged-page .identity-box p,
 .reforged-roster-box p {
   color: #d6cbb6;
+}
+.reforged-password-form {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+.reforged-password-form label {
+  margin: 0;
+}
+.reforged-password-form label span {
+  display: block;
+}
+.reforged-password-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 2px;
 }
 .reforged-roster-box {
   display: grid;

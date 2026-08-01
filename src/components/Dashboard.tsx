@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { getCurrent, onOpenUrl } from '@tauri-apps/plugin-deep-link';
 import { listen } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
@@ -26,6 +26,7 @@ import {
   runWithFreshAethroSession,
   requestKalismorLoginToken,
   sendMudTerminalInput,
+  setReforgedGamePassword,
   setReforgedInstallDir,
   type MudTerminalOutput
 } from '../lib/api';
@@ -189,6 +190,10 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
   const [repairingReforgedFiles, setRepairingReforgedFiles] = useState(false);
   const [launchingReforged, setLaunchingReforged] = useState(false);
   const [reforgedError, setReforgedError] = useState<string | null>(null);
+  const [reforgedPassword, setReforgedPassword] = useState('');
+  const [reforgedPasswordConfirmation, setReforgedPasswordConfirmation] = useState('');
+  const [settingReforgedPassword, setSettingReforgedPassword] = useState(false);
+  const [reforgedPasswordMessage, setReforgedPasswordMessage] = useState('');
   const [launcherUpdate, setLauncherUpdate] = useState<Update | null>(null);
   const [launcherUpdateState, setLauncherUpdateState] = useState<LauncherUpdateState>('idle');
   const [launcherUpdateMessage, setLauncherUpdateMessage] = useState('');
@@ -855,6 +860,53 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     }
   }
 
+  async function submitReforgedPassword(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const nextPassword = reforgedPassword;
+    const nextPasswordConfirmation = reforgedPasswordConfirmation;
+
+    setReforgedPasswordMessage('');
+
+    if (nextPassword.length < 8 || nextPassword.length > 16) {
+      setReforgedError('Aethro: Reforged passwords must be 8-16 characters.');
+      return;
+    }
+
+    if (!/^[\x20-\x7E]+$/.test(nextPassword)) {
+      setReforgedError('Use standard letters, numbers, and symbols only.');
+      return;
+    }
+
+    if (!/[A-Za-z]/.test(nextPassword) || !/[0-9]/.test(nextPassword)) {
+      setReforgedError('Use at least one letter and one number.');
+      return;
+    }
+
+    if (nextPassword !== nextPasswordConfirmation) {
+      setReforgedError('Password confirmation does not match.');
+      return;
+    }
+
+    setSettingReforgedPassword(true);
+    setReforgedError(null);
+
+    try {
+      const profile = await withFreshSession((activeSession) =>
+        setReforgedGamePassword(activeSession, nextPassword, nextPasswordConfirmation)
+      );
+      setReforgedProfile(profile);
+      setReforgedProfileLoaded(true);
+      setReforgedPassword('');
+      setReforgedPasswordConfirmation('');
+      setReforgedPasswordMessage(`Reforged password saved. Game username: ${profile.account.username}.`);
+    } catch (err) {
+      setReforgedError(err instanceof Error ? err.message : String(err || 'Unable to save your Reforged password.'));
+    } finally {
+      setSettingReforgedPassword(false);
+    }
+  }
+
   async function verifyReforgedFiles() {
     setCheckingReforgedFiles(true);
     setReforgedInstallState('checking');
@@ -1122,13 +1174,61 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
                   ? 'Loading your Play Aethro Reforged account.'
                   : reforgedProfile?.account.passwordSet
                   ? 'This is the Reforged login linked to your Play Aethro account.'
-                  : 'Set your Aethro: Reforged password on your Play Aethro account before connecting.'}
+                  : 'Set your Aethro: Reforged password before connecting.'}
               </p>
-              {reforgedProfile && !reforgedProfile.account.passwordSet && (
-                <button className="secondary compact-button" onClick={() => openExternal(PLAY_AETHRO_ACCOUNT_REFORGED_URL)}>
-                  Account
-                </button>
-              )}
+              <form className="reforged-password-form" onSubmit={submitReforgedPassword}>
+                <label>
+                  <span>Game Password</span>
+                  <input
+                    type="password"
+                    minLength={8}
+                    maxLength={16}
+                    autoComplete="new-password"
+                    value={reforgedPassword}
+                    onChange={(event) => setReforgedPassword(event.target.value)}
+                    disabled={settingReforgedPassword || reforgedProfileLoading}
+                    required
+                  />
+                </label>
+                <label>
+                  <span>Confirm Password</span>
+                  <input
+                    type="password"
+                    minLength={8}
+                    maxLength={16}
+                    autoComplete="new-password"
+                    value={reforgedPasswordConfirmation}
+                    onChange={(event) => setReforgedPasswordConfirmation(event.target.value)}
+                    disabled={settingReforgedPassword || reforgedProfileLoading}
+                    required
+                  />
+                </label>
+                {reforgedPasswordMessage && <p className="success">{reforgedPasswordMessage}</p>}
+                <div className="reforged-password-actions">
+                  <button
+                    type="submit"
+                    disabled={
+                      settingReforgedPassword ||
+                      reforgedProfileLoading ||
+                      reforgedPassword.length === 0 ||
+                      reforgedPasswordConfirmation.length === 0
+                    }
+                  >
+                    {settingReforgedPassword
+                      ? 'Saving...'
+                      : reforgedProfile?.account.passwordSet
+                        ? 'Update Password'
+                        : 'Set Password'}
+                  </button>
+                  <button
+                    type="button"
+                    className="secondary compact-button"
+                    onClick={() => openExternal(PLAY_AETHRO_ACCOUNT_REFORGED_URL)}
+                  >
+                    Account
+                  </button>
+                </div>
+              </form>
             </div>
 
             <div className="reforged-roster-box">
