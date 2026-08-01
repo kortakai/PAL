@@ -1,0 +1,8 @@
+## Interface: 30300
+## Title: Aethro Global
+## Notes: Adds persistent /global chat mode for Aethro Reforged.
+## Author: Play Aethro
+## Version: 2.0.1
+## SavedVariablesPerCharacter: AethroGlobalDB
+
+AethroGlobal.lua

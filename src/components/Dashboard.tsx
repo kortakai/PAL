@@ -134,11 +134,11 @@ function reforgedUpdateStateLabel(state: ShadowsInstallState) {
     case 'notChecked':
       return 'Not checked';
     case 'checking':
-      return 'Checking realm';
+      return 'Checking setup';
     case 'needsUpdate':
-      return 'Realm needed';
+      return 'Setup needed';
     case 'installing':
-      return 'Setting realm';
+      return 'Setting up';
     case 'ready':
       return 'Ready';
     case 'failed':
@@ -920,7 +920,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
       await refreshReforgedAccount();
     } catch (err) {
       setReforgedInstallState('failed');
-      setReforgedError(err instanceof Error ? err.message : String(err || 'Unable to verify Reforged realm.'));
+      setReforgedError(err instanceof Error ? err.message : String(err || 'Unable to verify Reforged setup.'));
     } finally {
       setCheckingReforgedFiles(false);
     }
@@ -939,7 +939,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
       await refreshReforgedAccount();
     } catch (err) {
       setReforgedInstallState('failed');
-      setReforgedError(err instanceof Error ? err.message : String(err || 'Unable to set Reforged realm.'));
+      setReforgedError(err instanceof Error ? err.message : String(err || 'Unable to set up Reforged.'));
     } finally {
       setRepairingReforgedFiles(false);
     }
@@ -1038,19 +1038,19 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
           ? Math.round((reforgedCheck.okFiles / reforgedCheck.totalFiles) * 100)
           : 0;
     const progressDetail = reforgedProgress?.totalFiles
-      ? `${reforgedProgress.currentIndex}/${reforgedProgress.totalFiles} config step`
+      ? `${reforgedProgress.currentIndex}/${reforgedProgress.totalFiles} setup step`
       : reforgedCheck
-        ? `${reforgedCheck.okFiles}/${reforgedCheck.totalFiles} realm config verified`
+        ? `${reforgedCheck.okFiles}/${reforgedCheck.totalFiles} setup files verified`
         : reforgedInstallState === 'checking'
           ? 'Starting scan'
         : reforgedInstallState === 'installing'
-            ? 'Setting realm'
+            ? 'Setting up client'
             : hasReforgedClient
-              ? 'No realm check yet'
+              ? 'No setup check yet'
               : 'No client selected';
     const statusMessage = reforgedProgress?.message
       || (reforgedCheck ? reforgedCheck.installDir : hasReforgedClient
-        ? 'Check the Reforged realm before connecting.'
+        ? 'Check the Reforged setup before connecting.'
         : 'Choose your World of Warcraft 3.3.5a folder. If you do not have the client installed, you must acquire it before connecting.');
 
     return (
@@ -1074,7 +1074,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
           </div>
           <div className="reforged-hero-copy">
             <span className="eyebrow">Wrath 3.3.5a</span>
-            <h2>Choose your WoW client, set the Aethro realm, then enter the world.</h2>
+            <h2>Choose your WoW client, install the Aethro setup, then enter the world.</h2>
           </div>
         </section>
 
@@ -1117,10 +1117,10 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
                 {choosingReforgedFolder ? 'Choosing...' : 'Choose WoW Folder'}
               </button>
               <button className="secondary" onClick={verifyReforgedFiles} disabled={checkingReforgedFiles || repairingReforgedFiles || !hasReforgedClient}>
-                {checkingReforgedFiles ? 'Checking...' : 'Check Realm'}
+                {checkingReforgedFiles ? 'Checking...' : 'Check Setup'}
               </button>
               <button className="secondary" onClick={repairReforgedFiles} disabled={repairingReforgedFiles || checkingReforgedFiles || !hasReforgedClient}>
-                {repairingReforgedFiles ? 'Setting...' : 'Set Realm'}
+                {repairingReforgedFiles ? 'Setting...' : 'Set Up'}
               </button>
               <button className="secondary" onClick={launchReforgedClient} disabled={launchingReforged || repairingReforgedFiles || !hasReforgedClient}>
                 {launchingReforged ? 'Opening...' : 'Open Reforged'}
@@ -1132,8 +1132,8 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
             {reforgedCheck && (
               <div className="patch-summary">
                 <div>
-                  <strong>{reforgedCheck.ready ? 'Realm ready' : 'Realm needs update'}</strong>
-                  <span>{reforgedCheck.okFiles}/{reforgedCheck.totalFiles} realm config verified</span>
+                  <strong>{reforgedCheck.ready ? 'Setup ready' : 'Setup needs update'}</strong>
+                  <span>{reforgedCheck.okFiles}/{reforgedCheck.totalFiles} setup files verified</span>
                 </div>
                 <p>{reforgedCheck.installDir}</p>
                 <div className="patch-counts">
@@ -1274,7 +1274,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
             <div className="reforged-roster-box">
               <span className="eyebrow">Realm</span>
               <strong>Aethro: Reforged</strong>
-              <p>The launcher sets the Aethro realm for your selected client, not the full World of Warcraft install.</p>
+              <p>The launcher sets the Aethro realm and installs AethroGlobal for your selected client, not the full World of Warcraft install.</p>
             </div>
           </div>
         </section>

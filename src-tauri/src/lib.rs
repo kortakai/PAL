@@ -30,6 +30,12 @@ const SHADOWS_DOWNLOAD_PATH_PREFIX: &str = "/launcher/shadows/stable/files/";
 const REFORGED_INSTALL_CONFIG_FILE: &str = "reforged-install.json";
 const REFORGED_CONFIG_RELATIVE_PATH: &str = "WTF/Config.wtf";
 const REFORGED_REALMLIST_HOST: &str = "aethro.online";
+const AETHRO_GLOBAL_LUA_RELATIVE_PATH: &str = "Interface/AddOns/AethroGlobal/AethroGlobal.lua";
+const AETHRO_GLOBAL_TOC_RELATIVE_PATH: &str = "Interface/AddOns/AethroGlobal/AethroGlobal.toc";
+const AETHRO_GLOBAL_LUA_CONTENT: &str =
+    include_str!("../resources/reforged-addons/AethroGlobal/AethroGlobal.lua");
+const AETHRO_GLOBAL_TOC_CONTENT: &str =
+    include_str!("../resources/reforged-addons/AethroGlobal/AethroGlobal.toc");
 const GAME_SERVER_STATUS_TIMEOUT_SECONDS: u64 = 2;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -958,7 +964,7 @@ fn parse_wow_realm_list(config_text: &str) -> Option<String> {
     })
 }
 
-fn check_reforged_realm_list(install_dir: &Path) -> ModpackCheckResult {
+fn check_reforged_realm_list_file(install_dir: &Path) -> ModpackFileStatus {
     let config_path = reforged_config_path(install_dir);
     let config_text = fs::read_to_string(&config_path).ok();
     let status = match config_text.as_deref().and_then(parse_wow_realm_list) {
@@ -969,25 +975,90 @@ fn check_reforged_realm_list(install_dir: &Path) -> ModpackCheckResult {
     };
     let size_bytes = config_text.as_ref().map(|text| text.len() as u64);
 
-    ModpackCheckResult {
+    ModpackFileStatus {
+        path: REFORGED_CONFIG_RELATIVE_PATH.to_string(),
+        status: status.to_string(),
+        expected_sha256: None,
+        actual_sha256: None,
+        size_bytes,
+    }
+}
+
+fn reforged_addon_files() -> [(&'static str, &'static str); 2] {
+    [
+        (AETHRO_GLOBAL_LUA_RELATIVE_PATH, AETHRO_GLOBAL_LUA_CONTENT),
+        (AETHRO_GLOBAL_TOC_RELATIVE_PATH, AETHRO_GLOBAL_TOC_CONTENT),
+    ]
+}
+
+fn check_reforged_addon_file(
+    install_dir: &Path,
+    relative_path: &str,
+    contents: &str,
+) -> Result<ModpackFileStatus, String> {
+    let file_path = safe_join(install_dir, relative_path)?;
+    let expected_sha256 = sha256_bytes(contents.as_bytes());
+    let expected_size = contents.len() as u64;
+
+    if !file_path.exists() {
+        return Ok(ModpackFileStatus {
+            path: relative_path.to_string(),
+            status: "missing".to_string(),
+            expected_sha256: Some(expected_sha256),
+            actual_sha256: None,
+            size_bytes: Some(expected_size),
+        });
+    }
+
+    let actual_sha256 = sha256_file(&file_path)?;
+    let status = if actual_sha256.eq_ignore_ascii_case(&expected_sha256) {
+        "ok"
+    } else {
+        "changed"
+    };
+
+    Ok(ModpackFileStatus {
+        path: relative_path.to_string(),
+        status: status.to_string(),
+        expected_sha256: Some(expected_sha256),
+        actual_sha256: Some(actual_sha256),
+        size_bytes: Some(expected_size),
+    })
+}
+
+fn check_reforged_realm_list(install_dir: &Path) -> Result<ModpackCheckResult, String> {
+    let mut files = vec![check_reforged_realm_list_file(install_dir)];
+
+    for (relative_path, contents) in reforged_addon_files() {
+        files.push(check_reforged_addon_file(
+            install_dir,
+            relative_path,
+            contents,
+        )?);
+    }
+
+    let ok_files = files.iter().filter(|file| file.status == "ok").count();
+    let missing_files = files.iter().filter(|file| file.status == "missing").count();
+    let changed_files = files.iter().filter(|file| file.status == "changed").count();
+    let invalid_manifest_files = files
+        .iter()
+        .filter(|file| file.status == "invalidManifest")
+        .count();
+    let total_files = files.len();
+
+    Ok(ModpackCheckResult {
         game_id: "reforged".to_string(),
         display_name: "Aethro: Reforged".to_string(),
-        channel: "realm-config".to_string(),
+        channel: "client-config".to_string(),
         install_dir: install_dir.to_string_lossy().to_string(),
-        total_files: 1,
-        ok_files: usize::from(status == "ok"),
-        missing_files: usize::from(status == "missing"),
-        changed_files: usize::from(status == "changed"),
-        invalid_manifest_files: 0,
-        ready: status == "ok",
-        files: vec![ModpackFileStatus {
-            path: REFORGED_CONFIG_RELATIVE_PATH.to_string(),
-            status: status.to_string(),
-            expected_sha256: None,
-            actual_sha256: None,
-            size_bytes,
-        }],
-    }
+        total_files,
+        ok_files,
+        missing_files,
+        changed_files,
+        invalid_manifest_files,
+        ready: ok_files == total_files,
+        files,
+    })
 }
 
 fn update_reforged_realm_list(install_dir: &Path) -> Result<(), String> {
@@ -1021,6 +1092,22 @@ fn update_reforged_realm_list(install_dir: &Path) -> Result<(), String> {
     fs::create_dir_all(parent).map_err(|e| format!("Unable to create Reforged WTF folder: {e}"))?;
     fs::write(&config_path, format!("{}\n", updated_lines.join("\n")))
         .map_err(|e| format!("Unable to update Reforged realmlist: {e}"))
+}
+
+fn install_reforged_addons(install_dir: &Path) -> Result<(), String> {
+    for (relative_path, contents) in reforged_addon_files() {
+        let addon_path = safe_join(install_dir, relative_path)?;
+        let parent = addon_path.parent().ok_or_else(|| {
+            format!("Unable to resolve Reforged addon folder for {relative_path}.")
+        })?;
+
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Unable to create Reforged addon folder: {e}"))?;
+        fs::write(&addon_path, contents)
+            .map_err(|e| format!("Unable to install Reforged addon {relative_path}: {e}"))?;
+    }
+
+    Ok(())
 }
 
 fn detect_reforged_account_in_dir(install_dir: &Path) -> Option<LocalReforgedAccount> {
@@ -1814,21 +1901,21 @@ async fn check_reforged_install(
     emit_reforged_progress(
         &app_handle,
         "checking",
-        "Checking Reforged realm",
+        "Checking Reforged client setup",
         None,
         0,
-        1,
+        3,
         0,
         0,
     );
-    let result = check_reforged_realm_list(&install_dir);
+    let result = check_reforged_realm_list(&install_dir)?;
     emit_reforged_progress(
         &app_handle,
         if result.ready { "ready" } else { "needsUpdate" },
         if result.ready {
-            "Reforged realm is ready"
+            "Reforged client setup is ready"
         } else {
-            "Reforged realm needs to be set"
+            "Reforged client setup needs to be updated"
         },
         None,
         result.ok_files,
@@ -1848,10 +1935,10 @@ async fn repair_reforged_install(
     emit_reforged_progress(
         &app_handle,
         "checking",
-        "Checking Reforged realm",
+        "Checking Reforged client setup",
         None,
         0,
-        1,
+        3,
         0,
         0,
     );
@@ -1862,13 +1949,25 @@ async fn repair_reforged_install(
         "Setting Reforged realm",
         Some(REFORGED_CONFIG_RELATIVE_PATH.to_string()),
         1,
-        1,
+        3,
         0,
         0,
     );
     update_reforged_realm_list(&install_dir)?;
 
-    let final_check = check_reforged_realm_list(&install_dir);
+    emit_reforged_progress(
+        &app_handle,
+        "installing",
+        "Installing AethroGlobal addon",
+        Some("Interface/AddOns/AethroGlobal".to_string()),
+        2,
+        3,
+        0,
+        0,
+    );
+    install_reforged_addons(&install_dir)?;
+
+    let final_check = check_reforged_realm_list(&install_dir)?;
     emit_reforged_progress(
         &app_handle,
         if final_check.ready {
@@ -1877,9 +1976,9 @@ async fn repair_reforged_install(
             "needsUpdate"
         },
         if final_check.ready {
-            "Reforged realm is ready"
+            "Reforged client setup is ready"
         } else {
-            "Reforged realm still needs to be set"
+            "Reforged client setup still needs to be updated"
         },
         None,
         final_check.ok_files,
