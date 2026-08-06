@@ -8,6 +8,7 @@ edition = "2021"
 [lib]
 name = "play_aethro_launcher_lib"
 crate-type = ["staticlib", "cdylib", "rlib"]
+path = "src/patched_lib.rs"
 
 [build-dependencies]
 tauri-build = { version = "2", features = [] }
