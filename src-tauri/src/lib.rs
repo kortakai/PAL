@@ -38,6 +38,12 @@ const AETHRO_GLOBAL_LUA_CONTENT: &str =
     include_str!("../resources/reforged-addons/AethroGlobal/AethroGlobal.lua");
 const AETHRO_GLOBAL_TOC_CONTENT: &str =
     include_str!("../resources/reforged-addons/AethroGlobal/AethroGlobal.toc");
+const REQUIRED_REFORGED_ADDONS: &[&str] = &[
+    "AethroGlobal",
+    "AethroParagon",
+    "GuildVillageHelper",
+    "ReagentBankUI",
+];
 const GAME_SERVER_STATUS_TIMEOUT_SECONDS: u64 = 2;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -62,6 +68,7 @@ struct ModpackCheckResult {
     game_id: String,
     display_name: String,
     channel: String,
+    manifest_sha256: Option<String>,
     install_dir: String,
     total_files: usize,
     ok_files: usize,
@@ -129,6 +136,8 @@ struct ReforgedManifest {
     display_name: Option<String>,
     launch: Option<ReforgedManifestLaunch>,
     files: Option<Vec<ShadowsManifestFile>>,
+    #[serde(skip)]
+    source_sha256: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -161,6 +170,14 @@ struct ShadowsManifestFile {
     url: Option<String>,
     sha256: String,
     size_bytes: Option<u64>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ReforgedLaunchPreparation {
+    manifest_sha256: Option<String>,
+    ready: bool,
+    missing_critical_files: usize,
 }
 
 #[derive(Debug, Deserialize)]
@@ -631,6 +648,10 @@ fn sha256_bytes(bytes: &[u8]) -> String {
     format!("{:x}", hasher.finalize())
 }
 
+fn manifest_text_sha256(text: &str) -> String {
+    sha256_bytes(text.as_bytes())
+}
+
 fn load_bundled_shadows_manifest() -> Result<ShadowsManifest, String> {
     serde_json::from_str::<ShadowsManifest>(include_str!("../../manifests/shadows-stable.json"))
         .map_err(|e| format!("Unable to parse bundled Shadows manifest: {e}"))
@@ -672,8 +693,10 @@ async fn load_shadows_manifest() -> Result<ShadowsManifest, String> {
 
 async fn load_reforged_manifest() -> Result<ReforgedManifest, String> {
     fn load_bundled_reforged_manifest() -> Result<ReforgedManifest, String> {
-        serde_json::from_str::<ReforgedManifest>(BUNDLED_REFORGED_MANIFEST)
-            .map_err(|e| format!("Unable to parse bundled Reforged manifest: {e}"))
+        let mut manifest = serde_json::from_str::<ReforgedManifest>(BUNDLED_REFORGED_MANIFEST)
+            .map_err(|e| format!("Unable to parse bundled Reforged manifest: {e}"))?;
+        manifest.source_sha256 = Some(manifest_text_sha256(BUNDLED_REFORGED_MANIFEST));
+        Ok(manifest)
     }
 
     fn has_file_list(manifest: &ReforgedManifest) -> bool {
@@ -713,8 +736,9 @@ async fn load_reforged_manifest() -> Result<ReforgedManifest, String> {
                 .text()
                 .await
                 .map_err(|e| format!("Unable to read remote Reforged manifest: {e}"))?;
-            let manifest = serde_json::from_str::<ReforgedManifest>(&text)
+            let mut manifest = serde_json::from_str::<ReforgedManifest>(&text)
                 .map_err(|e| format!("Unable to parse remote Reforged manifest: {e}"))?;
+            manifest.source_sha256 = Some(manifest_text_sha256(&text));
             with_bundled_files(manifest)
         }
         Ok(response) => {
@@ -932,6 +956,7 @@ fn check_manifest_files(
         game_id: game_id.to_string(),
         display_name: display_name.to_string(),
         channel: channel.to_string(),
+        manifest_sha256: None,
         install_dir: install_dir.to_string_lossy().to_string(),
         total_files: files.len(),
         ok_files,
@@ -962,6 +987,33 @@ fn check_shadows_manifest_files(
 
 fn reforged_manifest_files(manifest: &ReforgedManifest) -> &[ShadowsManifestFile] {
     manifest.files.as_deref().unwrap_or(&[])
+}
+
+fn is_reforged_launch_critical_file(path: &str) -> bool {
+    let normalized = path.replace('\\', "/").to_ascii_lowercase();
+    normalized == "wow.exe"
+        || normalized.starts_with("interface/addons/")
+        || (normalized.starts_with("data/") && normalized.ends_with(".mpq"))
+}
+
+fn missing_reforged_launch_critical_files(
+    install_dir: &Path,
+    manifest: &ReforgedManifest,
+) -> Result<usize, String> {
+    let mut missing = 0;
+
+    for manifest_file in reforged_manifest_files(manifest) {
+        if !is_reforged_launch_critical_file(&manifest_file.path) {
+            continue;
+        }
+
+        let file_path = safe_join(install_dir, &manifest_file.path)?;
+        if !file_path.is_file() {
+            missing += 1;
+        }
+    }
+
+    Ok(missing)
 }
 
 fn reforged_manifest_game_id(manifest: &ReforgedManifest) -> &str {
@@ -1122,6 +1174,7 @@ fn check_reforged_realm_list(
         game_id: reforged_manifest_game_id(manifest).to_string(),
         display_name: reforged_manifest_display_name(manifest).to_string(),
         channel: reforged_manifest_channel(manifest).to_string(),
+        manifest_sha256: manifest.source_sha256.clone(),
         install_dir: install_dir.to_string_lossy().to_string(),
         total_files,
         ok_files,
@@ -1133,17 +1186,18 @@ fn check_reforged_realm_list(
     })
 }
 
-fn update_reforged_realm_list(install_dir: &Path) -> Result<(), String> {
+fn update_wow_config_setting(install_dir: &Path, key: &str, value: &str) -> Result<(), String> {
     let config_path = reforged_config_path(install_dir);
     let lines = fs::read_to_string(&config_path)
         .map(|text| text.lines().map(str::to_string).collect::<Vec<_>>())
         .unwrap_or_default();
-    let desired_line = format!("SET realmList \"{REFORGED_REALMLIST_HOST}\"");
+    let desired_line = format!("SET {key} \"{value}\"");
+    let setting_prefix = format!("SET {key} ");
     let mut updated_lines = Vec::with_capacity(lines.len() + 1);
     let mut found = false;
 
     for line in lines {
-        if is_wow_realm_list_line(&line) {
+        if line.trim_start().starts_with(&setting_prefix) {
             if !found {
                 updated_lines.push(desired_line.clone());
                 found = true;
@@ -1163,7 +1217,15 @@ fn update_reforged_realm_list(install_dir: &Path) -> Result<(), String> {
         .ok_or_else(|| "Unable to resolve Reforged WTF folder.".to_string())?;
     fs::create_dir_all(parent).map_err(|e| format!("Unable to create Reforged WTF folder: {e}"))?;
     fs::write(&config_path, format!("{}\n", updated_lines.join("\n")))
-        .map_err(|e| format!("Unable to update Reforged realmlist: {e}"))
+        .map_err(|e| format!("Unable to update Reforged config: {e}"))
+}
+
+fn update_reforged_realm_list(install_dir: &Path) -> Result<(), String> {
+    update_wow_config_setting(install_dir, "realmList", REFORGED_REALMLIST_HOST)
+}
+
+fn update_reforged_addon_config(install_dir: &Path) -> Result<(), String> {
+    update_wow_config_setting(install_dir, "checkAddonVersion", "0")
 }
 
 fn install_reforged_addons(install_dir: &Path) -> Result<(), String> {
@@ -1177,6 +1239,71 @@ fn install_reforged_addons(install_dir: &Path) -> Result<(), String> {
             .map_err(|e| format!("Unable to create Reforged addon folder: {e}"))?;
         fs::write(&addon_path, contents)
             .map_err(|e| format!("Unable to install Reforged addon {relative_path}: {e}"))?;
+    }
+
+    Ok(())
+}
+
+fn collect_reforged_addon_state_files(dir: &Path, files: &mut Vec<PathBuf>) -> Result<(), String> {
+    if !dir.is_dir() {
+        return Ok(());
+    }
+
+    let entries =
+        fs::read_dir(dir).map_err(|e| format!("Unable to read Reforged WTF folder: {e}"))?;
+    for entry in entries {
+        let entry = entry.map_err(|e| format!("Unable to read Reforged WTF entry: {e}"))?;
+        let path = entry.path();
+        if path.is_dir() {
+            collect_reforged_addon_state_files(&path, files)?;
+            continue;
+        }
+
+        if path
+            .file_name()
+            .and_then(|name| name.to_str())
+            .is_some_and(|name| name.eq_ignore_ascii_case("AddOns.txt"))
+        {
+            files.push(path);
+        }
+    }
+
+    Ok(())
+}
+
+fn enable_reforged_addons_in_state_file(path: &Path) -> Result<(), String> {
+    let text = fs::read_to_string(path).unwrap_or_default();
+    let mut lines = text.lines().map(str::to_string).collect::<Vec<_>>();
+
+    for addon in REQUIRED_REFORGED_ADDONS {
+        let prefix = format!("{addon}:");
+        let desired_line = format!("{addon}: enabled");
+        let mut found = false;
+
+        for line in &mut lines {
+            if line.trim_start().starts_with(&prefix) {
+                *line = desired_line.clone();
+                found = true;
+                break;
+            }
+        }
+
+        if !found {
+            lines.push(desired_line);
+        }
+    }
+
+    fs::write(path, format!("{}\n", lines.join("\n")))
+        .map_err(|e| format!("Unable to update Reforged addon state: {e}"))
+}
+
+fn enable_required_reforged_addons(install_dir: &Path) -> Result<(), String> {
+    let account_dir = install_dir.join("WTF").join("Account");
+    let mut addon_state_files = Vec::new();
+    collect_reforged_addon_state_files(&account_dir, &mut addon_state_files)?;
+
+    for addon_state_file in addon_state_files {
+        enable_reforged_addons_in_state_file(&addon_state_file)?;
     }
 
     Ok(())
@@ -2110,6 +2237,7 @@ async fn repair_reforged_install(
         0,
     );
     update_reforged_realm_list(&install_dir)?;
+    update_reforged_addon_config(&install_dir)?;
 
     emit_reforged_progress(
         &app_handle,
@@ -2122,6 +2250,7 @@ async fn repair_reforged_install(
         0,
     );
     install_reforged_addons(&install_dir)?;
+    enable_required_reforged_addons(&install_dir)?;
 
     let current = check_reforged_realm_list(&install_dir, &manifest, Some(&app_handle))?;
     if current.invalid_manifest_files > 0 {
@@ -2210,6 +2339,32 @@ async fn repair_reforged_install(
     );
 
     Ok(final_check)
+}
+
+#[tauri::command]
+async fn prepare_reforged_launch(
+    app_handle: tauri::AppHandle,
+    ready_manifest_sha256: Option<String>,
+) -> Result<ReforgedLaunchPreparation, String> {
+    let install_dir = required_reforged_install_dir(&app_handle)?;
+    let manifest = load_reforged_manifest().await?;
+
+    update_reforged_realm_list(&install_dir)?;
+    update_reforged_addon_config(&install_dir)?;
+    install_reforged_addons(&install_dir)?;
+    enable_required_reforged_addons(&install_dir)?;
+
+    let missing_critical_files = missing_reforged_launch_critical_files(&install_dir, &manifest)?;
+    let manifest_matches = ready_manifest_sha256
+        .as_deref()
+        .zip(manifest.source_sha256.as_deref())
+        .is_some_and(|(known, current)| known.eq_ignore_ascii_case(current));
+
+    Ok(ReforgedLaunchPreparation {
+        manifest_sha256: manifest.source_sha256,
+        ready: manifest_matches && missing_critical_files == 0,
+        missing_critical_files,
+    })
 }
 
 #[tauri::command]
@@ -2911,6 +3066,7 @@ pub fn run() {
             repair_shadows_install,
             check_reforged_install,
             repair_reforged_install,
+            prepare_reforged_launch,
             detect_local_minecraft_profile,
             detect_local_reforged_account,
             set_reforged_install_dir,

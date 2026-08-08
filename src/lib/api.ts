@@ -10,6 +10,7 @@ import type {
   LocalReforgedAccount,
   ModpackCheckResult,
   NewsFeedId,
+  ReforgedLaunchPreparation,
   ReforgedCharacter,
   ReforgedProfile,
   ReforgedServerAccount,
@@ -368,6 +369,12 @@ export async function checkReforgedInstall(): Promise<ModpackCheckResult> {
 
 export async function repairReforgedInstall(): Promise<ModpackCheckResult> {
   return invoke<ModpackCheckResult>('repair_reforged_install');
+}
+
+export async function prepareReforgedLaunch(readyManifestSha256?: string): Promise<ReforgedLaunchPreparation> {
+  return invoke<ReforgedLaunchPreparation>('prepare_reforged_launch', {
+    readyManifestSha256
+  });
 }
 
 export async function detectLocalMinecraftProfile(): Promise<LocalMinecraftProfile | null> {

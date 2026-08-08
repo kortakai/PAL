@@ -123,6 +123,7 @@ export type ModpackCheckResult = {
   gameId: string;
   displayName: string;
   channel: string;
+  manifestSha256?: string;
   installDir: string;
   totalFiles: number;
   okFiles: number;
@@ -131,6 +132,12 @@ export type ModpackCheckResult = {
   invalidManifestFiles: number;
   ready: boolean;
   files: ModpackFileStatus[];
+};
+
+export type ReforgedLaunchPreparation = {
+  manifestSha256?: string;
+  ready: boolean;
+  missingCriticalFiles: number;
 };
 
 export type KalismorCharacter = {

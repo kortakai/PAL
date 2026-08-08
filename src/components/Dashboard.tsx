@@ -20,6 +20,7 @@ import {
   getReforgedProfile,
   openMinecraftLauncher,
   openReforgedClient,
+  prepareReforgedLaunch,
   recordShadowsLaunch,
   repairReforgedInstall,
   repairShadowsInstall,
@@ -958,7 +959,13 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     setReforgedError(null);
 
     try {
-      if (!reforgedCheck?.ready || reforgedInstallState !== 'ready') {
+      const launchPreparation = await prepareReforgedLaunch(reforgedCheck?.manifestSha256);
+      const canLaunchWithoutRepair =
+        reforgedCheck?.ready
+        && reforgedInstallState === 'ready'
+        && launchPreparation.ready;
+
+      if (!canLaunchWithoutRepair) {
         setRepairingReforgedFiles(true);
         setReforgedInstallState('checking');
         setReforgedProgress(null);
