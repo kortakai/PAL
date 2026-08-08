@@ -2,20 +2,22 @@
   "user": {
     "id": "user_123",
     "displayName": "AethroPlayer",
-    "avatarUrl": "https://cdn.playaethro.com/avatars/user_123.png"
+    "avatarUrl": "https://cdn.playaethro.online/avatars/user_123.png"
   },
   "hero": {
-    "imageUrl": "https://cdn.playaethro.com/launcher/hero-card.jpg",
+    "imageUrl": "https://cdn.playaethro.online/launcher/hero-card.jpg",
     "title": "Play Aethro",
     "subtitle": "Choose your world."
   },
   "news": [
     {
       "id": "news_001",
+      "feedId": "shadows-of-aethro",
+      "feedName": "Shadows of Aethro",
       "title": "Shadows of Aethro Update",
-      "summary": "New modpack changes, fixes, and goblin nonsense.",
+      "summary": "New modpack changes, fixes, and event notes.",
       "publishedAt": "2026-07-08T12:00:00-07:00",
-      "url": "https://playaethro.com/news/shadows-update"
+      "url": "https://playaethro.online/news/shadows-update"
     }
   ],
   "games": [
@@ -28,14 +30,21 @@
     },
     {
       "id": "aethro-online",
-      "title": "Aethro Online",
-      "description": "A text-based fantasy MUD in Kalismor.",
+      "title": "Chronicles of Kalismor",
+      "description": "A dark fantasy MUD gateway being prepared.",
       "status": "online",
       "actionLabel": "Play Aethro Online"
+    },
+    {
+      "id": "reforged",
+      "title": "Aethro: Reforged",
+      "description": "Wrath-era realm client, account setup, and patches.",
+      "status": "online",
+      "actionLabel": "Play Reforged"
     }
   ],
   "links": {
-    "website": "https://playaethro.com",
+    "website": "https://playaethro.online",
     "discord": "https://discord.gg/your-code"
   }
 }

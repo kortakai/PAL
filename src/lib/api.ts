@@ -765,7 +765,7 @@ export function createLauncherHome(
       {
         id: 'reforged',
         title: 'Aethro: Reforged',
-        description: 'Connect with your own WoW 3.3.5a client.',
+        description: 'Wrath-era realm client, account setup, and patches.',
         status: gameStatuses.reforged ?? 'offline',
         actionLabel: 'Play Reforged'
       }

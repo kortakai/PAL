@@ -79,6 +79,7 @@ const SHADOWS_EVENT = {
 const AETHRO_ONLINE_STORE_URL = 'https://aethro.online/store';
 const AETHRO_ONLINE_FORUMS_URL = 'https://aethro.online/forums';
 const PLAY_AETHRO_ACCOUNT_REFORGED_URL = 'https://playaethro.online/account#game-reforged';
+const REFORGED_CLIENT_DOWNLOAD_URL = 'https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged';
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat(undefined, {
@@ -815,7 +816,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
 
     try {
       const selected = await openDialog({
-        title: 'Choose your World of Warcraft 3.3.5a folder',
+        title: 'Choose your Aethro: Reforged client folder',
         directory: true,
         multiple: false,
         canCreateDirectories: false
@@ -1051,14 +1052,14 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     const statusMessage = reforgedProgress?.message
       || (reforgedCheck ? reforgedCheck.installDir : hasReforgedClient
         ? 'Check the Reforged setup before connecting.'
-        : 'Choose your World of Warcraft 3.3.5a folder. If you do not have the client installed, you must acquire it before connecting.');
+        : 'Download the Aethro client or select an existing WoW 3.3.5a folder.');
 
     return (
       <main className="dashboard reforged-page">
         <header className="topbar reforged-topbar">
           <div>
             <span className="eyebrow">Aethro: Reforged</span>
-            <h1>Realm Client</h1>
+            <h1>Warfront Ready</h1>
           </div>
           <div className="topbar-actions">
             <button className="secondary" onClick={() => setView('home')}>Back</button>
@@ -1074,7 +1075,18 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
           </div>
           <div className="reforged-hero-copy">
             <span className="eyebrow">Wrath 3.3.5a</span>
-            <h2>Choose your WoW client, install the Aethro setup, then enter the world.</h2>
+            <h2>Download the Reforged client, bind it to Aethro, then march through the Dark Portal.</h2>
+            <p>The launcher handles the realm list, AethroGlobal addon, account password, and launch checks.</p>
+            <div className="reforged-hero-actions">
+              <button className="icon-button" onClick={() => openExternal(REFORGED_CLIENT_DOWNLOAD_URL)}>
+                <span className="button-icon icon-download" aria-hidden="true" />
+                Download Client
+              </button>
+              <button className="secondary icon-button" onClick={chooseReforgedFolder} disabled={choosingReforgedFolder}>
+                <span className="button-icon icon-globe" aria-hidden="true" />
+                Select Existing
+              </button>
+            </div>
           </div>
         </section>
 
@@ -1113,14 +1125,18 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
             </div>
 
             <div className="patch-actions">
-              <button onClick={chooseReforgedFolder} disabled={choosingReforgedFolder || repairingReforgedFiles || checkingReforgedFiles}>
+              <button className="icon-button" onClick={() => openExternal(REFORGED_CLIENT_DOWNLOAD_URL)}>
+                <span className="button-icon icon-download" aria-hidden="true" />
+                Download Client
+              </button>
+              <button className="secondary" onClick={chooseReforgedFolder} disabled={choosingReforgedFolder || repairingReforgedFiles || checkingReforgedFiles}>
                 {choosingReforgedFolder ? 'Choosing...' : 'Choose WoW Folder'}
               </button>
               <button className="secondary" onClick={verifyReforgedFiles} disabled={checkingReforgedFiles || repairingReforgedFiles || !hasReforgedClient}>
                 {checkingReforgedFiles ? 'Checking...' : 'Check Setup'}
               </button>
-              <button className="secondary" onClick={repairReforgedFiles} disabled={repairingReforgedFiles || checkingReforgedFiles || !hasReforgedClient}>
-                {repairingReforgedFiles ? 'Setting...' : 'Set Up'}
+              <button onClick={repairReforgedFiles} disabled={repairingReforgedFiles || checkingReforgedFiles || !hasReforgedClient}>
+                {repairingReforgedFiles ? 'Setting up...' : 'Install / Repair Setup'}
               </button>
               <button className="secondary" onClick={launchReforgedClient} disabled={launchingReforged || repairingReforgedFiles || !hasReforgedClient}>
                 {launchingReforged ? 'Opening...' : 'Open Reforged'}
@@ -1237,7 +1253,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
               <p>
                 {hasReforgedClient
                   ? 'This folder contains the WoW client Reforged will use.'
-                  : reforgedAccount?.message || 'If you do not have the client installed, acquire it first before connecting.'}
+                  : reforgedAccount?.message || 'Download the Aethro client, then select the folder that contains Wow.exe and Data.'}
               </p>
             </div>
 
@@ -1274,7 +1290,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
             <div className="reforged-roster-box">
               <span className="eyebrow">Realm</span>
               <strong>Aethro: Reforged</strong>
-              <p>The launcher sets the Aethro realm and installs AethroGlobal for your selected client, not the full World of Warcraft install.</p>
+              <p>The launcher keeps your selected client pointed at Aethro and installs the AethroGlobal addon.</p>
             </div>
           </div>
         </section>

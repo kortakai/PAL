@@ -1187,15 +1187,16 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
 .reforged-page {
   min-height: 100vh;
   background:
-    linear-gradient(180deg, rgba(51, 17, 22, .82), rgba(13, 19, 22, .96)),
-    linear-gradient(90deg, rgba(216, 192, 113, .08) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(50, 14, 20, .88), rgba(12, 17, 20, .98)),
+    repeating-linear-gradient(135deg, rgba(216, 192, 113, .08) 0 1px, transparent 1px 22px),
+    linear-gradient(90deg, rgba(72, 107, 118, .12), transparent 34%, rgba(216, 192, 113, .1)),
     #0b1012;
-  background-size: auto, 46px 46px, auto;
+  background-size: auto, auto, auto;
   color: #f4ead3;
 }
 .reforged-topbar h1 {
   color: #f2d992;
-  text-shadow: 0 4px 0 rgba(0,0,0,.32);
+  text-shadow: 0 4px 0 rgba(0,0,0,.38), 0 0 26px rgba(216, 192, 113, .14);
 }
 .reforged-page .eyebrow { color: #d8c071; }
 .reforged-page button {
@@ -1213,13 +1214,13 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
   position: relative;
   overflow: hidden;
   display: grid;
-  grid-template-columns: 300px minmax(0, 1fr);
-  min-height: 220px;
+  grid-template-columns: 340px minmax(0, 1fr);
+  min-height: 284px;
   margin-bottom: 24px;
-  border: 1px solid rgba(216, 192, 113, .26);
-  border-radius: 14px;
+  border: 2px solid rgba(216, 192, 113, .32);
+  border-radius: 12px;
   background:
-    linear-gradient(115deg, rgba(22, 28, 31, .96), rgba(88, 22, 30, .78) 58%, rgba(12, 16, 18, .96)),
+    linear-gradient(115deg, rgba(18, 24, 28, .98), rgba(84, 18, 28, .86) 58%, rgba(10, 14, 16, .98)),
     #111719;
   box-shadow: 0 28px 80px rgba(0,0,0,.38);
 }
@@ -1228,44 +1229,64 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
   position: absolute;
   inset: 0;
   background:
-    repeating-linear-gradient(90deg, rgba(216, 192, 113, .05) 0 2px, transparent 2px 24px),
-    radial-gradient(circle at 72% 22%, rgba(248, 193, 92, .18), transparent 24%);
+    repeating-linear-gradient(90deg, rgba(216, 192, 113, .06) 0 2px, transparent 2px 24px),
+    linear-gradient(90deg, rgba(9, 13, 16, .36), transparent 48%, rgba(216, 192, 113, .1));
+}
+.reforged-hero::after {
+  content: '';
+  position: absolute;
+  right: 28px;
+  top: 0;
+  width: 86px;
+  height: 178px;
+  background:
+    linear-gradient(180deg, #d8c071 0 14px, transparent 14px),
+    linear-gradient(180deg, rgba(106, 22, 34, .92), rgba(40, 52, 58, .9));
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
+  opacity: .82;
+  box-shadow: -128px 42px 0 -10px rgba(38, 66, 76, .62);
 }
 .reforged-gate {
   position: relative;
   z-index: 1;
   display: grid;
   place-items: end center;
-  min-height: 220px;
+  min-height: 284px;
   border-right: 1px solid rgba(216, 192, 113, .14);
+  background:
+    linear-gradient(180deg, rgba(4, 7, 9, .12), rgba(4, 7, 9, .46)),
+    repeating-linear-gradient(0deg, rgba(216, 192, 113, .06) 0 3px, transparent 3px 24px);
 }
 .reforged-gate::before {
   content: '';
-  width: 154px;
-  height: 136px;
+  width: 176px;
+  height: 178px;
   border: 3px solid rgba(216, 192, 113, .58);
   border-bottom: 0;
-  border-radius: 18px 18px 0 0;
+  border-radius: 86px 86px 0 0;
   background:
     linear-gradient(90deg, transparent 48%, rgba(216, 192, 113, .28) 48% 52%, transparent 52%),
     linear-gradient(180deg, rgba(89, 23, 29, .84), rgba(7, 12, 14, .94));
-  box-shadow: inset 0 0 44px rgba(216, 192, 113, .1), 0 0 60px rgba(135, 41, 50, .24);
+  box-shadow:
+    inset 0 0 44px rgba(216, 192, 113, .1),
+    0 0 0 18px rgba(216, 192, 113, .05),
+    0 18px 44px rgba(0,0,0,.34);
 }
 .reforged-gate span {
   position: absolute;
-  bottom: 34px;
-  width: 188px;
+  bottom: 42px;
+  width: 218px;
   height: 18px;
   background: #d8c071;
-  box-shadow: 0 28px 0 rgba(109, 75, 40, .7);
+  box-shadow: 0 28px 0 rgba(109, 75, 40, .7), 0 56px 0 rgba(34, 46, 51, .82);
 }
 .reforged-hero-copy {
   position: relative;
   z-index: 1;
   display: grid;
   align-content: center;
-  gap: 12px;
-  padding: 34px;
+  gap: 14px;
+  padding: 38px;
 }
 .reforged-hero-copy h2 {
   max-width: 760px;
@@ -1273,6 +1294,19 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
   color: #f2d992;
   font-size: 46px;
   line-height: 1;
+}
+.reforged-hero-copy p {
+  max-width: 720px;
+  margin: 0;
+  color: #dfd4bf;
+  font-size: 17px;
+  line-height: 1.42;
+}
+.reforged-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 6px;
 }
 .reforged-layout {
   display: grid;

@@ -135,6 +135,16 @@ https://playaethro.online/news/shadows-of-aethro.rss
 https://playaethro.online/news/play-aethro-launcher.rss
 ```
 
+## Reforged Client
+
+The launcher links players to the official uploaded Reforged client folder:
+
+```txt
+https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged
+```
+
+After the player selects the downloaded client folder, the launcher verifies `Wow.exe` and `Data`, writes the Aethro realm list, installs AethroGlobal, and opens the configured client executable.
+
 ## Shadows Launch Proof
 
 `POST https://playaethro.online/api/account/game-launches`

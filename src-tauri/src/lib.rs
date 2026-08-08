@@ -774,7 +774,7 @@ fn save_reforged_install_dir(
 
 fn required_reforged_install_dir(app_handle: &tauri::AppHandle) -> Result<PathBuf, String> {
     let install_dir = load_saved_reforged_install_dir(app_handle)?.ok_or_else(|| {
-        "Choose your World of Warcraft 3.3.5a install folder first. If you do not have the client installed, you must acquire it before connecting to Aethro: Reforged.".to_string()
+        "Choose your Aethro: Reforged client folder first. Download the client if it is not installed yet.".to_string()
     })?;
 
     if !is_valid_reforged_client_dir(&install_dir) {
@@ -2025,7 +2025,10 @@ fn set_reforged_install_dir(
     let install_dir = PathBuf::from(install_dir);
 
     if !is_valid_reforged_client_dir(&install_dir) {
-        return Err("Choose your World of Warcraft 3.3.5a client folder. It must contain Wow.exe and Data. If you do not have the client installed, you must acquire it before connecting to Aethro: Reforged.".to_string());
+        return Err(
+            "Choose your Aethro: Reforged client folder. It must contain Wow.exe and Data."
+                .to_string(),
+        );
     }
 
     save_reforged_install_dir(&app_handle, &install_dir)?;
