@@ -12,7 +12,10 @@ fn main() {
 
     let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     let source_path = manifest_dir.join("src/lib.rs");
-    let mut source = fs::read_to_string(&source_path).expect("Unable to read src/lib.rs");
+    let mut source = fs::read_to_string(&source_path)
+        .expect("Unable to read src/lib.rs")
+        .replace("\r\n", "\n")
+        .replace('\r', "\n");
 
     source = source.replace(
         "include_str!(\"../resources/reforged-addons/AethroGlobal/AethroGlobal.lua\")",
