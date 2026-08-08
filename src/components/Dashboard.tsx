@@ -828,11 +828,19 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
       setReforgedAccount(account);
       setReforgedCheck(null);
       setReforgedProgress(null);
-      setReforgedInstallState('notChecked');
+      setReforgedInstallState('checking');
+      setRepairingReforgedFiles(true);
+
+      const result = await repairReforgedInstall();
+      setReforgedCheck(result);
+      setReforgedInstallState(result.ready ? 'ready' : 'needsUpdate');
+      await refreshReforgedAccount();
     } catch (err) {
-      setReforgedError(err instanceof Error ? err.message : String(err || 'Unable to save Reforged folder.'));
+      setReforgedInstallState('failed');
+      setReforgedError(err instanceof Error ? err.message : String(err || 'Unable to save and patch Reforged.'));
     } finally {
       setChoosingReforgedFolder(false);
+      setRepairingReforgedFiles(false);
     }
   }
 
@@ -951,12 +959,20 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     setReforgedError(null);
 
     try {
+      setRepairingReforgedFiles(true);
+      setReforgedInstallState('checking');
+      setReforgedProgress(null);
+      const result = await repairReforgedInstall();
+      setReforgedCheck(result);
+      setReforgedInstallState(result.ready ? 'ready' : 'needsUpdate');
       await refreshReforgedAccount();
       await openReforgedClient();
     } catch (err) {
+      setReforgedInstallState('failed');
       setReforgedError(err instanceof Error ? err.message : String(err || 'Unable to open Reforged.'));
     } finally {
       setLaunchingReforged(false);
+      setRepairingReforgedFiles(false);
     }
   }
 

@@ -33,7 +33,7 @@ fn main() {
     replace_once(
         &mut source,
         "const SHADOWS_DOWNLOAD_PATH_PREFIX: &str = \"/launcher/shadows/stable/files/\";\n",
-        "const SHADOWS_DOWNLOAD_PATH_PREFIX: &str = \"/launcher/shadows/stable/files/\";\nconst REFORGED_DOWNLOAD_PATH_PREFIX: &str = \"/public_html/downloads/\";\n",
+        "const SHADOWS_DOWNLOAD_PATH_PREFIX: &str = \"/launcher/shadows/stable/files/\";\nconst REFORGED_DOWNLOAD_PATH_PREFIX: &str = \"/downloads/ar-launcher-stuff/\";\n",
     );
 
     let addon_function = r#"fn reforged_addon_files() -> [(&'static str, &'static str); 2] {
@@ -55,37 +55,37 @@ fn reforged_managed_files() -> Vec<ShadowsManifestFile> {
     vec![
         ShadowsManifestFile {
             path: "Data/Patch-F.mpq".to_string(),
-            url: Some("https://aethro.net/public_html/downloads/Patch-F.mpq".to_string()),
+            url: Some("https://aethro.net/downloads/ar-launcher-stuff/Patch-F.mpq".to_string()),
             sha256: "4fef7ed6a3b24c90235ae902ffc8e77dc476fbee073f749469f8fa8ce193feff".to_string(),
             size_bytes: Some(9_124_021),
         },
         ShadowsManifestFile {
             path: "Interface/AddOns/ReagentBankUI/Bindings.xml".to_string(),
-            url: Some("https://aethro.net/public_html/downloads/ReagentBankUI/Bindings.xml".to_string()),
+            url: Some("https://aethro.net/downloads/ar-launcher-stuff/ReagentBankUI/Bindings.xml".to_string()),
             sha256: "06898d4941d3822fb6809f13a7f27cbca8b5d98d73ee24156759e102103b0e0e".to_string(),
             size_bytes: Some(316),
         },
         ShadowsManifestFile {
             path: "Interface/AddOns/ReagentBankUI/ReagentBankUI_Share.lua".to_string(),
-            url: Some("https://aethro.net/public_html/downloads/ReagentBankUI/ReagentBankUI_Share.lua".to_string()),
+            url: Some("https://aethro.net/downloads/ar-launcher-stuff/ReagentBankUI/ReagentBankUI_Share.lua".to_string()),
             sha256: "e76d169a19bd3386e74737e53fa51678a3db798523e641ce6ab4df84b0c2867b".to_string(),
             size_bytes: Some(17_404),
         },
         ShadowsManifestFile {
             path: "Interface/AddOns/ReagentBankUI/ReagentBankUI.lua".to_string(),
-            url: Some("https://aethro.net/public_html/downloads/ReagentBankUI/ReagentBankUI.lua".to_string()),
+            url: Some("https://aethro.net/downloads/ar-launcher-stuff/ReagentBankUI/ReagentBankUI.lua".to_string()),
             sha256: "78ab8195cd85425d9502bcda40e9ea29b03e547cdd4199b8420d598fd8f821de".to_string(),
             size_bytes: Some(253_213),
         },
         ShadowsManifestFile {
             path: "Interface/AddOns/ReagentBankUI/ReagentBankUI.toc".to_string(),
-            url: Some("https://aethro.net/public_html/downloads/ReagentBankUI/ReagentBankUI.toc".to_string()),
+            url: Some("https://aethro.net/downloads/ar-launcher-stuff/ReagentBankUI/ReagentBankUI.toc".to_string()),
             sha256: "cfb2601843ecceb322a50860b2d75cde222ac7f227bb15bf55074371376f1870".to_string(),
             size_bytes: Some(293),
         },
         ShadowsManifestFile {
             path: "Interface/AddOns/ReagentBankUI/ReagentBankUI.xml".to_string(),
-            url: Some("https://aethro.net/public_html/downloads/ReagentBankUI/ReagentBankUI.xml".to_string()),
+            url: Some("https://aethro.net/downloads/ar-launcher-stuff/ReagentBankUI/ReagentBankUI.xml".to_string()),
             sha256: "e97e9266920c233c728809f335ba5e281a16a67ef50ff7d9e645045ee730c614".to_string(),
             size_bytes: Some(6_194),
         },
