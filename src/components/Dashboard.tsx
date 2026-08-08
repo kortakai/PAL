@@ -958,13 +958,16 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     setReforgedError(null);
 
     try {
-      setRepairingReforgedFiles(true);
-      setReforgedInstallState('checking');
-      setReforgedProgress(null);
-      const result = await repairReforgedInstall();
-      setReforgedCheck(result);
-      setReforgedInstallState(result.ready ? 'ready' : 'needsUpdate');
-      await refreshReforgedAccount();
+      if (!reforgedCheck?.ready || reforgedInstallState !== 'ready') {
+        setRepairingReforgedFiles(true);
+        setReforgedInstallState('checking');
+        setReforgedProgress(null);
+        const result = await repairReforgedInstall();
+        setReforgedCheck(result);
+        setReforgedInstallState(result.ready ? 'ready' : 'needsUpdate');
+        await refreshReforgedAccount();
+      }
+
       await openReforgedClient();
     } catch (err) {
       setReforgedInstallState('failed');
