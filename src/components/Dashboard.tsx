@@ -1059,7 +1059,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
         <header className="topbar reforged-topbar">
           <div>
             <span className="eyebrow">Aethro: Reforged</span>
-            <h1>Warfront Ready</h1>
+            <h1>Aethro: Reforged</h1>
           </div>
           <div className="topbar-actions">
             <button className="secondary" onClick={() => setView('home')}>Back</button>
@@ -1069,24 +1069,21 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
 
         {renderLauncherUpdateNotice()}
 
-        <section className="reforged-hero">
-          <div className="reforged-gate" aria-hidden="true">
-            <span />
+        <section className="reforged-action-strip">
+          <div className="reforged-strip-media" aria-hidden="true" />
+          <div className="reforged-strip-copy">
+            <strong>Aethro: Reforged</strong>
+            <span>Wrath 3.3.5a client setup, patches, realm list, and AethroGlobal.</span>
           </div>
-          <div className="reforged-hero-copy">
-            <span className="eyebrow">Wrath 3.3.5a</span>
-            <h2>Download the Reforged client, bind it to Aethro, then march through the Dark Portal.</h2>
-            <p>The launcher handles the realm list, AethroGlobal addon, account password, and launch checks.</p>
-            <div className="reforged-hero-actions">
-              <button className="icon-button" onClick={() => openExternal(REFORGED_CLIENT_DOWNLOAD_URL)}>
-                <span className="button-icon icon-download" aria-hidden="true" />
-                Download Client
-              </button>
-              <button className="secondary icon-button" onClick={chooseReforgedFolder} disabled={choosingReforgedFolder}>
-                <span className="button-icon icon-globe" aria-hidden="true" />
-                Select Existing
-              </button>
-            </div>
+          <div className="reforged-strip-actions">
+            <button className="icon-button" onClick={() => openExternal(REFORGED_CLIENT_DOWNLOAD_URL)}>
+              <span className="button-icon icon-download" aria-hidden="true" />
+              Download Client
+            </button>
+            <button className="secondary icon-button" onClick={chooseReforgedFolder} disabled={choosingReforgedFolder}>
+              <span className="button-icon icon-globe" aria-hidden="true" />
+              Select Folder
+            </button>
           </div>
         </section>
 

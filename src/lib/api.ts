@@ -28,6 +28,7 @@ const KALISMOR_PUBLIC_MUD_PORT = 25_000;
 const SHADOWS_LAUNCH_EVENT_URL = `${PLAY_AETHRO_API_BASE}/account/game-launches`;
 const REFORGED_PROFILE_URL = `${PLAY_AETHRO_API_BASE}/account/games/aethro-reforged`;
 const REFORGED_PASSWORD_URL = `${REFORGED_PROFILE_URL}/password`;
+const PLAY_AETHRO_NEWS_URL = 'https://playaethro.online/news';
 
 const GAME_SERVER_STATUS_TARGETS = [
   { id: 'shadows', host: 'mc.aethro.net', port: 25_567 },
@@ -647,7 +648,17 @@ export type { MudTerminalOutput };
 
 async function fetchText(url: string): Promise<string> {
   // Rust-side request avoids browser CORS problems inside the Tauri webview.
-  return withTimeout(invoke<string>('fetch_text', { url }), RSS_TIMEOUT_MS, 'Aethro RSS feed');
+  try {
+    return await withTimeout(invoke<string>('fetch_text', { url }), RSS_TIMEOUT_MS, 'Aethro news feed');
+  } catch (err) {
+    if (!('__TAURI_INTERNALS__' in window)) {
+      const response = await withTimeout(fetch(url, { cache: 'no-store' }), RSS_TIMEOUT_MS, 'Aethro news feed');
+      if (!response.ok) throw new Error(`Aethro news feed returned HTTP ${response.status}.`);
+      return response.text();
+    }
+
+    throw err;
+  }
 }
 
 function textFromElement(parent: Element, tagName: string): string {
@@ -687,22 +698,79 @@ function parseRss(xml: string, feedId: NewsFeedId, feedName: string): LauncherNe
   });
 }
 
+function absolutePlayAethroUrl(url: string): string {
+  return new URL(url, 'https://playaethro.online').toString();
+}
+
+function feedIdFromNewsCategory(category: string): NewsFeedId | null {
+  const normalized = category.toLowerCase();
+  if (normalized.includes('reforged')) return 'aethro-reforged';
+  if (normalized.includes('launcher')) return 'play-aethro-launcher';
+  if (normalized.includes('aethro online') || normalized.includes('kalismor')) return 'aethro-online';
+  if (normalized.includes('shadows')) return 'shadows-of-aethro';
+  return null;
+}
+
+function feedNameFromId(feedId: NewsFeedId): string {
+  return RSS_FEEDS.find((feed) => feed.id === feedId)?.name ?? 'Play Aethro';
+}
+
+function parseNewsIndex(html: string): LauncherNewsItem[] {
+  const doc = new DOMParser().parseFromString(html, 'text/html');
+
+  return [...doc.querySelectorAll('.news-card')].flatMap((card, index) => {
+    const category = card.querySelector('.news-card-meta span')?.textContent?.trim() ?? '';
+    const feedId = feedIdFromNewsCategory(category);
+    if (!feedId) return [];
+
+    const titleElement = card.querySelector('h2 a');
+    const title = titleElement?.textContent?.trim() || 'Untitled';
+    const href = titleElement?.getAttribute('href') || PLAY_AETHRO_NEWS_URL;
+    const publishedAtRaw = card.querySelector('time')?.getAttribute('datetime');
+    const publishedAt = publishedAtRaw ? new Date(publishedAtRaw).toISOString() : new Date().toISOString();
+    const summary = stripHtml(card.querySelector('.news-card-copy p')?.innerHTML ?? '').slice(0, 220);
+
+    return [{
+      id: `${feedId}-news-index-${publishedAt}-${index}`,
+      feedId,
+      feedName: feedNameFromId(feedId),
+      title,
+      summary: summary || 'Open the article for details.',
+      publishedAt,
+      url: absolutePlayAethroUrl(href)
+    }];
+  });
+}
+
 export async function getLauncherNews(): Promise<LauncherNewsItem[]> {
-  const settled = await Promise.allSettled(
-    RSS_FEEDS.map(async (feed) => {
+  const sources = [
+    ...RSS_FEEDS.map((feed) => async () => {
       console.info(`Loading ${feed.name} RSS`, feed.url);
       return parseRss(await fetchText(feed.url), feed.id, feed.name);
-    })
+    }),
+    async () => parseNewsIndex(await fetchText(PLAY_AETHRO_NEWS_URL))
+  ];
+
+  const settled = await Promise.allSettled(
+    sources.map((load) => load())
   );
 
   const news = settled.flatMap((result, index) => {
     if (result.status === 'fulfilled') return result.value;
 
-    console.warn(`RSS feed failed: ${RSS_FEEDS[index].name}`, result.reason);
+    console.warn('Aethro news source failed.', result.reason);
     return [];
   });
 
-  return news.sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
+  const seen = new Set<string>();
+  return news
+    .filter((item) => {
+      const key = `${item.feedId}:${item.url}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => Date.parse(b.publishedAt) - Date.parse(a.publishedAt));
 }
 
 export async function getLauncherHome(session: AuthSession): Promise<LauncherHome> {

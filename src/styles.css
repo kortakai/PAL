@@ -571,38 +571,29 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
 }
 .reforged-world-card .world-card-art {
   background:
-    radial-gradient(circle at 68% 18%, rgba(248, 193, 92, .48), transparent 22%),
-    linear-gradient(155deg, #4e171b, #1c2931 54%, #101111);
+    linear-gradient(180deg, rgba(6, 8, 10, .08), rgba(6, 8, 10, .82)),
+    url('https://playaethro.online/storage/forum-uploads/1/c8hwdQaqj3MiivaKXaGDMkD6NIWBw4uXfuy3aWVK.png') center / cover no-repeat,
+    #101111;
 }
 .reforged-world-card .world-card-art::before {
-  left: 28px;
-  right: 28px;
-  bottom: 62px;
-  height: 76px;
-  border: 3px solid rgba(230, 217, 183, .34);
-  border-radius: 12px 12px 4px 4px;
-  background:
-    linear-gradient(90deg, transparent 48%, rgba(230, 217, 183, .26) 48% 52%, transparent 52%),
-    linear-gradient(180deg, rgba(101, 28, 34, .9), rgba(20, 28, 31, .92));
-  box-shadow: 0 -28px 0 -10px rgba(230, 217, 183, .18);
+  inset: 0;
+  background: linear-gradient(180deg, transparent 30%, rgba(8, 10, 11, .88));
 }
 .reforged-world-card .world-card-art::after {
-  left: 72px;
-  bottom: 128px;
-  width: 92px;
-  height: 22px;
+  left: 18px;
+  bottom: 20px;
+  width: 108px;
+  height: 4px;
   background: #d8c071;
-  box-shadow: 122px 22px 0 rgba(216, 192, 113, .72), 46px 54px 0 rgba(142, 45, 48, .8);
-  transform: skewX(-18deg);
+  box-shadow: 0 10px 0 rgba(112, 31, 38, .85);
 }
 .reforged-world-card .world-card-art span {
-  right: 42px;
-  bottom: 78px;
-  width: 48px;
-  height: 86px;
-  border: 3px solid rgba(216, 192, 113, .72);
-  background: linear-gradient(180deg, #dad1b0, #7d2530);
-  clip-path: polygon(50% 0, 100% 26%, 82% 100%, 18% 100%, 0 26%);
+  right: 18px;
+  top: 18px;
+  width: 58px;
+  height: 76px;
+  background: linear-gradient(180deg, #d8c071 0 8px, rgba(112, 31, 38, .86) 8px 100%);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
 }
 .world-card-content {
   position: relative;
@@ -1210,103 +1201,53 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
   background: rgba(24, 31, 34, .82);
   border: 1px solid rgba(216, 192, 113, .22);
 }
-.reforged-hero {
+.reforged-action-strip {
   position: relative;
   overflow: hidden;
   display: grid;
-  grid-template-columns: 340px minmax(0, 1fr);
-  min-height: 284px;
-  margin-bottom: 24px;
-  border: 2px solid rgba(216, 192, 113, .32);
-  border-radius: 12px;
+  grid-template-columns: 168px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 18px;
+  min-height: 92px;
+  margin-bottom: 18px;
+  border: 1px solid rgba(216, 192, 113, .28);
+  border-radius: 8px;
+  padding: 10px 14px 10px 10px;
   background:
-    linear-gradient(115deg, rgba(18, 24, 28, .98), rgba(84, 18, 28, .86) 58%, rgba(10, 14, 16, .98)),
+    linear-gradient(90deg, rgba(8, 10, 12, .94), rgba(64, 18, 24, .82) 54%, rgba(11, 16, 18, .94)),
+    #101111;
+  box-shadow: 0 18px 44px rgba(0,0,0,.3);
+}
+.reforged-strip-media {
+  align-self: stretch;
+  min-height: 72px;
+  border: 1px solid rgba(216, 192, 113, .2);
+  border-radius: 6px;
+  background:
+    linear-gradient(90deg, rgba(7, 9, 10, .08), rgba(7, 9, 10, .58)),
+    url('https://playaethro.online/storage/forum-uploads/1/c8hwdQaqj3MiivaKXaGDMkD6NIWBw4uXfuy3aWVK.png') center / cover no-repeat,
     #111719;
-  box-shadow: 0 28px 80px rgba(0,0,0,.38);
 }
-.reforged-hero::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    repeating-linear-gradient(90deg, rgba(216, 192, 113, .06) 0 2px, transparent 2px 24px),
-    linear-gradient(90deg, rgba(9, 13, 16, .36), transparent 48%, rgba(216, 192, 113, .1));
-}
-.reforged-hero::after {
-  content: '';
-  position: absolute;
-  right: 28px;
-  top: 0;
-  width: 86px;
-  height: 178px;
-  background:
-    linear-gradient(180deg, #d8c071 0 14px, transparent 14px),
-    linear-gradient(180deg, rgba(106, 22, 34, .92), rgba(40, 52, 58, .9));
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
-  opacity: .82;
-  box-shadow: -128px 42px 0 -10px rgba(38, 66, 76, .62);
-}
-.reforged-gate {
-  position: relative;
-  z-index: 1;
+.reforged-strip-copy {
   display: grid;
-  place-items: end center;
-  min-height: 284px;
-  border-right: 1px solid rgba(216, 192, 113, .14);
-  background:
-    linear-gradient(180deg, rgba(4, 7, 9, .12), rgba(4, 7, 9, .46)),
-    repeating-linear-gradient(0deg, rgba(216, 192, 113, .06) 0 3px, transparent 3px 24px);
+  min-width: 0;
+  gap: 4px;
 }
-.reforged-gate::before {
-  content: '';
-  width: 176px;
-  height: 178px;
-  border: 3px solid rgba(216, 192, 113, .58);
-  border-bottom: 0;
-  border-radius: 86px 86px 0 0;
-  background:
-    linear-gradient(90deg, transparent 48%, rgba(216, 192, 113, .28) 48% 52%, transparent 52%),
-    linear-gradient(180deg, rgba(89, 23, 29, .84), rgba(7, 12, 14, .94));
-  box-shadow:
-    inset 0 0 44px rgba(216, 192, 113, .1),
-    0 0 0 18px rgba(216, 192, 113, .05),
-    0 18px 44px rgba(0,0,0,.34);
-}
-.reforged-gate span {
-  position: absolute;
-  bottom: 42px;
-  width: 218px;
-  height: 18px;
-  background: #d8c071;
-  box-shadow: 0 28px 0 rgba(109, 75, 40, .7), 0 56px 0 rgba(34, 46, 51, .82);
-}
-.reforged-hero-copy {
-  position: relative;
-  z-index: 1;
-  display: grid;
-  align-content: center;
-  gap: 14px;
-  padding: 38px;
-}
-.reforged-hero-copy h2 {
-  max-width: 760px;
-  margin: 0;
+.reforged-strip-copy strong {
   color: #f2d992;
-  font-size: 46px;
+  font-size: 24px;
   line-height: 1;
 }
-.reforged-hero-copy p {
-  max-width: 720px;
-  margin: 0;
+.reforged-strip-copy span {
   color: #dfd4bf;
-  font-size: 17px;
-  line-height: 1.42;
+  font-size: 14px;
+  font-weight: 700;
 }
-.reforged-hero-actions {
+.reforged-strip-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 6px;
+  justify-content: flex-end;
+  gap: 10px;
 }
 .reforged-layout {
   display: grid;
