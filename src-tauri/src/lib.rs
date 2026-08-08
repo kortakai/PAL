@@ -25,11 +25,13 @@ const HTTP_TIMEOUT_SECONDS: u64 = 12;
 const DOWNLOAD_TIMEOUT_SECONDS: u64 = 300;
 const SHADOWS_MANIFEST_URL: &str = "https://aethro.net/launcher/shadows/stable/manifest.json";
 const REFORGED_MANIFEST_URL: &str =
-    "https://aethro.net/launcher/reforged/stable/updates/manifest.json";
+    "https://aethro.net/downloads/ar-launcher-stuff/reforged-client.json";
 const SHADOWS_DOWNLOAD_PATH_PREFIX: &str = "/launcher/shadows/stable/files/";
+const REFORGED_DOWNLOAD_PATH_PREFIX: &str = "/downloads/ar-launcher-stuff/Aethro_Reforged/";
 const REFORGED_INSTALL_CONFIG_FILE: &str = "reforged-install.json";
 const REFORGED_CONFIG_RELATIVE_PATH: &str = "WTF/Config.wtf";
 const REFORGED_REALMLIST_HOST: &str = "aethro.online";
+const BUNDLED_REFORGED_MANIFEST: &str = include_str!("../../manifests/reforged-client.json");
 const AETHRO_GLOBAL_LUA_RELATIVE_PATH: &str = "Interface/AddOns/AethroGlobal/AethroGlobal.lua";
 const AETHRO_GLOBAL_TOC_RELATIVE_PATH: &str = "Interface/AddOns/AethroGlobal/AethroGlobal.toc";
 const AETHRO_GLOBAL_LUA_CONTENT: &str =
@@ -122,7 +124,11 @@ struct ShadowsManifest {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ReforgedManifest {
+    game_id: Option<String>,
+    channel: Option<String>,
+    display_name: Option<String>,
     launch: Option<ReforgedManifestLaunch>,
+    files: Option<Vec<ShadowsManifestFile>>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -148,7 +154,7 @@ struct ShadowsManifestLaunch {
     game_args: Option<Vec<String>>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ShadowsManifestFile {
     path: String,
@@ -665,6 +671,32 @@ async fn load_shadows_manifest() -> Result<ShadowsManifest, String> {
 }
 
 async fn load_reforged_manifest() -> Result<ReforgedManifest, String> {
+    fn load_bundled_reforged_manifest() -> Result<ReforgedManifest, String> {
+        serde_json::from_str::<ReforgedManifest>(BUNDLED_REFORGED_MANIFEST)
+            .map_err(|e| format!("Unable to parse bundled Reforged manifest: {e}"))
+    }
+
+    fn has_file_list(manifest: &ReforgedManifest) -> bool {
+        manifest
+            .files
+            .as_ref()
+            .map(|files| !files.is_empty())
+            .unwrap_or(false)
+    }
+
+    fn with_bundled_files(mut manifest: ReforgedManifest) -> Result<ReforgedManifest, String> {
+        if has_file_list(&manifest) {
+            return Ok(manifest);
+        }
+
+        let bundled = load_bundled_reforged_manifest()?;
+        manifest.files = bundled.files;
+        manifest.game_id = manifest.game_id.or(bundled.game_id);
+        manifest.channel = manifest.channel.or(bundled.channel);
+        manifest.display_name = manifest.display_name.or(bundled.display_name);
+        Ok(manifest)
+    }
+
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(HTTP_TIMEOUT_SECONDS))
         .build()
@@ -675,26 +707,28 @@ async fn load_reforged_manifest() -> Result<ReforgedManifest, String> {
         .as_secs();
     let manifest_url = format!("{REFORGED_MANIFEST_URL}?t={cache_bust}");
 
-    let response = client
-        .get(&manifest_url)
-        .send()
-        .await
-        .map_err(|e| format!("Unable to load remote Reforged manifest: {e}"))?;
-
-    if !response.status().is_success() {
-        return Err(format!(
-            "Remote Reforged manifest returned HTTP {}.",
-            response.status()
-        ));
+    match client.get(&manifest_url).send().await {
+        Ok(response) if response.status().is_success() => {
+            let text = response
+                .text()
+                .await
+                .map_err(|e| format!("Unable to read remote Reforged manifest: {e}"))?;
+            let manifest = serde_json::from_str::<ReforgedManifest>(&text)
+                .map_err(|e| format!("Unable to parse remote Reforged manifest: {e}"))?;
+            with_bundled_files(manifest)
+        }
+        Ok(response) => {
+            eprintln!(
+                "Remote Reforged manifest returned HTTP {}; using bundled fallback.",
+                response.status()
+            );
+            load_bundled_reforged_manifest()
+        }
+        Err(err) => {
+            eprintln!("Remote Reforged manifest unavailable: {err}; using bundled fallback.");
+            load_bundled_reforged_manifest()
+        }
     }
-
-    let text = response
-        .text()
-        .await
-        .map_err(|e| format!("Unable to read remote Reforged manifest: {e}"))?;
-
-    serde_json::from_str::<ReforgedManifest>(&text)
-        .map_err(|e| format!("Unable to parse remote Reforged manifest: {e}"))
 }
 
 fn shadows_install_dir(
@@ -774,12 +808,12 @@ fn save_reforged_install_dir(
 
 fn required_reforged_install_dir(app_handle: &tauri::AppHandle) -> Result<PathBuf, String> {
     let install_dir = load_saved_reforged_install_dir(app_handle)?.ok_or_else(|| {
-        "Choose your Aethro: Reforged client folder first. Download the client if it is not installed yet.".to_string()
+        "Choose where Aethro: Reforged should be installed first.".to_string()
     })?;
 
-    if !is_valid_reforged_client_dir(&install_dir) {
+    if !install_dir.is_dir() {
         return Err(format!(
-            "The selected Reforged folder is not a valid WoW 3.3.5a client: {}. It must contain Wow.exe and Data.",
+            "The selected Reforged folder no longer exists: {}.",
             install_dir.display()
         ));
     }
@@ -926,6 +960,25 @@ fn check_shadows_manifest_files(
     )
 }
 
+fn reforged_manifest_files(manifest: &ReforgedManifest) -> &[ShadowsManifestFile] {
+    manifest.files.as_deref().unwrap_or(&[])
+}
+
+fn reforged_manifest_game_id(manifest: &ReforgedManifest) -> &str {
+    manifest.game_id.as_deref().unwrap_or("reforged")
+}
+
+fn reforged_manifest_channel(manifest: &ReforgedManifest) -> &str {
+    manifest.channel.as_deref().unwrap_or("stable-client")
+}
+
+fn reforged_manifest_display_name(manifest: &ReforgedManifest) -> &str {
+    manifest
+        .display_name
+        .as_deref()
+        .unwrap_or("Aethro: Reforged")
+}
+
 fn parse_wow_account_name(config_text: &str) -> Option<String> {
     config_text.lines().find_map(|line| {
         let trimmed = line.trim();
@@ -1026,7 +1079,11 @@ fn check_reforged_addon_file(
     })
 }
 
-fn check_reforged_realm_list(install_dir: &Path) -> Result<ModpackCheckResult, String> {
+fn check_reforged_realm_list(
+    install_dir: &Path,
+    manifest: &ReforgedManifest,
+    app_handle: Option<&tauri::AppHandle>,
+) -> Result<ModpackCheckResult, String> {
     let mut files = vec![check_reforged_realm_list_file(install_dir)];
 
     for (relative_path, contents) in reforged_addon_files() {
@@ -1035,6 +1092,21 @@ fn check_reforged_realm_list(install_dir: &Path) -> Result<ModpackCheckResult, S
             relative_path,
             contents,
         )?);
+    }
+
+    let managed_files = reforged_manifest_files(manifest);
+    if !managed_files.is_empty() {
+        let managed_result = check_manifest_files(
+            "Reforged",
+            reforged_manifest_game_id(manifest),
+            reforged_manifest_display_name(manifest),
+            reforged_manifest_channel(manifest),
+            managed_files,
+            install_dir,
+            app_handle,
+            "reforged-repair-progress",
+        )?;
+        files.extend(managed_result.files);
     }
 
     let ok_files = files.iter().filter(|file| file.status == "ok").count();
@@ -1047,16 +1119,16 @@ fn check_reforged_realm_list(install_dir: &Path) -> Result<ModpackCheckResult, S
     let total_files = files.len();
 
     Ok(ModpackCheckResult {
-        game_id: "reforged".to_string(),
-        display_name: "Aethro: Reforged".to_string(),
-        channel: "client-config".to_string(),
+        game_id: reforged_manifest_game_id(manifest).to_string(),
+        display_name: reforged_manifest_display_name(manifest).to_string(),
+        channel: reforged_manifest_channel(manifest).to_string(),
         install_dir: install_dir.to_string_lossy().to_string(),
         total_files,
         ok_files,
         missing_files,
         changed_files,
         invalid_manifest_files,
-        ready: ok_files == total_files,
+        ready: missing_files == 0 && changed_files == 0 && invalid_manifest_files == 0,
         files,
     })
 }
@@ -1118,7 +1190,7 @@ fn detect_reforged_account_in_dir(install_dir: &Path) -> Option<LocalReforgedAcc
             account_name: None,
             source: None,
             config_path: None,
-            message: Some("Selected folder does not look like a WoW 3.3.5a client. Choose the folder that contains Wow.exe and Data.".to_string()),
+            message: Some("Folder selected. Install / Repair will download the Reforged client here.".to_string()),
         });
     }
 
@@ -1153,7 +1225,7 @@ fn find_reforged_executable(
 
     if !executable_path.exists() {
         return Err(format!(
-            "Aethro: Reforged is missing {}. Choose the folder that contains your WoW 3.3.5a client.",
+            "Aethro: Reforged is missing {}. Run Install / Repair Setup first.",
             executable
         ));
     }
@@ -1370,12 +1442,23 @@ fn emit_reforged_progress(
     );
 }
 
+struct DownloadProgress<'a> {
+    app_handle: &'a tauri::AppHandle,
+    event_name: &'a str,
+    current_file: String,
+    current_index: usize,
+    total_files: usize,
+    downloaded_before_file: u64,
+    total_bytes: u64,
+}
+
 async fn download_manifest_file(
     client: &reqwest::Client,
     install_dir: &Path,
     manifest_file: &ShadowsManifestFile,
     game_name: &str,
     path_prefix: &str,
+    progress: Option<DownloadProgress<'_>>,
 ) -> Result<u64, String> {
     if !is_real_sha256(&manifest_file.sha256) {
         return Err(format!(
@@ -1398,7 +1481,7 @@ async fn download_manifest_file(
             .map_err(|e| format!("Unable to create folder for {}: {e}", manifest_file.path))?;
     }
 
-    let response = client
+    let mut response = client
         .get(parsed_url)
         .send()
         .await
@@ -1412,38 +1495,92 @@ async fn download_manifest_file(
         ));
     }
 
-    let bytes = response
-        .bytes()
-        .await
-        .map_err(|e| format!("Unable to read download for {}: {e}", manifest_file.path))?;
-
-    if let Some(expected_size) = manifest_file.size_bytes {
-        if bytes.len() as u64 != expected_size {
-            return Err(format!(
-                "Downloaded size mismatch for {}. Expected {} bytes, received {} bytes.",
-                manifest_file.path,
-                expected_size,
-                bytes.len()
-            ));
-        }
-    }
-
-    let actual_sha256 = sha256_bytes(&bytes);
-    if !actual_sha256.eq_ignore_ascii_case(&manifest_file.sha256) {
-        return Err(format!(
-            "Downloaded hash mismatch for {}. Expected {}, received {}.",
-            manifest_file.path, manifest_file.sha256, actual_sha256
-        ));
-    }
-
     let file_name = file_path
         .file_name()
         .ok_or_else(|| format!("Manifest path has no file name: {}", manifest_file.path))?
         .to_string_lossy();
     let temp_path = file_path.with_file_name(format!("{file_name}.download"));
 
-    fs::write(&temp_path, &bytes)
+    if temp_path.exists() {
+        fs::remove_file(&temp_path).map_err(|e| {
+            format!(
+                "Unable to remove old temporary download for {}: {e}",
+                manifest_file.path
+            )
+        })?;
+    }
+
+    let mut temp_file = tokio::fs::File::create(&temp_path)
+        .await
         .map_err(|e| format!("Unable to write download for {}: {e}", manifest_file.path))?;
+    let mut hasher = Sha256::new();
+    let mut downloaded = 0_u64;
+    let mut last_emit = 0_u64;
+
+    while let Some(chunk) = response
+        .chunk()
+        .await
+        .map_err(|e| format!("Unable to read download for {}: {e}", manifest_file.path))?
+    {
+        downloaded += chunk.len() as u64;
+        if let Some(expected_size) = manifest_file.size_bytes {
+            if downloaded > expected_size {
+                let _ = fs::remove_file(&temp_path);
+                return Err(format!(
+                    "Downloaded size mismatch for {}. Expected {} bytes, received at least {} bytes.",
+                    manifest_file.path, expected_size, downloaded
+                ));
+            }
+        }
+
+        hasher.update(&chunk);
+        temp_file
+            .write_all(&chunk)
+            .await
+            .map_err(|e| format!("Unable to write download for {}: {e}", manifest_file.path))?;
+
+        if let Some(progress) = progress.as_ref() {
+            if downloaded.saturating_sub(last_emit) >= 8 * 1024 * 1024 {
+                last_emit = downloaded;
+                emit_managed_progress(
+                    progress.app_handle,
+                    progress.event_name,
+                    "installing",
+                    format!("Installing {}", progress.current_file),
+                    Some(progress.current_file.clone()),
+                    progress.current_index,
+                    progress.total_files,
+                    progress.downloaded_before_file + downloaded,
+                    progress.total_bytes,
+                );
+            }
+        }
+    }
+
+    temp_file
+        .flush()
+        .await
+        .map_err(|e| format!("Unable to finish download for {}: {e}", manifest_file.path))?;
+    drop(temp_file);
+
+    if let Some(expected_size) = manifest_file.size_bytes {
+        if downloaded != expected_size {
+            let _ = fs::remove_file(&temp_path);
+            return Err(format!(
+                "Downloaded size mismatch for {}. Expected {} bytes, received {} bytes.",
+                manifest_file.path, expected_size, downloaded
+            ));
+        }
+    }
+
+    let actual_sha256 = format!("{:x}", hasher.finalize());
+    if !actual_sha256.eq_ignore_ascii_case(&manifest_file.sha256) {
+        let _ = fs::remove_file(&temp_path);
+        return Err(format!(
+            "Downloaded hash mismatch for {}. Expected {}, received {}.",
+            manifest_file.path, manifest_file.sha256, actual_sha256
+        ));
+    }
 
     if file_path.exists() {
         fs::remove_file(&file_path).map_err(|e| {
@@ -1457,7 +1594,7 @@ async fn download_manifest_file(
     fs::rename(&temp_path, &file_path)
         .map_err(|e| format!("Unable to finish download for {}: {e}", manifest_file.path))?;
 
-    Ok(bytes.len() as u64)
+    Ok(downloaded)
 }
 
 async fn resolve_fabric_loader_version(
@@ -1811,6 +1948,15 @@ async fn repair_shadows_install(
             manifest_file,
             "Shadows",
             SHADOWS_DOWNLOAD_PATH_PREFIX,
+            Some(DownloadProgress {
+                app_handle: &app_handle,
+                event_name: "shadows-repair-progress",
+                current_file: manifest_file.path.clone(),
+                current_index: index + 1,
+                total_files: repair_files.len(),
+                downloaded_before_file: downloaded_bytes,
+                total_bytes: total_download_bytes,
+            }),
         )
         .await?;
 
@@ -1898,17 +2044,24 @@ async fn check_reforged_install(
     app_handle: tauri::AppHandle,
 ) -> Result<ModpackCheckResult, String> {
     let install_dir = required_reforged_install_dir(&app_handle)?;
+    let manifest = load_reforged_manifest().await?;
+    let managed_files = reforged_manifest_files(&manifest);
+    let total_files = 3 + managed_files.len();
+    let total_bytes = managed_files
+        .iter()
+        .filter_map(|file| file.size_bytes)
+        .sum::<u64>();
     emit_reforged_progress(
         &app_handle,
         "checking",
         "Checking Reforged client setup",
         None,
         0,
-        3,
+        total_files,
         0,
-        0,
+        total_bytes,
     );
-    let result = check_reforged_realm_list(&install_dir)?;
+    let result = check_reforged_realm_list(&install_dir, &manifest, Some(&app_handle))?;
     emit_reforged_progress(
         &app_handle,
         if result.ready { "ready" } else { "needsUpdate" },
@@ -1920,8 +2073,8 @@ async fn check_reforged_install(
         None,
         result.ok_files,
         result.total_files,
-        0,
-        0,
+        result.files.iter().filter_map(|file| file.size_bytes).sum(),
+        result.files.iter().filter_map(|file| file.size_bytes).sum(),
     );
     Ok(result)
 }
@@ -1931,6 +2084,9 @@ async fn repair_reforged_install(
     app_handle: tauri::AppHandle,
 ) -> Result<ModpackCheckResult, String> {
     let install_dir = required_reforged_install_dir(&app_handle)?;
+    let manifest = load_reforged_manifest().await?;
+    let managed_files = reforged_manifest_files(&manifest);
+    let total_files = 3 + managed_files.len();
 
     emit_reforged_progress(
         &app_handle,
@@ -1938,7 +2094,7 @@ async fn repair_reforged_install(
         "Checking Reforged client setup",
         None,
         0,
-        3,
+        total_files,
         0,
         0,
     );
@@ -1949,7 +2105,7 @@ async fn repair_reforged_install(
         "Setting Reforged realm",
         Some(REFORGED_CONFIG_RELATIVE_PATH.to_string()),
         1,
-        3,
+        total_files,
         0,
         0,
     );
@@ -1961,13 +2117,79 @@ async fn repair_reforged_install(
         "Installing AethroGlobal addon",
         Some("Interface/AddOns/AethroGlobal".to_string()),
         2,
-        3,
+        total_files,
         0,
         0,
     );
     install_reforged_addons(&install_dir)?;
 
-    let final_check = check_reforged_realm_list(&install_dir)?;
+    let current = check_reforged_realm_list(&install_dir, &manifest, Some(&app_handle))?;
+    if current.invalid_manifest_files > 0 {
+        emit_reforged_progress(
+            &app_handle,
+            "failed",
+            "Manifest has invalid hashes",
+            None,
+            0,
+            current.total_files,
+            0,
+            0,
+        );
+        return Err("Reforged manifest has invalid file hashes and cannot be repaired.".to_string());
+    }
+
+    let repair_files = managed_files
+        .iter()
+        .filter(|manifest_file| {
+            current.files.iter().any(|status| {
+                status.path == manifest_file.path
+                    && (status.status == "missing" || status.status == "changed")
+            })
+        })
+        .collect::<Vec<_>>();
+    let total_download_bytes = repair_files
+        .iter()
+        .filter_map(|file| file.size_bytes)
+        .sum::<u64>();
+
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(DOWNLOAD_TIMEOUT_SECONDS))
+        .build()
+        .map_err(|e| format!("Unable to create Reforged download client: {e}"))?;
+
+    let mut downloaded_bytes = 0_u64;
+    for (index, manifest_file) in repair_files.iter().enumerate() {
+        let current_index = index + 3;
+        emit_reforged_progress(
+            &app_handle,
+            "installing",
+            format!("Installing {}", manifest_file.path),
+            Some(manifest_file.path.clone()),
+            current_index,
+            total_files,
+            downloaded_bytes,
+            total_download_bytes,
+        );
+        downloaded_bytes += download_manifest_file(
+            &client,
+            &install_dir,
+            manifest_file,
+            "Reforged",
+            REFORGED_DOWNLOAD_PATH_PREFIX,
+            Some(DownloadProgress {
+                app_handle: &app_handle,
+                event_name: "reforged-repair-progress",
+                current_file: manifest_file.path.clone(),
+                current_index,
+                total_files,
+                downloaded_before_file: downloaded_bytes,
+                total_bytes: total_download_bytes,
+            }),
+        )
+        .await?;
+    }
+
+    let final_check = check_reforged_realm_list(&install_dir, &manifest, Some(&app_handle))?;
     emit_reforged_progress(
         &app_handle,
         if final_check.ready {
@@ -1983,8 +2205,8 @@ async fn repair_reforged_install(
         None,
         final_check.ok_files,
         final_check.total_files,
-        0,
-        0,
+        downloaded_bytes,
+        total_download_bytes,
     );
 
     Ok(final_check)
@@ -2024,11 +2246,9 @@ fn set_reforged_install_dir(
 ) -> Result<LocalReforgedAccount, String> {
     let install_dir = PathBuf::from(install_dir);
 
-    if !is_valid_reforged_client_dir(&install_dir) {
-        return Err(
-            "Choose your Aethro: Reforged client folder. It must contain Wow.exe and Data."
-                .to_string(),
-        );
+    if !install_dir.is_dir() {
+        return Err("Choose or create the folder where Aethro: Reforged should be installed."
+            .to_string());
     }
 
     save_reforged_install_dir(&app_handle, &install_dir)?;

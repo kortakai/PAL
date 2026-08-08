@@ -79,7 +79,6 @@ const SHADOWS_EVENT = {
 const AETHRO_ONLINE_STORE_URL = 'https://aethro.online/store';
 const AETHRO_ONLINE_FORUMS_URL = 'https://aethro.online/forums';
 const PLAY_AETHRO_ACCOUNT_REFORGED_URL = 'https://playaethro.online/account#game-reforged';
-const REFORGED_CLIENT_DOWNLOAD_URL = 'https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged';
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat(undefined, {
@@ -816,10 +815,10 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
 
     try {
       const selected = await openDialog({
-        title: 'Choose your Aethro: Reforged client folder',
+        title: 'Choose where Aethro: Reforged should be installed',
         directory: true,
         multiple: false,
-        canCreateDirectories: false
+        canCreateDirectories: true
       });
 
       if (!selected || Array.isArray(selected)) return;
@@ -1045,6 +1044,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
   }
 
   if (view === 'reforged') {
+    const hasReforgedDestination = Boolean(reforgedAccount?.installDir);
     const hasReforgedClient = reforgedAccount?.isClientInstalled ?? false;
     const updatesReady = reforgedCheck?.ready ?? false;
     const progressPercent = reforgedProgress?.totalBytes
@@ -1064,11 +1064,13 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
             ? 'Setting up client'
             : hasReforgedClient
               ? 'No setup check yet'
-              : 'No client selected';
+              : hasReforgedDestination
+                ? 'Ready to install'
+                : 'No folder selected';
     const statusMessage = reforgedProgress?.message
-      || (reforgedCheck ? reforgedCheck.installDir : hasReforgedClient
+      || (reforgedCheck ? reforgedCheck.installDir : hasReforgedDestination
         ? 'Check the Reforged setup before connecting.'
-        : 'Download the Aethro client or select an existing WoW 3.3.5a folder.');
+        : 'Choose or create an install folder for Aethro: Reforged.');
 
     return (
       <main className="dashboard reforged-page">
@@ -1092,13 +1094,9 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
             <span>Wrath 3.3.5a client setup, patches, realm list, and AethroGlobal.</span>
           </div>
           <div className="reforged-strip-actions">
-            <button className="icon-button" onClick={() => openExternal(REFORGED_CLIENT_DOWNLOAD_URL)}>
-              <span className="button-icon icon-download" aria-hidden="true" />
-              Download Client
-            </button>
             <button className="secondary icon-button" onClick={chooseReforgedFolder} disabled={choosingReforgedFolder}>
               <span className="button-icon icon-globe" aria-hidden="true" />
-              Select Folder
+              Install Folder
             </button>
           </div>
         </section>
@@ -1115,9 +1113,9 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
                 <div>
                   <span className="eyebrow">Client Status</span>
                   <strong>
-                    {hasReforgedClient
+                    {hasReforgedDestination
                       ? reforgedUpdateStateLabel(reforgedInstallState)
-                      : 'Client required'}
+                      : 'Folder required'}
                   </strong>
                 </div>
                 <span>{progressDetail}</span>
@@ -1138,20 +1136,16 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
             </div>
 
             <div className="patch-actions">
-              <button className="icon-button" onClick={() => openExternal(REFORGED_CLIENT_DOWNLOAD_URL)}>
-                <span className="button-icon icon-download" aria-hidden="true" />
-                Download Client
-              </button>
               <button className="secondary" onClick={chooseReforgedFolder} disabled={choosingReforgedFolder || repairingReforgedFiles || checkingReforgedFiles}>
-                {choosingReforgedFolder ? 'Choosing...' : 'Choose WoW Folder'}
+                {choosingReforgedFolder ? 'Choosing...' : 'Choose Install Folder'}
               </button>
-              <button className="secondary" onClick={verifyReforgedFiles} disabled={checkingReforgedFiles || repairingReforgedFiles || !hasReforgedClient}>
+              <button className="secondary" onClick={verifyReforgedFiles} disabled={checkingReforgedFiles || repairingReforgedFiles || !hasReforgedDestination}>
                 {checkingReforgedFiles ? 'Checking...' : 'Check Setup'}
               </button>
-              <button onClick={repairReforgedFiles} disabled={repairingReforgedFiles || checkingReforgedFiles || !hasReforgedClient}>
+              <button onClick={repairReforgedFiles} disabled={repairingReforgedFiles || checkingReforgedFiles || !hasReforgedDestination}>
                 {repairingReforgedFiles ? 'Setting up...' : 'Install / Repair Setup'}
               </button>
-              <button className="secondary" onClick={launchReforgedClient} disabled={launchingReforged || repairingReforgedFiles || !hasReforgedClient}>
+              <button className="secondary" onClick={launchReforgedClient} disabled={launchingReforged || repairingReforgedFiles || !hasReforgedDestination}>
                 {launchingReforged ? 'Opening...' : 'Open Reforged'}
               </button>
             </div>
@@ -1266,7 +1260,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
               <p>
                 {hasReforgedClient
                   ? 'This folder contains the WoW client Reforged will use.'
-                  : reforgedAccount?.message || 'Download the Aethro client, then select the folder that contains Wow.exe and Data.'}
+                  : reforgedAccount?.message || 'Choose an install folder, then run Install / Repair Setup.'}
               </p>
             </div>
 

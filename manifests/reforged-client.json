@@ -1,0 +1,2602 @@
+{
+  "schemaVersion": 1,
+  "gameId": "reforged",
+  "channel": "stable-client",
+  "displayName": "Aethro: Reforged",
+  "launch": {
+    "executable": "Wow.exe",
+    "args": []
+  },
+  "files": [
+    {
+      "path": "Battle.net.dll",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Battle.net.dll",
+      "sha256": "88116951b04723cbb1073a1a0ff72dfdc40367f6649dffd08c602caa3ef1141f",
+      "sizeBytes": 15588224,
+      "required": true
+    },
+    {
+      "path": "d3d9.dll",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/d3d9.dll",
+      "sha256": "4968b3a493342b54f01aa080593bfd38cc006181aaeb6dc0059bc3bb9ce9982e",
+      "sizeBytes": 4172095,
+      "required": true
+    },
+    {
+      "path": "Data/common-2.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/common-2.MPQ",
+      "sha256": "9c605d95443172bdfd7c6936bc636684761241657935c22da25f955083809f43",
+      "sizeBytes": 1810430636,
+      "required": true
+    },
+    {
+      "path": "Data/common.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/common.MPQ",
+      "sha256": "d850ffa5efd6a1ba845899a7d9f9ad27f6eea7ac606e95033506c72c86ee0236",
+      "sizeBytes": 2881154862,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/AccountBilling.url",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/AccountBilling.url",
+      "sha256": "2b25f12a68ae69026a363af6fbfd00f81c5c496a6acf9150a616f9a0d198cb29",
+      "sizeBytes": 144,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/backup-enUS.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/backup-enUS.MPQ",
+      "sha256": "9f52f932db31c407a1fb043aed715ed29c20e9a6e7446db9e2fa9408c960f6a5",
+      "sizeBytes": 167245856,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/base-enUS.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/base-enUS.MPQ",
+      "sha256": "c02b13b4b85eb59b8a3557442e69b376fa5d491092ebaa2beeac979ddbd4514e",
+      "sizeBytes": 29176975,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/connection-help.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/connection-help.html",
+      "sha256": "62e1d3ed768d9c887b9f7b63b6dc6901c7b60ec937d3eec7e92a6fb4915288bf",
+      "sizeBytes": 8885,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Credits_BC.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Credits_BC.html",
+      "sha256": "d8cfb194f0174d1e071d6d1e85adb01979bd579e9b5b57e1588a576f9b8bb951",
+      "sizeBytes": 32400,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Credits_LK.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Credits_LK.html",
+      "sha256": "78a189fe38ea693188a472d22b1736e825c60e3ac8467ab9c95a28f48fb221dd",
+      "sizeBytes": 74382,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Credits.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Credits.html",
+      "sha256": "1797a677e4c04965e2f93b9d3ccd7dfbbbb4c5757009a6b616c9ae8c77a02701",
+      "sizeBytes": 29440,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/bg-botleft.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/bg-botleft.jpg",
+      "sha256": "cd437ac519d51b64491951dabb711cc7682174b1d3441d481d36cd3df9719ccc",
+      "sizeBytes": 1864,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/bg-botright.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/bg-botright.jpg",
+      "sha256": "293aa488a98a7a61d9eb3f715003709e406e23ef7e011c4b0477f18039d732db",
+      "sizeBytes": 1691,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/bg-bottom.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/bg-bottom.jpg",
+      "sha256": "07e92a65d48a544f09b6ba26e560b1b0df85e44ca649a8f8d8aa136edb2c898d",
+      "sizeBytes": 2939,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/bg-left.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/bg-left.jpg",
+      "sha256": "b29438ff5924added32696e08328527b24cd42709ecddfd90f15cba215353df0",
+      "sizeBytes": 2478,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/bg-merge.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/bg-merge.jpg",
+      "sha256": "0a121aa2af341dee63245db85c74622b10052d9f623713308aaecdd18da05e33",
+      "sizeBytes": 375,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/bg-mergebot.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/bg-mergebot.jpg",
+      "sha256": "10d0c54f21d62d3dd8c4f58142b7266fdf71ef548becb2facbfe3edd676ca82c",
+      "sizeBytes": 592,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/bg-middle.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/bg-middle.jpg",
+      "sha256": "5b2556aee8e9cb6b5462fe5a348c7a1ea71293298323423775b6440713e763e6",
+      "sizeBytes": 1235,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/bg-right.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/bg-right.jpg",
+      "sha256": "6508b781f3d64bb5f58cb322ee2a743fb4cef438b59d51435abdd084e8d1edaa",
+      "sizeBytes": 2262,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/bg-top.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/bg-top.jpg",
+      "sha256": "582182078e715513bedad6120e53d4b776e2fa0863117930da40d990f149feec",
+      "sizeBytes": 7773,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/Blizz.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/Blizz.jpg",
+      "sha256": "e095e5413a4e9f2a4a6b54b82944e90af822276f0b42e1f4d7ac41ebfc447e76",
+      "sizeBytes": 25635,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/BLWidget.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/BLWidget.jpg",
+      "sha256": "916d735eb79478c6830f8143862979bf9a405459cf51018c42ec10066c220ac4",
+      "sizeBytes": 9497,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/BRWidget.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/BRWidget.jpg",
+      "sha256": "cbf25d6e6dfa0fbd42c88a97a5ad982a3a9df0e35087ed30ecf86416ea9091a6",
+      "sizeBytes": 9454,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/buttons/contactinfo-over.gif",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/buttons/contactinfo-over.gif",
+      "sha256": "0a95f6c620279874871bf41509ffff75f1d3df3e42e0c3a79590396a85e688b1",
+      "sizeBytes": 2877,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/buttons/contactinfo.gif",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/buttons/contactinfo.gif",
+      "sha256": "e0c92c91e6648a67df5121e61beb5fdf4b3b17c14ba3958251de937520344614",
+      "sizeBytes": 2453,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/buttons/mac-over.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/buttons/mac-over.jpg",
+      "sha256": "06331f4bfd236ed4bf3dd9c75d0bb20717f9ae289f594f33fed9ec11efcc8ccf",
+      "sizeBytes": 1971,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/buttons/mac.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/buttons/mac.jpg",
+      "sha256": "1f3fab75b67e56308c4c3c601937f5e9e3df8d8fe940e11d51324dc2480da22b",
+      "sizeBytes": 1893,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/buttons/pc-over.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/buttons/pc-over.jpg",
+      "sha256": "b3bbd5a9847624c4b408b23c17db7f88126034984125ee13d4517f5c54d43099",
+      "sizeBytes": 1901,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/buttons/pc.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/buttons/pc.jpg",
+      "sha256": "2ceeb6f03702fd7604bccc01e9ba6a818a1808fbf07695aea1ad71057711a690",
+      "sizeBytes": 1809,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/buttons/readme-over.gif",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/buttons/readme-over.gif",
+      "sha256": "d5e2ead54531d51d03a22b4978a4504f1c7653f3985f0a7e18667d929eb35f62",
+      "sizeBytes": 2522,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/buttons/readme.gif",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/buttons/readme.gif",
+      "sha256": "f13ff205bbc0a5b46ba803d14ec079e94116148db4747ce833a7844abc7f74dc",
+      "sizeBytes": 2232,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/buttons/readme.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/buttons/readme.jpg",
+      "sha256": "e849be5ef9958a14eb9d3b5c54fd99e6a0a4896189b2bb193a0574766b76433b",
+      "sizeBytes": 3341,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/buttons/troubleshooting-over.gif",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/buttons/troubleshooting-over.gif",
+      "sha256": "952dd738a63215210f65c4a3c0b34bcf9f7ddf9b90aac764ab4fc561ffb8f1db",
+      "sizeBytes": 3190,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/buttons/troubleshooting.gif",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/buttons/troubleshooting.gif",
+      "sha256": "04127d932c06f539cdab4aa2aea8ef729e370ea4a08dffae88b7802a6d703a0f",
+      "sizeBytes": 3150,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/buttons/troubleshooting.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/buttons/troubleshooting.jpg",
+      "sha256": "5ae292fa33ab25eca1f3fe837de4703c9b663396254a2811ce10335cbcca1859",
+      "sizeBytes": 4363,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/buttons/website-over.gif",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/buttons/website-over.gif",
+      "sha256": "b98cf4ed7707bbdf0140c2efe0032a119e4e253c33c80dec8b0ce26bc3e91d2d",
+      "sizeBytes": 2239,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/buttons/website.gif",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/buttons/website.gif",
+      "sha256": "8ec926148fbb5cf04679a06035ed733dcc6cbcbf74b6ef77d8fad29e63d14e1d",
+      "sizeBytes": 2103,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/BWidget.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/BWidget.jpg",
+      "sha256": "2ab0d290598c0ba9ee82bcf558cc79088062e7604b71c89f8de692344b7c2de0",
+      "sizeBytes": 10358,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/CRepeat.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/CRepeat.jpg",
+      "sha256": "43d34c9ce8a66b507a3fb54a7c13ce56faee26850dd4f8dd0e5fc9bd649fb4bb",
+      "sizeBytes": 18653,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/dragon-left.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/dragon-left.jpg",
+      "sha256": "953b538cf32224c3d726f580aed6c9ba199b3c6e123d2ff2c06c6271199657a9",
+      "sizeBytes": 2718,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/dragon-right.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/dragon-right.jpg",
+      "sha256": "795de340815362ff6e53705ac05f500cfa57cc66cedbfa6858ac0edea2b56474",
+      "sizeBytes": 2037,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/gryphon-right.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/gryphon-right.jpg",
+      "sha256": "101c3955c6f6f5e5f499a1876fef5fadd36e9b77cb7147400e09118d73ecb066",
+      "sizeBytes": 930,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/help-request.gif",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/help-request.gif",
+      "sha256": "102b7b9c37fd5544f7cdeaaa07db3fd035cd35529779c454e2224329a9c7c942",
+      "sizeBytes": 543,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/ItemMarker.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/ItemMarker.jpg",
+      "sha256": "e8790537ec0662825f7f9f9e460d443d1893b9b7be5d5d36a8a40edab94538a1",
+      "sizeBytes": 19551,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/logo-blizzard.gif",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/logo-blizzard.gif",
+      "sha256": "cfbce7301cfd89acc04d300ec4d6be0f4e183b75af6a72df139dbd6460387699",
+      "sizeBytes": 10253,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/logo-bnet.gif",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/logo-bnet.gif",
+      "sha256": "c041a26e40f7749a7d2c889a00a5a98d407106451d5f63bfe754635bc3964b15",
+      "sizeBytes": 10357,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/logo-wow.gif",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/logo-wow.gif",
+      "sha256": "2e427c391e2a6e154d3ee92cb09148a77f0739ffcac3d6a1748982d1bcad3da1",
+      "sizeBytes": 22940,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/LRepeat.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/LRepeat.jpg",
+      "sha256": "aa20dec5486f2a6eac6f679e52b4ef2fb575332eb69ca7d4df48d0e3aed7aa45",
+      "sizeBytes": 13245,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/MacLogo.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/MacLogo.jpg",
+      "sha256": "643fa9e9e6d87a65c9d6f2546539efa002eeb49e20c8b483870d3e12469719d4",
+      "sizeBytes": 15588,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/PCLogo.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/PCLogo.jpg",
+      "sha256": "efa570ba8d980e0d8d9db77ca05882b3ff3263b8fff4bc64f315073d84c66f41",
+      "sizeBytes": 1385,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/pixel.gif",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/pixel.gif",
+      "sha256": "b1442e85b03bdcaf66dc58c7abb98745dd2687d86350be9a298a1d9382ac849b",
+      "sizeBytes": 43,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/RRepeat.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/RRepeat.jpg",
+      "sha256": "ed9764e88d62726a2a4aa9c0fb1d5f64c6da4a931b29b47217b9c0689c6bfe1f",
+      "sizeBytes": 13460,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/splash.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/splash.jpg",
+      "sha256": "38e3c7b4f690999d9b6dbb531a6361fd8acde772af04b3ae91e269e0197f6716",
+      "sizeBytes": 53481,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/title-troubleshooting.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/title-troubleshooting.jpg",
+      "sha256": "c6c8f9b59d315b573af11596f7f913bdbfc1273cae58162394512e48874f7409",
+      "sizeBytes": 10788,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/titles/contactinfo-mac.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/titles/contactinfo-mac.jpg",
+      "sha256": "aaf9e3aebd729ad5e372631919b4bcb8f5ec8e241e2d4d56120bb7a20f433085",
+      "sizeBytes": 12230,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/titles/contactinfo-pc.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/titles/contactinfo-pc.jpg",
+      "sha256": "aa2becdafa57da8cfee7ff4ed2549562b97fc3fb784bb582f2def1dca3091e0c",
+      "sizeBytes": 12258,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/titles/readme-mac.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/titles/readme-mac.jpg",
+      "sha256": "28b36d73a7e384646fa507d3cdfb4f1adc1cc9d8533b208f9fe7def35d1730fb",
+      "sizeBytes": 10263,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/titles/readme-pc.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/titles/readme-pc.jpg",
+      "sha256": "6715b0e2cd71366cc9f2037f5b5b772e3b312da6f6e02c32836cc26bdf46d540",
+      "sizeBytes": 10300,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/titles/troubleshooting-mac.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/titles/troubleshooting-mac.jpg",
+      "sha256": "3f031d42c8ae12e29006754b3305cbd01e135b08b86a00bafde8072f86e676ff",
+      "sizeBytes": 12193,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/titles/troubleshooting-pc.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/titles/troubleshooting-pc.jpg",
+      "sha256": "1f7aac68519847693f0c994e62d5dcc75271e549a7e02216ee2f69e9af404da2",
+      "sizeBytes": 12231,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/TLWidget.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/TLWidget.jpg",
+      "sha256": "1786c6c43d765732f217d645991679fe6f0a9b94ad9ad827209b9cc24f382375",
+      "sizeBytes": 9481,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/TRWidget.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/TRWidget.jpg",
+      "sha256": "39734c47593de19c92dfd36c617eed79ca3fbf246615a636db31948cc7c99374",
+      "sizeBytes": 9440,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Images/TWidget.jpg",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Images/TWidget.jpg",
+      "sha256": "668e8ab5d29b814b28b7ce4dcfd5e8b43d29ce1d8f3ecc3d0d0ea084afb8e267",
+      "sizeBytes": 10340,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Layout/BSpacer.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Layout/BSpacer.html",
+      "sha256": "3b44da37fb08d80c11ee8bbc5b550a3d8222130b274af9df0ca6d7eda7bdd8f8",
+      "sizeBytes": 733,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Layout/CSpacer.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Layout/CSpacer.html",
+      "sha256": "ded406ecccf5c870878c18db1a2f7cefa60a18308df48c795521d8b930a5b21f",
+      "sizeBytes": 306,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Layout/Detector.js",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Layout/Detector.js",
+      "sha256": "2eadb7e728c3aec6ae1f5684703174c920869851fa66a22f34bb7229c89b2eaa",
+      "sizeBytes": 377,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Layout/Greeting.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Layout/Greeting.html",
+      "sha256": "821751c22398e90b5e451956a243773bd92a6aba3c16ee2c9af18a6254c3945a",
+      "sizeBytes": 1318,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Layout/Index.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Layout/Index.html",
+      "sha256": "ac47363dee74aae3236403b97e9201818976185cae4a657d91566810632d9f4e",
+      "sizeBytes": 1638,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Layout/LBorder.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Layout/LBorder.html",
+      "sha256": "715fbd17b757b5ce9b553baea5ec51989c7fcdf375f81f8a1ec67eb7f3736f5a",
+      "sizeBytes": 335,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Layout/Nav.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Layout/Nav.html",
+      "sha256": "e409e5b7c020a395dab28fd615152b2deb7f288fa1ac1b295fff1e031d44aea2",
+      "sizeBytes": 1944,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Layout/RBorder.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Layout/RBorder.html",
+      "sha256": "717a9c0810dce802885a16c2cbe69d685eb756f734afef70fe65d1dac8b410fe",
+      "sizeBytes": 346,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Layout/Requirements.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Layout/Requirements.html",
+      "sha256": "3a82bb5964490c0d2393392c69449379b6aade42943ab77e96403e6eb5f5da8f",
+      "sizeBytes": 1379,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Layout/Splash.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Layout/Splash.html",
+      "sha256": "401a01a63cc6e8c448913bac4241157130c121f0008b80e3b065fd348399b3dd",
+      "sizeBytes": 772,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Layout/Styles.css",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Layout/Styles.css",
+      "sha256": "56f9785ef52d1bea3e92d4807f714ead5ad1f253f1b8b534d04fb78a65c10333",
+      "sizeBytes": 5953,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Layout/StylesLeft.css",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Layout/StylesLeft.css",
+      "sha256": "32b1ddfcb339f98ee0cc838f89b1c23d0328d16428ab77be2d2fd57d903b6582",
+      "sizeBytes": 5694,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Layout/TBorder.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Layout/TBorder.html",
+      "sha256": "589f0bfe6a133577dbd9e4d6942beabd638c187eb4b67d2d964441a125c0875c",
+      "sizeBytes": 2713,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Layout/TheScript.js",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Layout/TheScript.js",
+      "sha256": "9d31f603e0344bcad7fdc6c4cd7ffc7a721292c3c19b4849e4064e409c708424",
+      "sizeBytes": 7461,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Manual_TBC.pdf",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Manual_TBC.pdf",
+      "sha256": "2ef8bf403d7e19f09dd1f85274e21519fcd2d140af7421406b0cbcdcad5d1b6a",
+      "sizeBytes": 1281553,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Manual_WLK.pdf",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Manual_WLK.pdf",
+      "sha256": "20c5505fd64a9cf0598de5fac0297f6ef5d65646c7e36416363ab5bc5b760820",
+      "sizeBytes": 1298657,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Manual.pdf",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Manual.pdf",
+      "sha256": "809587c5b99480f9f331e050e1bc7c27bd0c5a527beb15444bbbb846dcf6da42",
+      "sizeBytes": 2581831,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/ReadMe.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/ReadMe.html",
+      "sha256": "56f37edd4fd346a0bb769b579d502f51aabd01e443484cb472335e15b872bb16",
+      "sizeBytes": 1657,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/ReadMe/(Mac)Foreword.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/ReadMe/(Mac)Foreword.html",
+      "sha256": "2f25722a3f11abc7557243f41d0bdb6dd69700169cac0eb1eb046878bdb208e5",
+      "sizeBytes": 1300,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/ReadMe/(Mac)Installation.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/ReadMe/(Mac)Installation.html",
+      "sha256": "110d999be3914b119fa1f0a0d6a2393150d6165c737e5ce504c70ca2bc4712f4",
+      "sizeBytes": 1386,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/ReadMe/(Mac)Patching.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/ReadMe/(Mac)Patching.html",
+      "sha256": "57efee60d753232eff674fbff1b7aa0c70fc12370ec590b63c19b7c5556eef7c",
+      "sizeBytes": 1242,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/ReadMe/(Mac)ReadMeMenu.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/ReadMe/(Mac)ReadMeMenu.html",
+      "sha256": "b134210692993540049f69949d3123c3ee28e551053f447337fc1d62b215b952",
+      "sizeBytes": 2155,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/ReadMe/(Mac)SystemRequirements.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/ReadMe/(Mac)SystemRequirements.html",
+      "sha256": "fc15d14c1d78f7f9a26af095e114ce2ab811bc2bbda4fd5783e13f5b68a8867c",
+      "sizeBytes": 2145,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/ReadMe/(Mac)Uninstall.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/ReadMe/(Mac)Uninstall.html",
+      "sha256": "51ffa452d51b1d9675426bb38dd7f887e2a7490c987c52242142997f13f97e52",
+      "sizeBytes": 1700,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/ReadMe/(PC)Foreword.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/ReadMe/(PC)Foreword.html",
+      "sha256": "2f25722a3f11abc7557243f41d0bdb6dd69700169cac0eb1eb046878bdb208e5",
+      "sizeBytes": 1300,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/ReadMe/(PC)Installation.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/ReadMe/(PC)Installation.html",
+      "sha256": "dfdc83d44890dcff89b2141a9f218a966875a3f2cfa6d82a4f5fb16e1df6ee80",
+      "sizeBytes": 1783,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/ReadMe/(PC)Patching.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/ReadMe/(PC)Patching.html",
+      "sha256": "2cc41d18a9a51dbd2b770a22ea8d812cac6e91e2fe2c286015d900f409b54698",
+      "sizeBytes": 1240,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/ReadMe/(PC)ReadMeMenu.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/ReadMe/(PC)ReadMeMenu.html",
+      "sha256": "75de9090cd87cd2fb6db3821d9028c7a66c136b97f4fb63c3767e87e57587f3c",
+      "sizeBytes": 2155,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/ReadMe/(PC)SystemRequirements.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/ReadMe/(PC)SystemRequirements.html",
+      "sha256": "f4cfb56d28aefbb4f9dcdc6e0c1eca6e619789ca925f157aabe3d93bca00d74c",
+      "sizeBytes": 2444,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/ReadMe/(PC)Uninstall.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/ReadMe/(PC)Uninstall.html",
+      "sha256": "f742b0b4d018dd7f1717435d1153e32a0135584d410f547367b978cf8da42121",
+      "sizeBytes": 2078,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/ReadMe/BasicCommands.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/ReadMe/BasicCommands.html",
+      "sha256": "0a8c322c74d88ae1fe57374c6e92e77c2b18b3948bd90d78c48e11e0e9f85b86",
+      "sizeBytes": 15683,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/ReadMe/CharacterNaming.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/ReadMe/CharacterNaming.html",
+      "sha256": "27d24f56dd355b9f7c94772c7f9abb5e5f2dea239bb12ed39b90e1828aea3e09",
+      "sizeBytes": 1694,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/ReadMe/EULA.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/ReadMe/EULA.html",
+      "sha256": "eedf58879c9c37ad3cecf01c08af1715e60dfea300b18fb01f8eb99bf5ed569d",
+      "sizeBytes": 25730,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/ReadMe/GettingStarted.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/ReadMe/GettingStarted.html",
+      "sha256": "8f3f0d57cf682a5e8a8edc33c9cb6e1c0b23fbe16d62c49e6f7c1774068ecb30",
+      "sizeBytes": 3859,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/ReadMe/ManualErrata.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/ReadMe/ManualErrata.html",
+      "sha256": "aee8586244eeb8cfb7a78d9afd7796076ba75925ea8ce74df52f680a60dbd4f5",
+      "sizeBytes": 1143,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/ReadMe/RealmSelection.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/ReadMe/RealmSelection.html",
+      "sha256": "0d27b0a7425c37b5b2654a191660e8565292b7d9fc058a69f651e4a3e919a94c",
+      "sizeBytes": 2892,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Support/(Mac)SupportMenu.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Support/(Mac)SupportMenu.html",
+      "sha256": "a75659b7f22381d608dd947a33c7b9bd53db6af01a74df1a7b84deb250f3c7ff",
+      "sizeBytes": 3704,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Support/(Mac)TechnicalSupport.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Support/(Mac)TechnicalSupport.html",
+      "sha256": "3febeaa0572ba50b716e4d7d57136b20142c50dd78cff6079913c86fbb63374f",
+      "sizeBytes": 3041,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Support/(PC)SupportMenu.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Support/(PC)SupportMenu.html",
+      "sha256": "a7802fea92b484824b4c9e686e4d5d7b6c000f46dcad4ef50f8c3da7e468fd43",
+      "sizeBytes": 3707,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Support/(PC)TechnicalSupport.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Support/(PC)TechnicalSupport.html",
+      "sha256": "58ad6029d3f31d3c1652ace54b6a2797a7400653efe1b2254f197be7549b349e",
+      "sizeBytes": 5391,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Support/AccountAdministration.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Support/AccountAdministration.html",
+      "sha256": "a220a8ac06d5a68758e0143c5b0f032d620af686c3f5329b88ad4d5bbf822c2d",
+      "sizeBytes": 4501,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Support/BlizzardInsider.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Support/BlizzardInsider.html",
+      "sha256": "4d2726597fb9da3b5feb0ceef2a10f2c7098f812207940da1211ef97f51a5a1a",
+      "sizeBytes": 3478,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Support/Employment.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Support/Employment.html",
+      "sha256": "48fa5a0d81ee8d7a342e5f75fdef2d8c8be5c7e8ae5722d4b46ae0f07ddab173",
+      "sizeBytes": 3424,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Support/GameSuggestions.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Support/GameSuggestions.html",
+      "sha256": "7069da22ab1c527382ca270f9706e5e6871fd4077d445690d621975bf00f11b8",
+      "sizeBytes": 1201,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Support/GameSupport.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Support/GameSupport.html",
+      "sha256": "da22981a58217cbc2c73142ea69275d247e3cfd4b232d90bd5a9928ab30a28dc",
+      "sizeBytes": 3495,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Support/Password.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Support/Password.html",
+      "sha256": "f425cda7a10b70d984bf653999a9cafb5c5b11f329ee2fa3d913f831ff650353",
+      "sizeBytes": 2909,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Troubleshooting/(Mac)AudioProblems.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Troubleshooting/(Mac)AudioProblems.html",
+      "sha256": "8e8bda06b7098d9084f1df9d1e4732d928f60738634ac27e2f366d5c31e8a3ec",
+      "sizeBytes": 1509,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Troubleshooting/(Mac)BlizzardDownloaderProblems.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Troubleshooting/(Mac)BlizzardDownloaderProblems.html",
+      "sha256": "d2a5ca6a0dd4a0dcb03d75aa0b11bd1458bf425c7aac660215f17fd6843b2c2a",
+      "sizeBytes": 3026,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Troubleshooting/(Mac)ConnectionLoginProblems.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Troubleshooting/(Mac)ConnectionLoginProblems.html",
+      "sha256": "b94d6ac578011ec9db148909c595b8390aa14f3120f1ea1653dea3703f9a0b23",
+      "sizeBytes": 6489,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Troubleshooting/(Mac)GameplayProblems.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Troubleshooting/(Mac)GameplayProblems.html",
+      "sha256": "ccb964b085893381062066b38abb97934cc85cee0e9cd822ccb6ff16f20e0754",
+      "sizeBytes": 2459,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Troubleshooting/(Mac)Install.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Troubleshooting/(Mac)Install.html",
+      "sha256": "ad787b15a173ccc5b3f089f8d610c58a5809e83fa30e4a8caf488fdaac97f78a",
+      "sizeBytes": 1000,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Troubleshooting/(Mac)PreventiveMaintenance.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Troubleshooting/(Mac)PreventiveMaintenance.html",
+      "sha256": "fac05c58625e24fa5bde8df2127c8dc05e349fce84aa88cd1faabddac08155df",
+      "sizeBytes": 4667,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Troubleshooting/(Mac)StartupProblems.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Troubleshooting/(Mac)StartupProblems.html",
+      "sha256": "aa2f290f374fc993e1d5b8c78d7f3fffc253fcfd2e62a0df0aeb65a45bba7733",
+      "sizeBytes": 5218,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Troubleshooting/(Mac)TroubleshootingMenu.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Troubleshooting/(Mac)TroubleshootingMenu.html",
+      "sha256": "f1f981e06950c388cc0c4e7450737105a08731ab7c645fbf651942426c30bf9c",
+      "sizeBytes": 2122,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Troubleshooting/(Mac)VideoProblems.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Troubleshooting/(Mac)VideoProblems.html",
+      "sha256": "15f32a0d0b011ab8f1f8082ce43207225e469b2f7c59090558977cdc8ab8515d",
+      "sizeBytes": 7205,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Troubleshooting/(PC)AudioProblems.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Troubleshooting/(PC)AudioProblems.html",
+      "sha256": "5be0acae620d2519d785689421bbb5eb2665bd847bdc5b9d315d463806836abb",
+      "sizeBytes": 4591,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Troubleshooting/(PC)BlizzardDownloaderProblems.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Troubleshooting/(PC)BlizzardDownloaderProblems.html",
+      "sha256": "fe943c098daa91e19572c3fd7f12bc4cc215e437b29eec2bf9254157bf1d264f",
+      "sizeBytes": 4261,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Troubleshooting/(PC)ConnectionLoginProblems.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Troubleshooting/(PC)ConnectionLoginProblems.html",
+      "sha256": "babf7f515c8c9a7d740308199b0041fc7d798a0e3545811ad17c6165d075da4c",
+      "sizeBytes": 6143,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Troubleshooting/(PC)GameplayProblems.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Troubleshooting/(PC)GameplayProblems.html",
+      "sha256": "c9afbb94dc928fd0ec6accdaedae672637bb853cfeed105d3eb602eef3e5395a",
+      "sizeBytes": 2458,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Troubleshooting/(PC)Install.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Troubleshooting/(PC)Install.html",
+      "sha256": "cd8c9954d5baa13fc0aac05d3910a0fafff51342e44c824c0e575039c3fb3e80",
+      "sizeBytes": 2277,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Troubleshooting/(PC)PreventiveMaintenance.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Troubleshooting/(PC)PreventiveMaintenance.html",
+      "sha256": "52aeb92299d84931c26d11b2ee5b36b4218b7221ba1ea7de9640fa0a86c79877",
+      "sizeBytes": 7808,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Troubleshooting/(PC)StartupProblems.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Troubleshooting/(PC)StartupProblems.html",
+      "sha256": "2150f7daf19e38a4fbc4856f8fc2ea6a48519c1a142cdd2b31f9cf023819f21f",
+      "sizeBytes": 5282,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Troubleshooting/(PC)TroubleshootingMenu.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Troubleshooting/(PC)TroubleshootingMenu.html",
+      "sha256": "880fbb6cf6e4320517c1fe478f657e4de123984454b166fa4d14fcfd147d7b4f",
+      "sizeBytes": 2099,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Documentation/Troubleshooting/(PC)VideoProblems.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Documentation/Troubleshooting/(PC)VideoProblems.html",
+      "sha256": "1851dbd0f5ba2cc483bcd89734944d1bb13e68c552fc123e96e26d8a766f1ef4",
+      "sizeBytes": 8431,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/eula.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/eula.html",
+      "sha256": "eedf58879c9c37ad3cecf01c08af1715e60dfea300b18fb01f8eb99bf5ed569d",
+      "sizeBytes": 25730,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/expansion-locale-enUS.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/expansion-locale-enUS.MPQ",
+      "sha256": "c9f27ce716b7195776929e8e3a7faeeaa15522215be47611c101dd5b1d8845c1",
+      "sizeBytes": 17389181,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/expansion-speech-enUS.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/expansion-speech-enUS.MPQ",
+      "sha256": "b9d9d13fc46251248ac9a36893ef6e275de43aadff5b89871dfeca7165d92cf5",
+      "sizeBytes": 241033297,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Interface/Cinematics/Logo_1024.avi",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Interface/Cinematics/Logo_1024.avi",
+      "sha256": "0e020a3bfce4cf99b1d08821a21884f584e797be3adf3958382297dd1bfb3365",
+      "sizeBytes": 6506496,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Interface/Cinematics/Logo_800.avi",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Interface/Cinematics/Logo_800.avi",
+      "sha256": "51d99903fce8c91e9b481220e41e7041664969c07a9880364d3385c9c0fe1a96",
+      "sizeBytes": 4589568,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Interface/Cinematics/WOW_FotLK_1024.avi",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Interface/Cinematics/WOW_FotLK_1024.avi",
+      "sha256": "7edb9c8008a29dd861fcd2e78d6a11ff12a4b72cf0e211fb30c815eea1afb822",
+      "sizeBytes": 66007136,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Interface/Cinematics/WOW_FotLK_800.avi",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Interface/Cinematics/WOW_FotLK_800.avi",
+      "sha256": "595cc7e666757b03f1a27dfc9c4794e6d5036343cb79b9635735d77cf7cd4b4b",
+      "sizeBytes": 57244820,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Interface/Cinematics/WOW_Intro_1024.avi",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Interface/Cinematics/WOW_Intro_1024.avi",
+      "sha256": "b3b50f83408d46d75bb611044f51a337a87585026f681da645784d120fe3fd1c",
+      "sizeBytes": 47632384,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Interface/Cinematics/WOW_Intro_800.avi",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Interface/Cinematics/WOW_Intro_800.avi",
+      "sha256": "d7e2df810e8a5af3910a50ace30e04bbf9b811cd3cf1329021ac720a66e05afb",
+      "sizeBytes": 41175040,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Interface/Cinematics/WOW_Intro_BC_1024.avi",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Interface/Cinematics/WOW_Intro_BC_1024.avi",
+      "sha256": "1e5738fd17b1c5ab3c4908e1576a1d00ec9bb7ba9e54235a5be7d29a62afe3cf",
+      "sizeBytes": 47577088,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Interface/Cinematics/WOW_Intro_BC_800.avi",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Interface/Cinematics/WOW_Intro_BC_800.avi",
+      "sha256": "33067bd21b28cc9091ad571a001188c87c93c55512c6d9dbe7cfa94ca5d09a99",
+      "sizeBytes": 41263104,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Interface/Cinematics/WOW_Intro_LK_1024.avi",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Interface/Cinematics/WOW_Intro_LK_1024.avi",
+      "sha256": "0c87ecadf55d20f605f03700c721c127272fd539ae01c4fe689bf706ed864be4",
+      "sizeBytes": 56177056,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Interface/Cinematics/WOW_Intro_LK_800.avi",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Interface/Cinematics/WOW_Intro_LK_800.avi",
+      "sha256": "348afe5350336ea965a9874df973147c01f0bc74c9b5b706209796daad1029e8",
+      "sizeBytes": 48820376,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Interface/Cinematics/WOW_Wrathgate_1024.avi",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Interface/Cinematics/WOW_Wrathgate_1024.avi",
+      "sha256": "deba65ff878a85128c26a3bf3b23b432974afc8abece66b0ba0e2fc390948d31",
+      "sizeBytes": 75685834,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/Interface/Cinematics/WOW_Wrathgate_800.avi",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/Interface/Cinematics/WOW_Wrathgate_800.avi",
+      "sha256": "5215d71945eebd546ddf7f093e44843ff2d6e21e67c908a3f16599285d7fb40b",
+      "sizeBytes": 65683896,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/lichking-locale-enUS.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/lichking-locale-enUS.MPQ",
+      "sha256": "89b1eba015927e321683a3867be1b8a76e593c438527eb42f4934d03484f1b04",
+      "sizeBytes": 12354378,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/lichking-speech-enUS.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/lichking-speech-enUS.MPQ",
+      "sha256": "8fc28d2f26d4b00db1884577cfa82769c234a8177b3827b5fae59dc006e6705f",
+      "sizeBytes": 354008839,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/locale-enUS.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/locale-enUS.MPQ",
+      "sha256": "45f02a3bf3964b169f397cea58113cdce5fa7bdf58d4b63f68e46255bb3bd3ea",
+      "sizeBytes": 204291376,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/patch-enUS-2.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/patch-enUS-2.MPQ",
+      "sha256": "ab9af8457f0d7b99a562f26b7d1651bbf68ebc37ddb249d01ac860ccc8746ff4",
+      "sizeBytes": 225570171,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/patch-enUS-3.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/patch-enUS-3.MPQ",
+      "sha256": "d61a60297af9044d926754d997cd5aa630500cd003d41983a9ccb5b324d61299",
+      "sizeBytes": 100373935,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/patch-enUS.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/patch-enUS.MPQ",
+      "sha256": "c1c06b0d0c34c331b21df7cdd25cc422a650efbd477e42b80849ba30b2e5fc99",
+      "sizeBytes": 296616080,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/realmlist.wtf",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/realmlist.wtf",
+      "sha256": "690613edccaecbbd0dce1f29b8cd8b5b21a6502d9d8efd524fe81f9e89c3d865",
+      "sizeBytes": 28,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/speech-enUS.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/speech-enUS.MPQ",
+      "sha256": "bfd2c4bf07213736bae28e1c8f49bf60783e12545ac555016d6f22441f7c793d",
+      "sizeBytes": 438430439,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/TechSupport.url",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/TechSupport.url",
+      "sha256": "8e5ad15d8adbe64c4ed6fbb08ca2f24cfcdec5aef7edf35a978a3fec03f3b04e",
+      "sizeBytes": 154,
+      "required": true
+    },
+    {
+      "path": "Data/enUS/tos.html",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/enUS/tos.html",
+      "sha256": "8502d0ccabf001e200673db224a28a8764413b27ce69579902329d493e3d1707",
+      "sizeBytes": 32793,
+      "required": true
+    },
+    {
+      "path": "Data/expansion.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/expansion.MPQ",
+      "sha256": "34a19723d773997b31ec72a16361af8bdd8cc38d108274b9b8a96521ec2c4f4a",
+      "sizeBytes": 1921219911,
+      "required": true
+    },
+    {
+      "path": "Data/lichking.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/lichking.MPQ",
+      "sha256": "8456e92d47f2bc71efba30fcabd4fea8c5ef0d93feef320ba51ffeeacf78de9d",
+      "sizeBytes": 2553948549,
+      "required": true
+    },
+    {
+      "path": "Data/patch-2.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/patch-2.MPQ",
+      "sha256": "c8b78bb75bcf5773e9ae99e11bdfcabc2a37aed3da947367d8af808d4d3c23c6",
+      "sizeBytes": 1401729059,
+      "required": true
+    },
+    {
+      "path": "Data/patch-3.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/patch-3.MPQ",
+      "sha256": "56dbbfc8f9ce7182ca88538d75284e738020138a7ca4217d72d8168865510dd3",
+      "sizeBytes": 605089137,
+      "required": true
+    },
+    {
+      "path": "Data/Patch-4.mpq",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/Patch-4.mpq",
+      "sha256": "c0e61a4083f81d978887b752c3c40d17a50109e9cf5fba80d8de2bfc2743d5fe",
+      "sizeBytes": 697723857,
+      "required": true
+    },
+    {
+      "path": "Data/patch-A.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/patch-A.MPQ",
+      "sha256": "6b49a8c236fc9d53108661f12ed85d7dd5e9074747a59b659984d229eb59e2ed",
+      "sizeBytes": 27747,
+      "required": true
+    },
+    {
+      "path": "Data/Patch-F.mpq",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/Patch-F.mpq",
+      "sha256": "4fef7ed6a3b24c90235ae902ffc8e77dc476fbee073f749469f8fa8ce193feff",
+      "sizeBytes": 9124021,
+      "required": true
+    },
+    {
+      "path": "Data/patch-Q.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/patch-Q.MPQ",
+      "sha256": "f4a9c0a37881d704d38ba374a0f74b52f37e8c01a45dd6d98e675b05136202f1",
+      "sizeBytes": 47127,
+      "required": true
+    },
+    {
+      "path": "Data/patch-R.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/patch-R.MPQ",
+      "sha256": "bfd58310e5a7359fbd61fb00fa70fe35ff86f484e8d1d61427d2b3be216f28f8",
+      "sizeBytes": 4736217,
+      "required": true
+    },
+    {
+      "path": "Data/patch.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/patch.MPQ",
+      "sha256": "92b4a94a6c7a23c0b9fd88c47823e41792879a7ee1f70c2349a255153ca25d54",
+      "sizeBytes": 4004713057,
+      "required": true
+    },
+    {
+      "path": "dbghelp.dll",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/dbghelp.dll",
+      "sha256": "3f9ad6986eb1f3a09eb0b5cad888ba656f9148b3339399076f2541b3bc59213c",
+      "sizeBytes": 1039728,
+      "required": true
+    },
+    {
+      "path": "DivxDecoder.dll",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/DivxDecoder.dll",
+      "sha256": "79f899764286cb880546e787edb8c388d33526a186c50873dbb8a1c1812f9280",
+      "sizeBytes": 413696,
+      "required": true
+    },
+    {
+      "path": "DivxDecoder.dll.bak",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/DivxDecoder.dll.bak",
+      "sha256": "ed34d37b575c91a56704218eb9f6abbefda8b7de0e2ed44c96191abd0f9915a5",
+      "sizeBytes": 413696,
+      "required": true
+    },
+    {
+      "path": "dlls.txt",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/dlls.txt",
+      "sha256": "62e8b48944884eac039a82910739d8eed66aa58f400488039c8757cef9521bdb",
+      "sizeBytes": 46,
+      "required": true
+    },
+    {
+      "path": "ijl15.dll",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/ijl15.dll",
+      "sha256": "334aa12f7dee453d1c6cb1b661a3bb3494d3e4cc9c2ff3f9002064c78404e43a",
+      "sizeBytes": 372736,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroParagon/AethroParagon.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/AethroParagon.lua",
+      "sha256": "a7100bed20b9fd13af424359f232b8e1ff24c334178f2ba58c31d7e47ad05c35",
+      "sizeBytes": 670,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroParagon/AethroParagon.toc",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/AethroParagon.toc",
+      "sha256": "6524003de86d825a5bbca940d1bbe12be5b81af41a9be0b4509a9eb1d526eb45",
+      "sizeBytes": 300,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroParagon/lib/c_timer.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/lib/c_timer.lua",
+      "sha256": "a7d2e89a60c4397208bd99cc054b08c7272011f8575477d4c6be41177149916e",
+      "sizeBytes": 2832,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroParagon/lib/CMH.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/lib/CMH.lua",
+      "sha256": "53098e5125b1c79fe885aba0511a645e6516c122ba88292c456d11159dbb1a01",
+      "sizeBytes": 8578,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroParagon/lib/smallfolk.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/lib/smallfolk.lua",
+      "sha256": "aef200db24f81a33f9247fa0a91959ed53d290f43be8039534c3022d7d68d3fa",
+      "sizeBytes": 5369,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroParagon/Templates/UITemplate2X.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/Templates/UITemplate2X.xml",
+      "sha256": "f12fdb6314f3d85bf5a73ad92ec539a8da4e2a782de4461e90c5535ec4eefec7",
+      "sizeBytes": 15010,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin_Models/AzerothAdmin_Models.toc",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin_Models/AzerothAdmin_Models.toc",
+      "sha256": "021694734766a461f1795c0f0f256c172f13639595cdddcd40033f6ba8cf7ac3",
+      "sizeBytes": 270,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin_Models/Models.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin_Models/Models.lua",
+      "sha256": "7dacc7884bd14d5a259db4fc5d19a879a3c5e228365f148cf1eb3abbe7547219",
+      "sizeBytes": 3951192,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/AzerothAdmin.toc",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/AzerothAdmin.toc",
+      "sha256": "777fa2fd36235229dde7a3514758ac2606d751d2c662b4a22cff1c1f4fd68898",
+      "sizeBytes": 2305,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/CHANGELOG.md",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/CHANGELOG.md",
+      "sha256": "4a2235d5349732e9ccb3b4981d90628a0bd27e4838ca6a0fee8a9a721d074c68",
+      "sizeBytes": 32756,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/CLAUDE.md",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/CLAUDE.md",
+      "sha256": "717b79a029fa1a8677f21345bc1100a2af7204c48db1089d51f8a6159821da0b",
+      "sizeBytes": 14299,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Commands/Char.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Commands/Char.lua",
+      "sha256": "0020f789aef42caa612917ec2e1c417633809a21b95690b494e16a734e7bbde1",
+      "sizeBytes": 21808,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Commands/Confirmation.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Commands/Confirmation.lua",
+      "sha256": "12b375eddd70f6f5d2ae067d3d42f8b812fa7e18e828a2a81b2bc6d63e056f77",
+      "sizeBytes": 3100,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Commands/GO.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Commands/GO.lua",
+      "sha256": "8a3d8e073085f5958ba05b028110fda4300222d890a2f06fa1938becec5a88e5",
+      "sizeBytes": 10306,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Commands/Main.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Commands/Main.lua",
+      "sha256": "887ee98cf536fe728c75a11bb4094f1ede0b916dee951a069b8ec698f4616e2b",
+      "sizeBytes": 11309,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Commands/Misc.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Commands/Misc.lua",
+      "sha256": "36b4317369ca64ea213eacf2359cf133a2da2e9c1dd3ca7a68008970557a0002",
+      "sizeBytes": 12640,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Commands/NPC.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Commands/NPC.lua",
+      "sha256": "0df00009ba60d81caf2ab4c295c3601a9efffd77761dc35f38f07caf3b4d728e",
+      "sizeBytes": 10314,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Commands/Server.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Commands/Server.lua",
+      "sha256": "c65e0db726c1d320600b84e104df48451ff62778c52ec6d1300653a93bce70e7",
+      "sizeBytes": 2993,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Commands/Tele.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Commands/Tele.lua",
+      "sha256": "7ede755fbb2f82d63ef0c4c7a19180928f7a8102b5156954ea7e09f89453d8a2",
+      "sizeBytes": 5433,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Commands/Ticket.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Commands/Ticket.lua",
+      "sha256": "6faff15e05cd33c8c4b1508173072da405e1fa6c499b46807348156950858c3a",
+      "sizeBytes": 8517,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Core/AzerothAdmin.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Core/AzerothAdmin.lua",
+      "sha256": "0165a7133804a76e911d7cccf72125ffb6155f3f4a7dfdbb1ff179ac9fc39692",
+      "sizeBytes": 156799,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Core/DropDownStyle.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Core/DropDownStyle.lua",
+      "sha256": "762b63a5f767412b5bb5a633a9fe4077af8ca93f0a32d66191dcc86d0c4e6f5f",
+      "sizeBytes": 9298,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Core/Init.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Core/Init.lua",
+      "sha256": "57b0a0b4d6be8b8784f7e273fa7136bee902084e41d0ea5221d0bd7dc24b5610",
+      "sizeBytes": 44953,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Data/DBC.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Data/DBC.lua",
+      "sha256": "2985c5fcc7106ddc8e7ee1ae8dc35cfc649bddfccaf467aa68f901113b9f4236",
+      "sizeBytes": 82520,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Data/Models.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Data/Models.lua",
+      "sha256": "ab67416e32edf69fc15a96c81fe82a5511a8d997b458e88b8ceb5fd40e87e806",
+      "sizeBytes": 3951201,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Data/TeleportTable.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Data/TeleportTable.lua",
+      "sha256": "fcd3582950812263f4f3d1a35ebfecc5ed18a3011a6937a640ae74b31bfa2983",
+      "sizeBytes": 124823,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_LookupButtons.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_LookupButtons.lua",
+      "sha256": "fef71e15fade0ef7c6b7846c88910d9cff2daef129f0d71524963bfd2349b86e",
+      "sizeBytes": 6424,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_MiniMenu.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_MiniMenu.lua",
+      "sha256": "03a92d77da473865088d82eaff975aba6c7aea307a876c451d23cd4e4c7c73cc",
+      "sizeBytes": 12688,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_PopupFrames.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_PopupFrames.lua",
+      "sha256": "52fe298fd848b26af454384e497f98c235e42e796dfe29ba23b6e487b1aed431",
+      "sizeBytes": 44155,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_SectionChar.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_SectionChar.lua",
+      "sha256": "b3435de815d510ac93ccdfd4d91e4a490877e20c43fc56a3d5fe986e901877d5",
+      "sizeBytes": 30420,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_SectionGO.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_SectionGO.lua",
+      "sha256": "7a47cf94e848f7ae7128cc59260615f4b0388517dfb661b98dc0b9c8dc6e1140",
+      "sizeBytes": 22348,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_SectionMain.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_SectionMain.lua",
+      "sha256": "4431e7f350a8a378fc9900aef88f0fc53706602bd500a0194d5d567a85ff3a23",
+      "sizeBytes": 31251,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_SectionMisc.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_SectionMisc.lua",
+      "sha256": "bb91f1b3f515ecc5920b0c7ef82340950cfbd51fb851af7dc6409027b2355614",
+      "sizeBytes": 13317,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_SectionNpc.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_SectionNpc.lua",
+      "sha256": "9ef8b67e2ec1bde7db0441645bf7dca59d8d1e33ac522d87bc26db9fd06152d0",
+      "sizeBytes": 28852,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_SectionServer.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_SectionServer.lua",
+      "sha256": "503d5eb3c9c3d6db03b80fa545d246bb54eb2f451e0c434be5fd121dc45c736f",
+      "sizeBytes": 13565,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_SectionTele.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_SectionTele.lua",
+      "sha256": "78175cc604261cbe643f129c604d3e9521e758f12f115570514cdff1094aefc4",
+      "sizeBytes": 24615,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_SectionTicket.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_SectionTicket.lua",
+      "sha256": "e516ee02b768c973f09f48dd546b80bdd7a84124481f436d66ceae9ad37f0f1a",
+      "sizeBytes": 13397,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_SmallPopupFrames.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_SmallPopupFrames.lua",
+      "sha256": "377d294ab0241f1b9559f35f595620b654242a577e83216ee0f54ed8aa0403b4",
+      "sizeBytes": 7330,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_Start.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_Start.lua",
+      "sha256": "c6a4c185d65635b1aab06338762141eb7c8828612313bffb660d2c508b0083e6",
+      "sizeBytes": 7271,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_Tabs.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames_Tabs.lua",
+      "sha256": "86c33353dbb43d54cf35ff92e2c81f7827e7f8901f29d2b2d29d26d9fb1f5b25",
+      "sizeBytes": 7202,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Frames/Frames.lua",
+      "sha256": "e179f075ad3d74a9c59787517155744bc787f84529ca766e433bf5a6c4263529",
+      "sizeBytes": 2272,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/Ace3.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/Ace3.lua",
+      "sha256": "9429a58ac4ce34aab60922b36d25beb71ade8a91d24359bce5e679c50bf034a6",
+      "sizeBytes": 2676,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/Ace3.toc",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/Ace3.toc",
+      "sha256": "ca2856c634965cb527a521fc6e09b7a43c6dcf405830cafdc4b78cd6bc9d2668",
+      "sizeBytes": 846,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceAddon-3.0/AceAddon-3.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceAddon-3.0/AceAddon-3.0.lua",
+      "sha256": "ac4ad38324cc6f55fa98a9e9af70417ceca7aae705f7d7e5fd4c3682300c8254",
+      "sizeBytes": 24779,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceAddon-3.0/AceAddon-3.0.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceAddon-3.0/AceAddon-3.0.xml",
+      "sha256": "b9820071648e42f9167882ef2a08602644a301cefd5d7e57c82aa36ca1439259",
+      "sizeBytes": 211,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceBucket-3.0/AceBucket-3.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceBucket-3.0/AceBucket-3.0.lua",
+      "sha256": "19bc0201ee8d646ce816d1d672dc3eb8df119408b0ed8ddb10696e8bc4616a3d",
+      "sizeBytes": 10446,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceBucket-3.0/AceBucket-3.0.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceBucket-3.0/AceBucket-3.0.xml",
+      "sha256": "e4e964436c8b56ef3a20e6c3c9bbb2d0f6b33246545755258c1190687a1e5a3d",
+      "sizeBytes": 212,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceComm-3.0/AceComm-3.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceComm-3.0/AceComm-3.0.lua",
+      "sha256": "5b1d45852501b8d661cbead20cc997d69149c19f6a5870e23d09d4eba07dcd2e",
+      "sizeBytes": 11438,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceComm-3.0/AceComm-3.0.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceComm-3.0/AceComm-3.0.xml",
+      "sha256": "a250107c2aa6c1474c881146f774c3797aee38e5ee4c0762b09461d316ba75ee",
+      "sizeBytes": 248,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceComm-3.0/ChatThrottleLib.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceComm-3.0/ChatThrottleLib.lua",
+      "sha256": "b577b11c4c7b49c19b13f3603a5f2cf6bf4ba77ebfd3db4d3e9910b960ab6a61",
+      "sizeBytes": 14434,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConfig-3.0/AceConfig-3.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConfig-3.0/AceConfig-3.0.lua",
+      "sha256": "7d78af857881db77167a644d2978b99b3ca83b2a23403dca2bae175089aa09d4",
+      "sizeBytes": 2094,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConfig-3.0/AceConfig-3.0.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConfig-3.0/AceConfig-3.0.xml",
+      "sha256": "72e34a78a8f8d0377d4e62cc33d8bacff42f4871d4f04f58ebc169b92c0ae347",
+      "sizeBytes": 473,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConfig-3.0/AceConfigCmd-3.0/AceConfigCmd-3.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConfig-3.0/AceConfigCmd-3.0/AceConfigCmd-3.0.lua",
+      "sha256": "c38fd096b19305c3d1f83e95b6c583d5a6526e7a7c3fa206096cf0b855817021",
+      "sizeBytes": 23282,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConfig-3.0/AceConfigCmd-3.0/AceConfigCmd-3.0.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConfig-3.0/AceConfigCmd-3.0/AceConfigCmd-3.0.xml",
+      "sha256": "db2f8281fbed72fe1ac5f65a4e063011f45aff4d4841b8dd2aad0d50a0813164",
+      "sizeBytes": 215,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConfig-3.0/AceConfigDialog-3.0/AceConfigDialog-3.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConfig-3.0/AceConfigDialog-3.0/AceConfigDialog-3.0.lua",
+      "sha256": "9b4df68384e0f063d11374828434cb6659f7ec0a90aa3202da41d6655c919534",
+      "sizeBytes": 54836,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConfig-3.0/AceConfigDialog-3.0/AceConfigDialog-3.0.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConfig-3.0/AceConfigDialog-3.0/AceConfigDialog-3.0.xml",
+      "sha256": "c10388710651ef39d7c8e5920e9ef232b8bb9abcc3eb8fbf179ba9ac1c77e413",
+      "sizeBytes": 218,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConfig-3.0/AceConfigRegistry-3.0/AceConfigRegistry-3.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConfig-3.0/AceConfigRegistry-3.0/AceConfigRegistry-3.0.lua",
+      "sha256": "cf2da7103076faf842252100be64365bc149b1c6571129545d861e16a2ff7aec",
+      "sizeBytes": 11810,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConfig-3.0/AceConfigRegistry-3.0/AceConfigRegistry-3.0.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConfig-3.0/AceConfigRegistry-3.0/AceConfigRegistry-3.0.xml",
+      "sha256": "9ef73f2e0598eb51564f53b71d66179768a950cce0d6602746070556e3a25fed",
+      "sizeBytes": 220,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConsole-3.0/AceConsole-3.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConsole-3.0/AceConsole-3.0.lua",
+      "sha256": "5e5f3df1e23a43a632f232f375a5746062de6b4465e2d7281ade61a536b2fa83",
+      "sizeBytes": 8339,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConsole-3.0/AceConsole-3.0.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceConsole-3.0/AceConsole-3.0.xml",
+      "sha256": "19b0494a1f16f9d7147cf0e0f601aa4e0fbaa61490037af0e8969fabcc2f185b",
+      "sizeBytes": 213,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceDB-3.0/AceDB-3.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceDB-3.0/AceDB-3.0.lua",
+      "sha256": "a166c49eaca36ed7b6eb54575f91059a79a3b488ef1197449019b82555ee2b64",
+      "sizeBytes": 24116,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceDB-3.0/AceDB-3.0.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceDB-3.0/AceDB-3.0.xml",
+      "sha256": "5b3873c68d76a76fb52bbb9232d4d63b13f99cda5b3f95c86205d8022786d184",
+      "sizeBytes": 208,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceDBOptions-3.0/AceDBOptions-3.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceDBOptions-3.0/AceDBOptions-3.0.lua",
+      "sha256": "821f7cdae33b8560b48f70341db4f983c795566003e69116ad0e2df5ff5bc4bb",
+      "sizeBytes": 18501,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceDBOptions-3.0/AceDBOptions-3.0.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceDBOptions-3.0/AceDBOptions-3.0.xml",
+      "sha256": "37caa69558e131e0f13fad3a8cc05c10c3927446e35cf251ff255349b1bcf060",
+      "sizeBytes": 215,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceEvent-3.0/AceEvent-3.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceEvent-3.0/AceEvent-3.0.lua",
+      "sha256": "69a099d4b2cf303751f531cde6d4ee7ad0efa5c67c2c6d6c07fd8ae2aa6f8c29",
+      "sizeBytes": 4698,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceEvent-3.0/AceEvent-3.0.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceEvent-3.0/AceEvent-3.0.xml",
+      "sha256": "9a9c0b14a8eda4509d45422cb1ac065ba9165879ef291816f1689bf6be3bcbc4",
+      "sizeBytes": 211,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/AceGUI-3.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/AceGUI-3.0.lua",
+      "sha256": "12609c88da79599408f8687a2bb30780f86e3c5ca455d418dbf799932ebe4f29",
+      "sizeBytes": 23422,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/AceGUI-3.0.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/AceGUI-3.0.xml",
+      "sha256": "e54bd15393700719dbec2b1b433e570a3f364fa5e927f9227f63037eb16ad522",
+      "sizeBytes": 1451,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIContainer-BlizOptionsGroup.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIContainer-BlizOptionsGroup.lua",
+      "sha256": "9ef06000191a3f5ddfc009c3f8fe651e27afc0e6569b27fbcbee4b210d54e0c2",
+      "sizeBytes": 3491,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIContainer-DropDownGroup.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIContainer-DropDownGroup.lua",
+      "sha256": "f12dcc4aa09a0aaf6231bdb0ab5869a9c18fa56a0066a967cb47959075d5641e",
+      "sizeBytes": 4503,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIContainer-Frame.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIContainer-Frame.lua",
+      "sha256": "701efcf82849f998b27ba68591a9d0019813e5353c8ef517fcf26aacde84eeb5",
+      "sizeBytes": 8824,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIContainer-InlineGroup.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIContainer-InlineGroup.lua",
+      "sha256": "8a39f0eee1e8a3a4544d06c21646ef4ad007e3b17af256d376f4fa250fc44b61",
+      "sizeBytes": 2946,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIContainer-ScrollFrame.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIContainer-ScrollFrame.lua",
+      "sha256": "75af89b801343f87072ca8d04e0fa3864dd67382661f3f3c3bf28d9046de69dc",
+      "sizeBytes": 6337,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIContainer-SimpleGroup.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIContainer-SimpleGroup.lua",
+      "sha256": "d65968489c0fa5749d2e35be69c60d0dd7969189aa14a9031f0654715625d214",
+      "sizeBytes": 1890,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIContainer-TabGroup.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIContainer-TabGroup.lua",
+      "sha256": "7af6116b8afcf93a222ddc4a7d897c32e2ee7e539901376dbb11c092bb123393",
+      "sizeBytes": 10062,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIContainer-TreeGroup.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIContainer-TreeGroup.lua",
+      "sha256": "35294593938f9d8e14a854ad3d9f255e4aec63d4423200c4350ba6790fbd239d",
+      "sizeBytes": 18764,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIContainer-Window.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIContainer-Window.lua",
+      "sha256": "bd927384490922ac8c95f487cce34fa04d1a743c82fa23cdbaa67664504fb742",
+      "sizeBytes": 9726,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-Button.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-Button.lua",
+      "sha256": "41fc03de5c51b4c2ebb42db31945a8d6e15afcb13647ea06409994325a0e0c75",
+      "sizeBytes": 2460,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-CheckBox.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-CheckBox.lua",
+      "sha256": "f8d8fc6afd9e11f5e65b9e38821f18a4afd5fe735218cb1814d2d0e5a00b4231",
+      "sizeBytes": 7799,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-ColorPicker.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-ColorPicker.lua",
+      "sha256": "60aaa249f4efbc727c74a2e6afb0f464c7e263b6e859da8a11868727c2506aa7",
+      "sizeBytes": 5327,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-DropDown-Items.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-DropDown-Items.lua",
+      "sha256": "ff8f3303f0cf2a1cb20d5856467cd6163fd32efb1d2e3bebe1c7c1c26ae9407c",
+      "sizeBytes": 10360,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-DropDown.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-DropDown.lua",
+      "sha256": "45550ea5d70e641051279cccbbac765247d798f487325c432e88d8afaba6124b",
+      "sizeBytes": 17544,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-EditBox.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-EditBox.lua",
+      "sha256": "82c79a1803cfead17a67e183c52bde4493ff5a8512eaeda66858e88081b59d45",
+      "sizeBytes": 6444,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-Heading.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-Heading.lua",
+      "sha256": "4a75e4316320b15903682c058d77250636e6e19d7a2d6c43ef7d79e3c35446b1",
+      "sizeBytes": 2216,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-Icon.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-Icon.lua",
+      "sha256": "c3d823092993162a85cf6c1d6b3e33a26918225ae615d7bd06a51c7a039461ef",
+      "sizeBytes": 3992,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-InteractiveLabel.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-InteractiveLabel.lua",
+      "sha256": "fa8407b129286d7ea6aacf3e5d44be4182b23500b4034029c4b94d68707cc16f",
+      "sizeBytes": 2814,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-Keybinding.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-Keybinding.lua",
+      "sha256": "9378b8b2bc1f101d0339657a8dcb8e6500dca0ea7c05a6b4e9bcbeb141c7a17d",
+      "sizeBytes": 6285,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-Label.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-Label.lua",
+      "sha256": "c2c2f3a07fb9dea33e4433e80835754b19bc93a4c69b9cd1d0ebbb64396508cd",
+      "sizeBytes": 4327,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-MultiLineEditBox.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-MultiLineEditBox.lua",
+      "sha256": "6037d8d1dbc50919e7f06cd757195784228450c3cd264fd7f1fc52b1bfe56a28",
+      "sizeBytes": 8697,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-Slider.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceGUI-3.0/widgets/AceGUIWidget-Slider.lua",
+      "sha256": "8d1f78eb8d0326213527c3bfebab43ff02994f3701c5da7981371af239119f93",
+      "sizeBytes": 7974,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceHook-3.0/AceHook-3.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceHook-3.0/AceHook-3.0.lua",
+      "sha256": "8715815ff33a773cd5b5f52f72dfe259e7c7e9ba3dccfc725093bbaa3b248064",
+      "sizeBytes": 19112,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceHook-3.0/AceHook-3.0.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceHook-3.0/AceHook-3.0.xml",
+      "sha256": "85bcbb10046c613cd86cbd99b8e3cb645cbb05982480af7e3a667a101a56bc04",
+      "sizeBytes": 210,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceLocale-3.0/AceLocale-3.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceLocale-3.0/AceLocale-3.0.lua",
+      "sha256": "5aa414f062ef86f2696b9d02ab52c1f40b36a556e1403ca55817c578f2a353fa",
+      "sizeBytes": 5757,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceLocale-3.0/AceLocale-3.0.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceLocale-3.0/AceLocale-3.0.xml",
+      "sha256": "ad70df709b297effd04410ddf242188fd3811793ae55814a482ac41f5895eaef",
+      "sizeBytes": 212,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceSerializer-3.0/AceSerializer-3.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceSerializer-3.0/AceSerializer-3.0.lua",
+      "sha256": "47ca4214b4615e7dce7694e44fa02c5b50f598122b143b769ddf6dfdc111097b",
+      "sizeBytes": 8786,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceSerializer-3.0/AceSerializer-3.0.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceSerializer-3.0/AceSerializer-3.0.xml",
+      "sha256": "7d578832f12c3f4eb1311e1dbebb2156950202d61aa6c299f3fd05a6ab69d496",
+      "sizeBytes": 216,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceTab-3.0/AceConfigTab-3.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceTab-3.0/AceConfigTab-3.0.lua",
+      "sha256": "735881a385e8fc42b5e344bbe2f0f5a15af981686cbb87c61f0e399eb88368eb",
+      "sizeBytes": 3935,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceTab-3.0/AceTab-3.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceTab-3.0/AceTab-3.0.lua",
+      "sha256": "b8a55572bb7d31faf1ee6a0b55b533f9a1d4181bd7f94f309f61379e06da93a8",
+      "sizeBytes": 19138,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceTab-3.0/AceTab-3.0.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceTab-3.0/AceTab-3.0.xml",
+      "sha256": "e98d31231cb5c196210b79fafdaded4b2cdee0ac796d8ee14ee53c50d8e32727",
+      "sizeBytes": 249,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceTimer-3.0/AceTimer-3.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceTimer-3.0/AceTimer-3.0.lua",
+      "sha256": "4a47e33d920258db1b16f706f2c7327057a767c184ca64e4c0902e28339f2fca",
+      "sizeBytes": 17508,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceTimer-3.0/AceTimer-3.0.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/AceTimer-3.0/AceTimer-3.0.xml",
+      "sha256": "c6f5ceece38bd9705e0371443ee16568c547b49a71ac2008ad648c079d4f3446",
+      "sizeBytes": 211,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/Bindings.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/Bindings.xml",
+      "sha256": "bcc0bd566b74a563c063ec0cbbe37d85a8b2149d8fe0e7c6e9f74806228f1677",
+      "sizeBytes": 119,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/CallbackHandler-1.0/CallbackHandler-1.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/CallbackHandler-1.0/CallbackHandler-1.0.lua",
+      "sha256": "9bfc967cb5cdea017c34cb80f1300a3fe8a6156ecf2483ef1c6718af6ae1e568",
+      "sizeBytes": 8961,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/CallbackHandler-1.0/CallbackHandler-1.0.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/CallbackHandler-1.0/CallbackHandler-1.0.xml",
+      "sha256": "9310765c5310a395652e60a04f378e836785deb6f0b7181a448c74751d6f0185",
+      "sizeBytes": 218,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/Changelog-Ace3-Release-r960.txt",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/Changelog-Ace3-Release-r960.txt",
+      "sha256": "5c16071b573244a9fe851e74a82425900ee7c1fe7e0dff19393f8168bbed60f8",
+      "sizeBytes": 7451,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/changelog.txt",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/changelog.txt",
+      "sha256": "09e9b2d02180f3dbbefd41689c6c7396386f836c3ebb83bc77edd209e96f89a8",
+      "sizeBytes": 22212,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/Dewdrop-2.0/Dewdrop-2.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/Dewdrop-2.0/Dewdrop-2.0.lua",
+      "sha256": "a063fa4070de021ae91283555150784023f68348b5ffafc0ce48427417180aa5",
+      "sizeBytes": 105015,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/FrameLib-1.0/FrameLib-1.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/FrameLib-1.0/FrameLib-1.0.lua",
+      "sha256": "40d07b649b439de57c8531d62058de7561ecebca2bf1d007571fc3b11385c2e6",
+      "sizeBytes": 12463,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/FrameLib-1.0/FrameLib-1.0.toc",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/FrameLib-1.0/FrameLib-1.0.toc",
+      "sha256": "c105e4eb265ff20ac0347f059a583e6d752b120cc3601df1502e6b101a001e74",
+      "sizeBytes": 281,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/Graph-1.0/Graph-1.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/Graph-1.0/Graph-1.0.lua",
+      "sha256": "27e60436c81b2039437186e25da2663b15fb2125b48dcd7fabf002add634fcc0",
+      "sizeBytes": 52585,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/line.tga",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/line.tga",
+      "sha256": "ca58e58ac890f6d27cf542b9a5158467d7680739cd2ea36dd098528d125584a0",
+      "sizeBytes": 764,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/Pie/1-1.tga",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/Pie/1-1.tga",
+      "sha256": "0f1ab7c4a7d2337dbf52602c8e5a01509f15bf135e8d796840578b91479e956c",
+      "sizeBytes": 21663,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/Pie/1-128.tga",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/Pie/1-128.tga",
+      "sha256": "8cd3e2565d0e839fa2f0fac76450153e730eb76861b62b06ef48bf9477d5d552",
+      "sizeBytes": 13781,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/Pie/1-16.tga",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/Pie/1-16.tga",
+      "sha256": "57269af377bd61b22c76fd1fa2114e613872a58062c863e910f11045e865a0c8",
+      "sizeBytes": 14332,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/Pie/1-2.tga",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/Pie/1-2.tga",
+      "sha256": "1efa63a6e8ac9fe88df9476e81601a5b6586862af23e967ff069601c0f12c214",
+      "sizeBytes": 18611,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/Pie/1-32.tga",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/Pie/1-32.tga",
+      "sha256": "6775aedca8c18c1769b57916e66df79621f0a5395794b7fece797b4ecdaf7525",
+      "sizeBytes": 13995,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/Pie/1-4.tga",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/Pie/1-4.tga",
+      "sha256": "073452f9500b4ff226b96d1152ccb4bf8fcd658ffd015c6b8eae22e401929664",
+      "sizeBytes": 14824,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/Pie/1-64.tga",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/Pie/1-64.tga",
+      "sha256": "41eaa9379e2b0cfea0c84618a002a4ddd7fb4a384e04b4633d7cf225b535e93d",
+      "sizeBytes": 13859,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/Pie/1-8.tga",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/Pie/1-8.tga",
+      "sha256": "324a86838b6d085c409c444f117559655a05e91cfc9f69d6efea402dc36b009e",
+      "sizeBytes": 14863,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/sline.tga",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/sline.tga",
+      "sha256": "2e29c147eb68e6678c0cbada07b4b5de2499d571074cfe4a313fbe2b0c93e06b",
+      "sizeBytes": 684,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/triangle.tga",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/GraphTextures/triangle.tga",
+      "sha256": "56267df8302725ec28b5bc7ea3da132d5eb787f137d7be73db6f23fa7a153918",
+      "sizeBytes": 6152,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/LibDBIcon-1.0/LibDBIcon-1.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/LibDBIcon-1.0/LibDBIcon-1.0.lua",
+      "sha256": "04175b187b236169929d2de986588cc2f588fabe3fdd4584b288d3045834dac0",
+      "sizeBytes": 8516,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/LibStub/LibStub.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/LibStub/LibStub.lua",
+      "sha256": "a59b4c745c1fdb1b5ad22a86394814afecf8549516c18f6a16353960646b47f8",
+      "sizeBytes": 1367,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/LICENSE.txt",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/LICENSE.txt",
+      "sha256": "afe050a430bafdbca7da69d95897751239f4fab415784a419a3cdc2519eee9b2",
+      "sizeBytes": 1697,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/Tablet-2.0/Tablet-2.0.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Libraries/Tablet-2.0/Tablet-2.0.lua",
+      "sha256": "f3081fa7203f3a89c85fd3a097f62cf39357e6498fe9edd81502f0329e70194b",
+      "sizeBytes": 82998,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/LICENSE",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/LICENSE",
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903",
+      "sizeBytes": 35147,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/deDE/deDE.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/deDE/deDE.lua",
+      "sha256": "5c614ce59b621b864d76e51ff4a3fbd01e1c8a542edfb2088c4cb97bbfe49653",
+      "sizeBytes": 53997,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/deDE/strings_deDE.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/deDE/strings_deDE.lua",
+      "sha256": "e9c88efa838f101a13af03673bc8b270c07b165af019cbd894973bcaa6e7f8b8",
+      "sizeBytes": 4789,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/enUS/enUS.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/enUS/enUS.lua",
+      "sha256": "5f05b3d09599118dce3dbb2aadd5e6731cb7f8e6ef82daa3d02c2b2ee5b24c96",
+      "sizeBytes": 56482,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/enUS/strings_enUS.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/enUS/strings_enUS.lua",
+      "sha256": "4fe0ada0f83da99f93d66bd79ae7ef06b140532b63327881a8814c3ad22a9cad",
+      "sizeBytes": 5221,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/esES/esES.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/esES/esES.lua",
+      "sha256": "156d90ef5528edfedc4f9d706b97ca14087afc104deaf0dd39dc6cfd93183487",
+      "sizeBytes": 54279,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/esES/strings_esES.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/esES/strings_esES.lua",
+      "sha256": "d4be62bbe122766725856e291893e76e13c7f3ae3d2b2996841660f31c553c79",
+      "sizeBytes": 4789,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/esMX/esMX.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/esMX/esMX.lua",
+      "sha256": "56f6f38bbf3b9c37c13575fc541c306bd5b39dc7cab7156abcb0c5551579ce3e",
+      "sizeBytes": 54255,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/esMX/strings_esMX.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/esMX/strings_esMX.lua",
+      "sha256": "cea30a88951316bfd5b715576634638c6a7e22859d78ad41ef1692a8eb922766",
+      "sizeBytes": 4789,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/frFR/frFR.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/frFR/frFR.lua",
+      "sha256": "9aa4056740b7add45b28b62a25532e1809a878260b16fff38ddc7b1bf1930fb0",
+      "sizeBytes": 55487,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/frFR/strings_frFR.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/frFR/strings_frFR.lua",
+      "sha256": "1cad9e3b0507124afe7faefb5882102b5bc3a0e76d484e6eae454a510a91dfde",
+      "sizeBytes": 4789,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/itIT/itIT.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/itIT/itIT.lua",
+      "sha256": "42938a3c97a996295e0479d56fe01aa174513365f0f6014af7518d907697714b",
+      "sizeBytes": 54214,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/itIT/strings_itIT.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/itIT/strings_itIT.lua",
+      "sha256": "8ebef00193fc1a334d2a37034b232ab33421a4ab204e194b102695ca6e8210c3",
+      "sizeBytes": 4789,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/koKR/koKR.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/koKR/koKR.lua",
+      "sha256": "60676fd4c8535ad1653a2ec765abce45ecf72b4eeed31fc9dceaf9264b5f9c35",
+      "sizeBytes": 56465,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/koKR/strings_koKR.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/koKR/strings_koKR.lua",
+      "sha256": "dcfb5957610d64fb2eed670ba92c9db65eea08183b75e38353bf458e298e6071",
+      "sizeBytes": 4789,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/ptBR/ptBR.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/ptBR/ptBR.lua",
+      "sha256": "0fb302f87a8af8b235eadebf7343bb811dbd84b5fd46f0129cc192055b276fc5",
+      "sizeBytes": 54277,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/ptBR/strings_ptBR.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/ptBR/strings_ptBR.lua",
+      "sha256": "bd738daeaf9c03c1e038acefe8763bb448a669089514959bf8f80051478a81bd",
+      "sizeBytes": 4789,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/ptPT/ptPT.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/ptPT/ptPT.lua",
+      "sha256": "ab9964c6562e2836c7c35f104f3c6ceaaa2d286ede3983306c782188f9ec3965",
+      "sizeBytes": 54304,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/ptPT/strings_ptPT.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/ptPT/strings_ptPT.lua",
+      "sha256": "a255564ee20287f8f5ba1c2777eb009e1dce9d907196c5bd5e97c19e75f314ac",
+      "sizeBytes": 4789,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/README_LOCALIZATION.md",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/README_LOCALIZATION.md",
+      "sha256": "9984da460a7530b4b3aa894e33cc73b8e53cd1d0d551d0ef12603356c2e7d273",
+      "sizeBytes": 5653,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/ruRU/ruRU.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/ruRU/ruRU.lua",
+      "sha256": "090bdcdbef1506ef4c7d53a2c7211635f35e32084d4db2520c06f07b68f420a6",
+      "sizeBytes": 66328,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/ruRU/strings_ruRU.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/ruRU/strings_ruRU.lua",
+      "sha256": "313e5e7480f2fae9e96e2177f60cb33c8f04cc3b97c71dd73bba6579c4f23e48",
+      "sizeBytes": 4789,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/zhCN/strings_zhCN.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/zhCN/strings_zhCN.lua",
+      "sha256": "1478dcba8c9dd07d005481c93150c59a5412466cff8a8c241b28ca8f50d59204",
+      "sizeBytes": 4789,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/zhCN/zhCN.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/zhCN/zhCN.lua",
+      "sha256": "f2f467da28958d2d437494a0bcdba1936ef0a3c556078686c97549c58ee2c60d",
+      "sizeBytes": 50205,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/zhTW/strings_zhTW.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/zhTW/strings_zhTW.lua",
+      "sha256": "0f5cf1cfe86c7366a11602fdd6f52db06e80a924a15b4136ae35228ba6b55e6b",
+      "sizeBytes": 4789,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/zhTW/zhTW.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Locales/zhTW/zhTW.lua",
+      "sha256": "b30721eba34f794255efdf7ef00a48901f130ca5f895bdc31d1e839715075afb",
+      "sizeBytes": 50223,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Modules/Linkifier.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Modules/Linkifier.lua",
+      "sha256": "ae995aefcdb76414862fe6b1b9e2ffb6bbe6da2c5be9e1dac8b37f8678ebcd93",
+      "sizeBytes": 17622,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Sound/mail.wav",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Sound/mail.wav",
+      "sha256": "160e0fa1d103850311bd16f74dd448b2b93ff690e10bc8ddc866d03e1aa8825b",
+      "sizeBytes": 119384,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Textures/icon.tga",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Textures/icon.tga",
+      "sha256": "8521f4f5368a2929d0eb096fd228d3641450fc61663b276af42514976915bf49",
+      "sizeBytes": 1068,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Textures/icon2.tga",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Textures/icon2.tga",
+      "sha256": "8521f4f5368a2929d0eb096fd228d3641450fc61663b276af42514976915bf49",
+      "sizeBytes": 1068,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Textures/logo.tga",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Textures/logo.tga",
+      "sha256": "04224622de028cbd22464122edb5e9347b912e9b46692d88a4d0f326f29fd172",
+      "sizeBytes": 131116,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Textures/MinimapIcon.tga",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AzerothAdmin-24/AzerothAdmin/Textures/MinimapIcon.tga",
+      "sha256": "06a3da7ae17e77a1153caf286ee8c3804adc96917af364539b55065dd96faeb4",
+      "sizeBytes": 468,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_AchievementUI/Blizzard_AchievementUI.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_AchievementUI/Blizzard_AchievementUI.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_ArenaUI/Blizzard_ArenaUI.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_ArenaUI/Blizzard_ArenaUI.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_AuctionUI/Blizzard_AuctionUI.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_AuctionUI/Blizzard_AuctionUI.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_BarbershopUI/Blizzard_BarbershopUI.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_BarbershopUI/Blizzard_BarbershopUI.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_BattlefieldMinimap/Blizzard_BattlefieldMinimap.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_BattlefieldMinimap/Blizzard_BattlefieldMinimap.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_BindingUI/Blizzard_BindingUI.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_BindingUI/Blizzard_BindingUI.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_Calendar/Blizzard_Calendar.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_Calendar/Blizzard_Calendar.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_CombatLog/Blizzard_CombatLog.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_CombatLog/Blizzard_CombatLog.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_CombatText/Blizzard_CombatText.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_CombatText/Blizzard_CombatText.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_DebugTools/Blizzard_DebugTools.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_DebugTools/Blizzard_DebugTools.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_GlyphUI/Blizzard_GlyphUI.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_GlyphUI/Blizzard_GlyphUI.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_GMChatUI/Blizzard_GMChatUI.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_GMChatUI/Blizzard_GMChatUI.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_GMSurveyUI/Blizzard_GMSurveyUI.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_GMSurveyUI/Blizzard_GMSurveyUI.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_GuildBankUI/Blizzard_GuildBankUI.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_GuildBankUI/Blizzard_GuildBankUI.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_InspectUI/Blizzard_InspectUI.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_InspectUI/Blizzard_InspectUI.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_ItemSocketingUI/Blizzard_ItemSocketingUI.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_ItemSocketingUI/Blizzard_ItemSocketingUI.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_MacroUI/Blizzard_MacroUI.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_MacroUI/Blizzard_MacroUI.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_RaidUI/Blizzard_RaidUI.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_RaidUI/Blizzard_RaidUI.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_TalentUI/Blizzard_TalentUI.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_TalentUI/Blizzard_TalentUI.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_TimeManager/Blizzard_TimeManager.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_TimeManager/Blizzard_TimeManager.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_TokenUI/Blizzard_TokenUI.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_TokenUI/Blizzard_TokenUI.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_TradeSkillUI/Blizzard_TradeSkillUI.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_TradeSkillUI/Blizzard_TradeSkillUI.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/Blizzard_TrainerUI/Blizzard_TrainerUI.pub",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/Blizzard_TrainerUI/Blizzard_TrainerUI.pub",
+      "sha256": "5a2a75be06da4d9e48cefadcbb019c72d09a5a79657d7f64904dfe6f0fe63774",
+      "sizeBytes": 257,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/GuildVillageHelper/Fonts/FRIZQT.ttf",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/GuildVillageHelper/Fonts/FRIZQT.ttf",
+      "sha256": "0659b2537ac5abe8b44be37aa88d79a329528457e6308c54afacdf85fbf7555e",
+      "sizeBytes": 59440,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/GuildVillageHelper/GuildVillageHelper_Minimap.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/GuildVillageHelper/GuildVillageHelper_Minimap.lua",
+      "sha256": "737aaafd5c4566c1c4cf9aca1a95a5d73ea7829a3b8668a719118e5e1a4a5d46",
+      "sizeBytes": 3511,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/GuildVillageHelper/GuildVillageHelper.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/GuildVillageHelper/GuildVillageHelper.lua",
+      "sha256": "a430b263057cd72af8f5520f65ef49cf5fbf4a23860d281b74272bd755401eb9",
+      "sizeBytes": 35294,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/GuildVillageHelper/GuildVillageHelper.toc",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/GuildVillageHelper/GuildVillageHelper.toc",
+      "sha256": "37f76d09e4040521b48c0f38f43c18a8e4a31371957f6637e1dfba7c3df0c8d3",
+      "sizeBytes": 289,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/GuildVillageHelper/Textures/border.tga",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/GuildVillageHelper/Textures/border.tga",
+      "sha256": "fa772b2416e7a6c05aa0bb2864540837ed9958b4dcee6241562d31810301c125",
+      "sizeBytes": 16428,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/GuildVillageHelper/Textures/gv_icon.tga",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/GuildVillageHelper/Textures/gv_icon.tga",
+      "sha256": "09d3c61fcf69858a338d75e139e76914d382e0e9f414dbc873235ba22bc081fc",
+      "sizeBytes": 16428,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/ReagentBankUI/Bindings.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/ReagentBankUI/Bindings.xml",
+      "sha256": "06898d4941d3822fb6809f13a7f27cbca8b5d98d73ee24156759e102103b0e0e",
+      "sizeBytes": 316,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/ReagentBankUI/ReagentBankUI_Share.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/ReagentBankUI/ReagentBankUI_Share.lua",
+      "sha256": "e76d169a19bd3386e74737e53fa51678a3db798523e641ce6ab4df84b0c2867b",
+      "sizeBytes": 17404,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/ReagentBankUI/ReagentBankUI.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/ReagentBankUI/ReagentBankUI.lua",
+      "sha256": "78ab8195cd85425d9502bcda40e9ea29b03e547cdd4199b8420d598fd8f821de",
+      "sizeBytes": 253213,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/ReagentBankUI/ReagentBankUI.toc",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/ReagentBankUI/ReagentBankUI.toc",
+      "sha256": "cfb2601843ecceb322a50860b2d75cde222ac7f227bb15bf55074371376f1870",
+      "sizeBytes": 293,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/ReagentBankUI/ReagentBankUI.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/ReagentBankUI/ReagentBankUI.xml",
+      "sha256": "e97e9266920c233c728809f335ba5e281a16a67ef50ff7d9e645045ee730c614",
+      "sizeBytes": 6194,
+      "required": true
+    },
+    {
+      "path": "libDllLdr.dll",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/libDllLdr.dll",
+      "sha256": "ff9955bdd994c27afcca4d319d6a41c6a5bac6091eacae5fd86a58148a1492c3",
+      "sizeBytes": 17408,
+      "required": true
+    },
+    {
+      "path": "mods/libSiliconPatch.dll",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/mods/libSiliconPatch.dll",
+      "sha256": "c9766e79f8a5e98a3c17012007a2b5fe834d2fbfeef40d328491576af58773f0",
+      "sizeBytes": 420352,
+      "required": true
+    },
+    {
+      "path": "mods/winerosetta.dll",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/mods/winerosetta.dll",
+      "sha256": "6178fac1e7b00ce67b3fa9868b577789bb8d2911d97836b2bd06168cb1b6ec29",
+      "sizeBytes": 11264,
+      "required": true
+    },
+    {
+      "path": "msvcr80.dll",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/msvcr80.dll",
+      "sha256": "9382aaed2db19cd75a70e38964f06c63f19f63c9dfb5a33b0c2d445bb41b6e46",
+      "sizeBytes": 632656,
+      "required": true
+    },
+    {
+      "path": "Repair.exe",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Repair.exe",
+      "sha256": "ae98037ec2f858f0f9a6c69b3267e5268f20dbf08f324aa4453d2252c1b31d52",
+      "sizeBytes": 975512,
+      "required": true
+    },
+    {
+      "path": "rosettax87/libRuntimeRosettax87",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/rosettax87/libRuntimeRosettax87",
+      "sha256": "c9ec19b55d80bdc942fd5076a22933f4cb90e9ece61194068106133cbade5b8b",
+      "sizeBytes": 226272,
+      "required": true
+    },
+    {
+      "path": "rosettax87/rosettax87",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/rosettax87/rosettax87",
+      "sha256": "77a74f87c407b0f9e04d839be1075885bd9d45ea38b5b44f18676298b7d8426b",
+      "sizeBytes": 390432,
+      "required": true
+    },
+    {
+      "path": "Scan.dll",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Scan.dll",
+      "sha256": "0ca274f1c6f38be6864a8ef18a5601d3139c9336e1de29328c50abc07bc74807",
+      "sizeBytes": 47876,
+      "required": true
+    },
+    {
+      "path": "unicows.dll",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/unicows.dll",
+      "sha256": "22f23cc65698741184ec34f46e6f69717644e0b5aabf5d5bd015101f2d72e56e",
+      "sizeBytes": 245408,
+      "required": true
+    },
+    {
+      "path": "Wow.dxvk-cache",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Wow.dxvk-cache",
+      "sha256": "9dd94034e2c7fb45efe1c6b12dd26c3b87197ef07dccae3d26917765188471e9",
+      "sizeBytes": 305018,
+      "required": true
+    },
+    {
+      "path": "Wow.exe",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Wow.exe",
+      "sha256": "aa63a5750d60ef16746c686b3d5e26876d98953eab08b1c026cd0faf78e88cb8",
+      "sizeBytes": 7704216,
+      "required": true
+    },
+    {
+      "path": "WowError.exe",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/WowError.exe",
+      "sha256": "964eb9ed647c4614f3a3ecf977955750223ecbc8ff0a3bb4078e4dff779244f8",
+      "sizeBytes": 350360,
+      "required": true
+    }
+  ]
+}
