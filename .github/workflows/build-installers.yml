@@ -89,3 +89,97 @@ jobs:
           releaseAssetNamePattern: '[name]_[version]_[platform]_[arch].[ext]'
           uploadWorkflowArtifacts: true
           workflowArtifactNamePattern: '[platform]-[arch]-[bundle]'
+
+  repair-updater-json:
+    name: Repair updater JSON
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/app-v')
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+
+    steps:
+      - name: Rebuild latest.json with every platform
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          VERSION="${TAG#app-v}"
+          WORK_DIR="$(mktemp -d)"
+          cd "$WORK_DIR"
+
+          gh release view "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --json publishedAt,assets \
+            > release.json
+          gh release download "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern '*.sig' \
+            --dir sigs \
+            --clobber
+
+          VERSION="$VERSION" node <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+
+          const version = process.env.VERSION;
+          const release = JSON.parse(fs.readFileSync('release.json', 'utf8'));
+          const byName = new Map(release.assets.map((asset) => [asset.name, asset]));
+          const sigDir = 'sigs';
+
+          function signature(name) {
+            return fs.readFileSync(path.join(sigDir, `${name}.sig`), 'utf8').trim();
+          }
+
+          function assetUrl(name) {
+            const asset = byName.get(name);
+            if (!asset) {
+              throw new Error(`Missing release asset ${name}`);
+            }
+            return asset.apiUrl;
+          }
+
+          function platform(name) {
+            return {
+              signature: signature(name),
+              url: assetUrl(name)
+            };
+          }
+
+          const darwinX64 = `Play.Aethro.Launcher_${version}_darwin_x64.app.tar.gz`;
+          const darwinArm = `Play.Aethro.Launcher_${version}_darwin_aarch64.app.tar.gz`;
+          const linuxAppImage = `Play.Aethro.Launcher_${version}_linux_amd64.AppImage`;
+          const linuxDeb = `Play.Aethro.Launcher_${version}_linux_amd64.deb`;
+          const linuxRpm = `Play.Aethro.Launcher_${version}_linux_x86_64.rpm`;
+          const windowsMsi = `Play.Aethro.Launcher_${version}_windows_x64.msi`;
+          const windowsNsis = `Play.Aethro.Launcher_${version}_windows_x64.exe`;
+
+          const latest = {
+            version,
+            notes: 'Play Aethro Launcher build. Download the installer for your operating system from the assets below.',
+            pub_date: release.publishedAt,
+            platforms: {
+              'darwin-x86_64': platform(darwinX64),
+              'darwin-x86_64-app': platform(darwinX64),
+              'darwin-aarch64': platform(darwinArm),
+              'darwin-aarch64-app': platform(darwinArm),
+              'linux-x86_64': platform(linuxAppImage),
+              'linux-x86_64-appimage': platform(linuxAppImage),
+              'linux-x86_64-deb': platform(linuxDeb),
+              'linux-x86_64-rpm': platform(linuxRpm),
+              'windows-x86_64': platform(windowsMsi),
+              'windows-x86_64-msi': platform(windowsMsi),
+              'windows-x86_64-nsis': platform(windowsNsis)
+            }
+          };
+
+          fs.writeFileSync('latest.json', `${JSON.stringify(latest, null, 2)}\n`);
+          NODE
+
+          gh release delete-asset "$TAG" latest.json \
+            --repo "$GITHUB_REPOSITORY" \
+            -y || true
+          gh release upload "$TAG" latest.json \
+            --repo "$GITHUB_REPOSITORY"
