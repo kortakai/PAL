@@ -16,15 +16,15 @@ fn main() {
 
     source = source.replace(
         "include_str!(\"../resources/reforged-addons/AethroGlobal/AethroGlobal.lua\")",
-        "include_str!(concat!(env!(\"CARGO_MANIFEST_DIR\"), \"/resources/reforged-addons/AethroGlobal/AethroGlobal.lua\"))",
+        "include_str!(concat!(std::env!(\"CARGO_MANIFEST_DIR\"), \"/resources/reforged-addons/AethroGlobal/AethroGlobal.lua\"))",
     );
     source = source.replace(
         "include_str!(\"../resources/reforged-addons/AethroGlobal/AethroGlobal.toc\")",
-        "include_str!(concat!(env!(\"CARGO_MANIFEST_DIR\"), \"/resources/reforged-addons/AethroGlobal/AethroGlobal.toc\"))",
+        "include_str!(concat!(std::env!(\"CARGO_MANIFEST_DIR\"), \"/resources/reforged-addons/AethroGlobal/AethroGlobal.toc\"))",
     );
     source = source.replace(
         "include_str!(\"../../manifests/shadows-stable.json\")",
-        "include_str!(concat!(env!(\"CARGO_MANIFEST_DIR\"), \"/../manifests/shadows-stable.json\"))",
+        "include_str!(concat!(std::env!(\"CARGO_MANIFEST_DIR\"), \"/../manifests/shadows-stable.json\"))",
     );
 
     replace_once(
@@ -129,7 +129,9 @@ fn reforged_managed_files() -> Vec<ShadowsManifestFile> {
 
     let start_marker = "#[tauri::command]\nasync fn check_reforged_install(";
     let end_marker = "#[tauri::command]\nfn detect_local_minecraft_profile()";
-    let start = source.find(start_marker).expect("Unable to find Reforged check function");
+    let start = source
+        .find(start_marker)
+        .expect("Unable to find Reforged check function");
     let end = source[start..]
         .find(end_marker)
         .map(|offset| start + offset)
