@@ -18,11 +18,13 @@ use tokio::{
     io::{AsyncReadExt, AsyncWriteExt},
     net::TcpStream as TokioTcpStream,
     sync::{mpsc, Mutex},
-    time::timeout,
+    time::{sleep, timeout},
 };
 
 const HTTP_TIMEOUT_SECONDS: u64 = 12;
 const DOWNLOAD_TIMEOUT_SECONDS: u64 = 300;
+const DOWNLOAD_MAX_ATTEMPTS: usize = 8;
+const DOWNLOAD_RETRY_DELAY_SECONDS: u64 = 2;
 const SHADOWS_MANIFEST_URL: &str = "https://aethro.net/launcher/shadows/stable/manifest.json";
 const REFORGED_MANIFEST_URL: &str =
     "https://aethro.net/downloads/ar-launcher-stuff/reforged-client.json";
@@ -1608,120 +1610,195 @@ async fn download_manifest_file(
             .map_err(|e| format!("Unable to create folder for {}: {e}", manifest_file.path))?;
     }
 
-    let mut response = client
-        .get(parsed_url)
-        .send()
-        .await
-        .map_err(|e| format!("Unable to download {}: {e}", manifest_file.path))?;
-
-    if !response.status().is_success() {
-        return Err(format!(
-            "Download failed for {} with HTTP {}",
-            manifest_file.path,
-            response.status()
-        ));
-    }
-
     let file_name = file_path
         .file_name()
         .ok_or_else(|| format!("Manifest path has no file name: {}", manifest_file.path))?
         .to_string_lossy();
     let temp_path = file_path.with_file_name(format!("{file_name}.download"));
+    let expected_size = manifest_file.size_bytes;
 
-    if temp_path.exists() {
-        fs::remove_file(&temp_path).map_err(|e| {
-            format!(
-                "Unable to remove old temporary download for {}: {e}",
-                manifest_file.path
-            )
-        })?;
-    }
+    for attempt in 1..=DOWNLOAD_MAX_ATTEMPTS {
+        let mut resume_at = temp_path.metadata().map(|metadata| metadata.len()).unwrap_or(0);
 
-    let mut temp_file = tokio::fs::File::create(&temp_path)
-        .await
-        .map_err(|e| format!("Unable to write download for {}: {e}", manifest_file.path))?;
-    let mut hasher = Sha256::new();
-    let mut downloaded = 0_u64;
-    let mut last_emit = 0_u64;
-
-    while let Some(chunk) = response
-        .chunk()
-        .await
-        .map_err(|e| format!("Unable to read download for {}: {e}", manifest_file.path))?
-    {
-        downloaded += chunk.len() as u64;
-        if let Some(expected_size) = manifest_file.size_bytes {
-            if downloaded > expected_size {
+        if let Some(expected_size) = expected_size {
+            if resume_at > expected_size {
                 let _ = fs::remove_file(&temp_path);
-                return Err(format!(
-                    "Downloaded size mismatch for {}. Expected {} bytes, received at least {} bytes.",
-                    manifest_file.path, expected_size, downloaded
-                ));
+                resume_at = 0;
+            } else if resume_at == expected_size {
+                let actual_sha256 = sha256_file(&temp_path)?;
+                if actual_sha256.eq_ignore_ascii_case(&manifest_file.sha256) {
+                    if file_path.exists() {
+                        fs::remove_file(&file_path).map_err(|e| {
+                            format!(
+                                "Unable to replace existing file {}: {e}",
+                                manifest_file.path
+                            )
+                        })?;
+                    }
+
+                    fs::rename(&temp_path, &file_path).map_err(|e| {
+                        format!("Unable to finish download for {}: {e}", manifest_file.path)
+                    })?;
+                    return Ok(expected_size);
+                }
+
+                let _ = fs::remove_file(&temp_path);
+                resume_at = 0;
             }
         }
 
-        hasher.update(&chunk);
-        temp_file
-            .write_all(&chunk)
+        let mut request = client
+            .get(parsed_url.clone())
+            .header(reqwest::header::ACCEPT_ENCODING, "identity");
+        if resume_at > 0 {
+            request = request.header(reqwest::header::RANGE, format!("bytes={resume_at}-"));
+        }
+
+        let mut response = request
+            .send()
             .await
-            .map_err(|e| format!("Unable to write download for {}: {e}", manifest_file.path))?;
+            .map_err(|e| format!("Unable to download {}: {e}", manifest_file.path))?;
 
-        if let Some(progress) = progress.as_ref() {
-            if downloaded.saturating_sub(last_emit) >= 8 * 1024 * 1024 {
-                last_emit = downloaded;
-                emit_managed_progress(
-                    progress.app_handle,
-                    progress.event_name,
-                    "installing",
-                    format!("Installing {}", progress.current_file),
-                    Some(progress.current_file.clone()),
-                    progress.current_index,
-                    progress.total_files,
-                    progress.downloaded_before_file + downloaded,
-                    progress.total_bytes,
-                );
-            }
-        }
-    }
-
-    temp_file
-        .flush()
-        .await
-        .map_err(|e| format!("Unable to finish download for {}: {e}", manifest_file.path))?;
-    drop(temp_file);
-
-    if let Some(expected_size) = manifest_file.size_bytes {
-        if downloaded != expected_size {
+        if resume_at > 0 && response.status() == reqwest::StatusCode::OK {
             let _ = fs::remove_file(&temp_path);
+            continue;
+        }
+
+        if resume_at > 0 && response.status() == reqwest::StatusCode::RANGE_NOT_SATISFIABLE {
+            let _ = fs::remove_file(&temp_path);
+            continue;
+        }
+
+        if resume_at > 0 && response.status() != reqwest::StatusCode::PARTIAL_CONTENT {
             return Err(format!(
-                "Downloaded size mismatch for {}. Expected {} bytes, received {} bytes.",
-                manifest_file.path, expected_size, downloaded
+                "Download resume failed for {} with HTTP {}",
+                manifest_file.path,
+                response.status()
             ));
         }
+
+        if resume_at == 0 && !response.status().is_success() {
+            return Err(format!(
+                "Download failed for {} with HTTP {}",
+                manifest_file.path,
+                response.status()
+            ));
+        }
+
+        let mut temp_file = tokio::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&temp_path)
+            .await
+            .map_err(|e| format!("Unable to write download for {}: {e}", manifest_file.path))?;
+        let mut downloaded = resume_at;
+        let mut last_emit = resume_at;
+        let mut stream_error = None;
+
+        loop {
+            match response.chunk().await {
+                Ok(Some(chunk)) => {
+                    downloaded += chunk.len() as u64;
+                    if let Some(expected_size) = expected_size {
+                        if downloaded > expected_size {
+                            let _ = fs::remove_file(&temp_path);
+                            return Err(format!(
+                                "Downloaded size mismatch for {}. Expected {} bytes, received at least {} bytes.",
+                                manifest_file.path, expected_size, downloaded
+                            ));
+                        }
+                    }
+
+                    temp_file.write_all(&chunk).await.map_err(|e| {
+                        format!("Unable to write download for {}: {e}", manifest_file.path)
+                    })?;
+
+                    if let Some(progress) = progress.as_ref() {
+                        if downloaded.saturating_sub(last_emit) >= 8 * 1024 * 1024 {
+                            last_emit = downloaded;
+                            emit_managed_progress(
+                                progress.app_handle,
+                                progress.event_name,
+                                "installing",
+                                format!("Installing {}", progress.current_file),
+                                Some(progress.current_file.clone()),
+                                progress.current_index,
+                                progress.total_files,
+                                progress.downloaded_before_file + downloaded,
+                                progress.total_bytes,
+                            );
+                        }
+                    }
+                }
+                Ok(None) => break,
+                Err(err) => {
+                    stream_error = Some(err);
+                    break;
+                }
+            }
+        }
+
+        temp_file
+            .flush()
+            .await
+            .map_err(|e| format!("Unable to finish download for {}: {e}", manifest_file.path))?;
+        drop(temp_file);
+
+        if let Some(err) = stream_error {
+            if attempt == DOWNLOAD_MAX_ATTEMPTS {
+                return Err(format!(
+                    "Unable to read download for {} after {} attempts: {err}",
+                    manifest_file.path, DOWNLOAD_MAX_ATTEMPTS
+                ));
+            }
+
+            sleep(Duration::from_secs(DOWNLOAD_RETRY_DELAY_SECONDS)).await;
+            continue;
+        }
+
+        if let Some(expected_size) = expected_size {
+            if downloaded != expected_size {
+                if attempt == DOWNLOAD_MAX_ATTEMPTS {
+                    let _ = fs::remove_file(&temp_path);
+                    return Err(format!(
+                        "Downloaded size mismatch for {}. Expected {} bytes, received {} bytes.",
+                        manifest_file.path, expected_size, downloaded
+                    ));
+                }
+
+                sleep(Duration::from_secs(DOWNLOAD_RETRY_DELAY_SECONDS)).await;
+                continue;
+            }
+        }
+
+        let actual_sha256 = sha256_file(&temp_path)?;
+        if !actual_sha256.eq_ignore_ascii_case(&manifest_file.sha256) {
+            let _ = fs::remove_file(&temp_path);
+            return Err(format!(
+                "Downloaded hash mismatch for {}. Expected {}, received {}.",
+                manifest_file.path, manifest_file.sha256, actual_sha256
+            ));
+        }
+
+        if file_path.exists() {
+            fs::remove_file(&file_path).map_err(|e| {
+                format!(
+                    "Unable to replace existing file {}: {e}",
+                    manifest_file.path
+                )
+            })?;
+        }
+
+        fs::rename(&temp_path, &file_path)
+            .map_err(|e| format!("Unable to finish download for {}: {e}", manifest_file.path))?;
+
+        return Ok(downloaded);
     }
 
-    let actual_sha256 = format!("{:x}", hasher.finalize());
-    if !actual_sha256.eq_ignore_ascii_case(&manifest_file.sha256) {
-        let _ = fs::remove_file(&temp_path);
-        return Err(format!(
-            "Downloaded hash mismatch for {}. Expected {}, received {}.",
-            manifest_file.path, manifest_file.sha256, actual_sha256
-        ));
-    }
-
-    if file_path.exists() {
-        fs::remove_file(&file_path).map_err(|e| {
-            format!(
-                "Unable to replace existing file {}: {e}",
-                manifest_file.path
-            )
-        })?;
-    }
-
-    fs::rename(&temp_path, &file_path)
-        .map_err(|e| format!("Unable to finish download for {}: {e}", manifest_file.path))?;
-
-    Ok(downloaded)
+    Err(format!(
+        "Unable to download {} after {} attempts.",
+        manifest_file.path, DOWNLOAD_MAX_ATTEMPTS
+    ))
 }
 
 async fn resolve_fabric_loader_version(
