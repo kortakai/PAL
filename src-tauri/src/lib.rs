@@ -32,7 +32,10 @@ const SHADOWS_DOWNLOAD_PATH_PREFIX: &str = "/launcher/shadows/stable/files/";
 const REFORGED_DOWNLOAD_PATH_PREFIX: &str = "/downloads/ar-launcher-stuff/Aethro_Reforged/";
 const REFORGED_INSTALL_CONFIG_FILE: &str = "reforged-install.json";
 const REFORGED_CONFIG_RELATIVE_PATH: &str = "WTF/Config.wtf";
-const REFORGED_REALMLIST_HOST: &str = "aethro.online";
+const REFORGED_DATA_REALMLIST_RELATIVE_PATH: &str = "Data/enUS/realmlist.wtf";
+const REFORGED_D3D9_RELATIVE_PATH: &str = "d3d9.dll";
+const REFORGED_DISABLED_D3D9_RELATIVE_PATH: &str = "d3d9.dll.disabled-by-aethro-launcher";
+const REFORGED_REALMLIST_HOST: &str = "51.222.24.20";
 const BUNDLED_REFORGED_MANIFEST: &str = include_str!("../../manifests/reforged-client.json");
 const AETHRO_GLOBAL_LUA_RELATIVE_PATH: &str = "Interface/AddOns/AethroGlobal/AethroGlobal.lua";
 const AETHRO_GLOBAL_TOC_RELATIVE_PATH: &str = "Interface/AddOns/AethroGlobal/AethroGlobal.toc";
@@ -991,31 +994,25 @@ fn reforged_manifest_files(manifest: &ReforgedManifest) -> &[ShadowsManifestFile
     manifest.files.as_deref().unwrap_or(&[])
 }
 
+fn is_unsupported_reforged_managed_file(path: &str) -> bool {
+    let normalized = path.replace('\\', "/");
+    normalized.eq_ignore_ascii_case(REFORGED_D3D9_RELATIVE_PATH)
+        || normalized.eq_ignore_ascii_case(REFORGED_DATA_REALMLIST_RELATIVE_PATH)
+}
+
+fn active_reforged_manifest_files(manifest: &ReforgedManifest) -> Vec<ShadowsManifestFile> {
+    reforged_manifest_files(manifest)
+        .iter()
+        .filter(|file| !is_unsupported_reforged_managed_file(&file.path))
+        .cloned()
+        .collect()
+}
+
 fn is_reforged_launch_critical_file(path: &str) -> bool {
     let normalized = path.replace('\\', "/").to_ascii_lowercase();
     normalized == "wow.exe"
         || normalized.starts_with("interface/addons/")
         || (normalized.starts_with("data/") && normalized.ends_with(".mpq"))
-}
-
-fn missing_reforged_launch_critical_files(
-    install_dir: &Path,
-    manifest: &ReforgedManifest,
-) -> Result<usize, String> {
-    let mut missing = 0;
-
-    for manifest_file in reforged_manifest_files(manifest) {
-        if !is_reforged_launch_critical_file(&manifest_file.path) {
-            continue;
-        }
-
-        let file_path = safe_join(install_dir, &manifest_file.path)?;
-        if !file_path.is_file() {
-            missing += 1;
-        }
-    }
-
-    Ok(missing)
 }
 
 fn reforged_manifest_game_id(manifest: &ReforgedManifest) -> &str {
@@ -1091,6 +1088,26 @@ fn check_reforged_realm_list_file(install_dir: &Path) -> ModpackFileStatus {
     }
 }
 
+fn check_reforged_data_realm_list_file(install_dir: &Path) -> ModpackFileStatus {
+    let config_path = install_dir.join(REFORGED_DATA_REALMLIST_RELATIVE_PATH);
+    let config_text = fs::read_to_string(&config_path).ok();
+    let status = match config_text.as_deref().and_then(parse_wow_realm_list) {
+        Some(realm_list) if realm_list.eq_ignore_ascii_case(REFORGED_REALMLIST_HOST) => "ok",
+        Some(_) => "changed",
+        None if config_path.exists() => "changed",
+        None => "missing",
+    };
+    let size_bytes = config_text.as_ref().map(|text| text.len() as u64);
+
+    ModpackFileStatus {
+        path: REFORGED_DATA_REALMLIST_RELATIVE_PATH.to_string(),
+        status: status.to_string(),
+        expected_sha256: None,
+        actual_sha256: None,
+        size_bytes,
+    }
+}
+
 fn reforged_addon_files() -> [(&'static str, &'static str); 2] {
     [
         (AETHRO_GLOBAL_LUA_RELATIVE_PATH, AETHRO_GLOBAL_LUA_CONTENT),
@@ -1138,7 +1155,10 @@ fn check_reforged_realm_list(
     manifest: &ReforgedManifest,
     app_handle: Option<&tauri::AppHandle>,
 ) -> Result<ModpackCheckResult, String> {
-    let mut files = vec![check_reforged_realm_list_file(install_dir)];
+    let mut files = vec![
+        check_reforged_realm_list_file(install_dir),
+        check_reforged_data_realm_list_file(install_dir),
+    ];
 
     for (relative_path, contents) in reforged_addon_files() {
         files.push(check_reforged_addon_file(
@@ -1148,14 +1168,14 @@ fn check_reforged_realm_list(
         )?);
     }
 
-    let managed_files = reforged_manifest_files(manifest);
+    let managed_files = active_reforged_manifest_files(manifest);
     if !managed_files.is_empty() {
         let managed_result = check_manifest_files(
             "Reforged",
             reforged_manifest_game_id(manifest),
             reforged_manifest_display_name(manifest),
             reforged_manifest_channel(manifest),
-            managed_files,
+            &managed_files,
             install_dir,
             app_handle,
             "reforged-repair-progress",
@@ -1226,8 +1246,39 @@ fn update_reforged_realm_list(install_dir: &Path) -> Result<(), String> {
     update_wow_config_setting(install_dir, "realmList", REFORGED_REALMLIST_HOST)
 }
 
+fn update_reforged_data_realm_list(install_dir: &Path) -> Result<(), String> {
+    let config_path = safe_join(install_dir, REFORGED_DATA_REALMLIST_RELATIVE_PATH)?;
+    let parent = config_path
+        .parent()
+        .ok_or_else(|| "Unable to resolve Reforged Data realmlist folder.".to_string())?;
+    fs::create_dir_all(parent)
+        .map_err(|e| format!("Unable to create Reforged Data realmlist folder: {e}"))?;
+    fs::write(
+        &config_path,
+        format!("set realmlist {REFORGED_REALMLIST_HOST}\n"),
+    )
+    .map_err(|e| format!("Unable to update Reforged Data realmlist: {e}"))
+}
+
 fn update_reforged_addon_config(install_dir: &Path) -> Result<(), String> {
     update_wow_config_setting(install_dir, "checkAddonVersion", "0")
+}
+
+fn disable_reforged_d3d9_dll(install_dir: &Path) -> Result<(), String> {
+    let d3d9_path = safe_join(install_dir, REFORGED_D3D9_RELATIVE_PATH)?;
+    if !d3d9_path.exists() {
+        return Ok(());
+    }
+
+    let disabled_path = safe_join(install_dir, REFORGED_DISABLED_D3D9_RELATIVE_PATH)?;
+    if disabled_path.exists() {
+        fs::remove_file(&d3d9_path)
+            .map_err(|e| format!("Unable to disable Reforged d3d9.dll: {e}"))?;
+        return Ok(());
+    }
+
+    fs::rename(&d3d9_path, &disabled_path)
+        .map_err(|e| format!("Unable to disable Reforged d3d9.dll: {e}"))
 }
 
 fn install_reforged_addons(install_dir: &Path) -> Result<(), String> {
@@ -2249,8 +2300,8 @@ async fn check_reforged_install(
 ) -> Result<ModpackCheckResult, String> {
     let install_dir = required_reforged_install_dir(&app_handle)?;
     let manifest = load_reforged_manifest().await?;
-    let managed_files = reforged_manifest_files(&manifest);
-    let total_files = 3 + managed_files.len();
+    let managed_files = active_reforged_manifest_files(&manifest);
+    let total_files = 4 + managed_files.len();
     let total_bytes = managed_files
         .iter()
         .filter_map(|file| file.size_bytes)
@@ -2289,8 +2340,8 @@ async fn repair_reforged_install(
 ) -> Result<ModpackCheckResult, String> {
     let install_dir = required_reforged_install_dir(&app_handle)?;
     let manifest = load_reforged_manifest().await?;
-    let managed_files = reforged_manifest_files(&manifest);
-    let total_files = 3 + managed_files.len();
+    let managed_files = active_reforged_manifest_files(&manifest);
+    let total_files = 4 + managed_files.len();
 
     emit_reforged_progress(
         &app_handle,
@@ -2314,6 +2365,7 @@ async fn repair_reforged_install(
         0,
     );
     update_reforged_realm_list(&install_dir)?;
+    update_reforged_data_realm_list(&install_dir)?;
     update_reforged_addon_config(&install_dir)?;
 
     emit_reforged_progress(
@@ -2328,6 +2380,18 @@ async fn repair_reforged_install(
     );
     install_reforged_addons(&install_dir)?;
     enable_required_reforged_addons(&install_dir)?;
+
+    emit_reforged_progress(
+        &app_handle,
+        "installing",
+        "Applying Reforged Windows compatibility",
+        Some(REFORGED_D3D9_RELATIVE_PATH.to_string()),
+        3,
+        total_files,
+        0,
+        0,
+    );
+    disable_reforged_d3d9_dll(&install_dir)?;
 
     let current = check_reforged_realm_list(&install_dir, &manifest, Some(&app_handle))?;
     if current.invalid_manifest_files > 0 {
@@ -2365,7 +2429,7 @@ async fn repair_reforged_install(
 
     let mut downloaded_bytes = 0_u64;
     for (index, manifest_file) in repair_files.iter().enumerate() {
-        let current_index = index + 3;
+        let current_index = index + 4;
         emit_reforged_progress(
             &app_handle,
             "installing",
@@ -2423,23 +2487,32 @@ async fn prepare_reforged_launch(
     app_handle: tauri::AppHandle,
     ready_manifest_sha256: Option<String>,
 ) -> Result<ReforgedLaunchPreparation, String> {
+    let _ = ready_manifest_sha256;
     let install_dir = required_reforged_install_dir(&app_handle)?;
     let manifest = load_reforged_manifest().await?;
 
     update_reforged_realm_list(&install_dir)?;
+    update_reforged_data_realm_list(&install_dir)?;
     update_reforged_addon_config(&install_dir)?;
     install_reforged_addons(&install_dir)?;
     enable_required_reforged_addons(&install_dir)?;
+    disable_reforged_d3d9_dll(&install_dir)?;
 
-    let missing_critical_files = missing_reforged_launch_critical_files(&install_dir, &manifest)?;
-    let manifest_matches = ready_manifest_sha256
-        .as_deref()
-        .zip(manifest.source_sha256.as_deref())
-        .is_some_and(|(known, current)| known.eq_ignore_ascii_case(current));
+    let current = check_reforged_realm_list(&install_dir, &manifest, Some(&app_handle))?;
+    let missing_critical_files = current
+        .files
+        .iter()
+        .filter(|file| {
+            file.status != "ok"
+                && (file.path == REFORGED_CONFIG_RELATIVE_PATH
+                    || file.path == REFORGED_DATA_REALMLIST_RELATIVE_PATH
+                    || is_reforged_launch_critical_file(&file.path))
+        })
+        .count();
 
     Ok(ReforgedLaunchPreparation {
         manifest_sha256: manifest.source_sha256,
-        ready: manifest_matches && missing_critical_files == 0,
+        ready: current.ready && missing_critical_files == 0,
         missing_critical_files,
     })
 }
@@ -2606,6 +2679,9 @@ async fn open_reforged_client(app_handle: tauri::AppHandle) -> Result<String, St
         .and_then(|manifest| manifest.launch.as_ref())
         .and_then(|launch| launch.args.clone())
         .unwrap_or_default();
+    update_reforged_realm_list(&install_dir)?;
+    update_reforged_data_realm_list(&install_dir)?;
+    disable_reforged_d3d9_dll(&install_dir)?;
 
     #[cfg(target_os = "windows")]
     {
