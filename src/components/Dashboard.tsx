@@ -137,7 +137,7 @@ function reforgedUpdateStateLabel(state: ShadowsInstallState) {
     case 'checking':
       return 'Checking setup';
     case 'needsUpdate':
-      return 'Setup needed';
+      return 'Update available';
     case 'installing':
       return 'Setting up';
     case 'ready':
@@ -162,6 +162,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
   const kalismorTerminalInstanceRef = useRef<Terminal | null>(null);
   const kalismorMudSessionIdRef = useRef<string | null>(null);
   const kalismorSocketRef = useRef<WebSocket | null>(null);
+  const autoCheckedReforgedInstallRef = useRef<string | null>(null);
   const [activeFeed, setActiveFeed] = useState<'all' | NewsFeedId>('all');
   const [view, setView] = useState<LauncherView>('home');
   const [news, setNews] = useState(home.news);
@@ -590,6 +591,23 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
       .then((account) => setReforgedAccount(account))
       .catch(() => setReforgedAccount(null));
   }, [view, reforgedCheck?.installDir]);
+
+  useEffect(() => {
+    if (view !== 'reforged') return;
+
+    const installDir = reforgedAccount?.installDir;
+    if (!installDir || autoCheckedReforgedInstallRef.current === installDir) return;
+    if (reforgedInstallState !== 'notChecked' || checkingReforgedFiles || repairingReforgedFiles) return;
+
+    autoCheckedReforgedInstallRef.current = installDir;
+    void verifyReforgedFiles();
+  }, [
+    checkingReforgedFiles,
+    reforgedAccount?.installDir,
+    reforgedInstallState,
+    repairingReforgedFiles,
+    view
+  ]);
 
   useEffect(() => {
     if (view !== 'reforged' || reforgedProfileLoaded || reforgedProfileLoading) return;
@@ -1057,6 +1075,12 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     const hasReforgedDestination = Boolean(reforgedAccount?.installDir);
     const hasReforgedClient = reforgedAccount?.isClientInstalled ?? false;
     const updatesReady = reforgedCheck?.ready ?? false;
+    const hasReforgedUpdate = hasReforgedDestination
+      && (reforgedInstallState === 'needsUpdate' || (reforgedCheck !== null && !reforgedCheck.ready));
+    const reforgedPrimaryAction = hasReforgedUpdate ? repairReforgedFiles : launchReforgedClient;
+    const reforgedPrimaryLabel = hasReforgedUpdate
+      ? repairingReforgedFiles ? 'Updating...' : 'Update'
+      : launchingReforged ? 'Opening...' : 'Open Reforged';
     const progressPercent = reforgedProgress?.totalBytes
       ? Math.min(100, Math.round((reforgedProgress.downloadedBytes / reforgedProgress.totalBytes) * 100))
       : updatesReady
@@ -1155,8 +1179,8 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
               <button onClick={repairReforgedFiles} disabled={repairingReforgedFiles || checkingReforgedFiles || !hasReforgedDestination}>
                 {repairingReforgedFiles ? 'Setting up...' : 'Install / Repair Setup'}
               </button>
-              <button className="secondary" onClick={launchReforgedClient} disabled={launchingReforged || repairingReforgedFiles || !hasReforgedDestination}>
-                {launchingReforged ? 'Opening...' : 'Open Reforged'}
+              <button className={hasReforgedUpdate ? undefined : 'secondary'} onClick={reforgedPrimaryAction} disabled={launchingReforged || repairingReforgedFiles || checkingReforgedFiles || !hasReforgedDestination}>
+                {checkingReforgedFiles ? 'Checking...' : reforgedPrimaryLabel}
               </button>
             </div>
 
@@ -1165,7 +1189,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
             {reforgedCheck && (
               <div className="patch-summary">
                 <div>
-                  <strong>{reforgedCheck.ready ? 'Setup ready' : 'Setup needs update'}</strong>
+                  <strong>{reforgedCheck.ready ? 'Setup ready' : 'Update available'}</strong>
                   <span>{reforgedCheck.okFiles}/{reforgedCheck.totalFiles} setup files verified</span>
                 </div>
                 <p>{reforgedCheck.installDir}</p>

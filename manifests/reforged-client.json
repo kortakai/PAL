@@ -1213,6 +1213,69 @@
       "required": true
     },
     {
+      "path": "Interface/AddOns/AethroParagon/Paragon/Paragon_Animations.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/Paragon/Paragon_Animations.lua",
+      "sha256": "7060107cf595204a3364dfb9a5faff36541ec7d0bebc06b367756df6a7376f4d",
+      "sizeBytes": 5245,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroParagon/Paragon/Paragon_Interface.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/Paragon/Paragon_Interface.lua",
+      "sha256": "ded3b5dd73942609b48f8ef2902f41984216097724da5a29d2a3aa966435e0be",
+      "sizeBytes": 27829,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroParagon/Paragon/Paragon_Locales.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/Paragon/Paragon_Locales.lua",
+      "sha256": "8b495bc6f521a5a2a01510471d4f3994047ab5111f1043afbe8b58d437b58b08",
+      "sizeBytes": 108251,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroParagon/Paragon/Paragon_Network.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/Paragon/Paragon_Network.lua",
+      "sha256": "b2061717e3df1606ef667d23d5528fc80f9c28d595b473b20ea1e22051313523",
+      "sizeBytes": 16105,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroParagon/Paragon/Paragon_TargetLevel.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/Paragon/Paragon_TargetLevel.lua",
+      "sha256": "631b6331e6593170b4209f1f0cadbead65c7f82c3aa21ab6445875527ea5b6e4",
+      "sizeBytes": 2113,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroParagon/Paragon/Paragon_Tutorial.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/Paragon/Paragon_Tutorial.lua",
+      "sha256": "ecdf2e8572e65fc3a22134d5ea4a4c00dd911bbfe049e9b11cab30c3b0f8cfba",
+      "sizeBytes": 16462,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroParagon/Paragon/ParagonExpBar.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/Paragon/ParagonExpBar.lua",
+      "sha256": "1d5368445985499ea6379f72e1b1525994d00c6dea466a056c6a3e27ddaea34b",
+      "sizeBytes": 5123,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroParagon/Paragon/ParagonExpBar.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/Paragon/ParagonExpBar.xml",
+      "sha256": "20d380c142c071694f9c9d7c69359594b424b2d0a79407d2c22bce06996ecf01",
+      "sizeBytes": 4007,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroParagon/Paragon/UIParagon.xml",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/Paragon/UIParagon.xml",
+      "sha256": "cb7ff8d274190b0560c67ec654f4e1b81b0300245d44fdfd33dd632c44307cb2",
+      "sizeBytes": 23485,
+      "required": true
+    },
+    {
       "path": "Interface/AddOns/AethroParagon/Templates/UITemplate2X.xml",
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/Templates/UITemplate2X.xml",
       "sha256": "f12fdb6314f3d85bf5a73ad92ec539a8da4e2a782de4461e90c5535ec4eefec7",
