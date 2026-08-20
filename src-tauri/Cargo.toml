@@ -1,6 +1,6 @@
 [package]
 name = "play-aethro-launcher"
-version = "1.2.8"
+version = "1.2.9"
 description = "Play Aethro Launcher"
 authors = ["Play Aethro"]
 edition = "2021"
