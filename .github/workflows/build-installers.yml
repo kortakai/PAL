@@ -2,6 +2,11 @@ name: Build Installers
 
 on:
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing app-v tag to upload release assets to. Leave blank for artifact-only builds.
+        required: false
+        type: string
   push:
     tags:
       - 'app-v*'
@@ -11,6 +16,8 @@ jobs:
     name: ${{ matrix.label }}
     permissions:
       contents: write
+    env:
+      RELEASE_TAG: ${{ startsWith(github.ref, 'refs/tags/app-v') && github.ref_name || inputs.release_tag }}
     strategy:
       fail-fast: false
       matrix:
@@ -196,11 +203,11 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           args: ${{ matrix.args }}
-          releaseDraft: ${{ github.event_name == 'workflow_dispatch' }}
-          prerelease: ${{ github.event_name == 'workflow_dispatch' }}
-          tagName: app-v__VERSION__
-          releaseName: Play Aethro Launcher v__VERSION__
-          releaseBody: Play Aethro Launcher build. Download the installer for your operating system from the assets below.
+          releaseDraft: false
+          prerelease: false
+          tagName: ${{ env.RELEASE_TAG }}
+          releaseName: ${{ env.RELEASE_TAG != '' && 'Play Aethro Launcher v__VERSION__' || '' }}
+          releaseBody: ${{ env.RELEASE_TAG != '' && 'Play Aethro Launcher build. Download the installer for your operating system from the assets below.' || '' }}
           releaseAssetNamePattern: '[name]_[version]_[platform]_[arch].[ext]'
           uploadWorkflowArtifacts: true
           workflowArtifactNamePattern: '[platform]-[arch]-[bundle]'
@@ -208,7 +215,7 @@ jobs:
   repair-updater-json:
     name: Repair updater JSON
     needs: build
-    if: startsWith(github.ref, 'refs/tags/app-v')
+    if: startsWith(github.ref, 'refs/tags/app-v') || (github.event_name == 'workflow_dispatch' && inputs.release_tag != '')
     runs-on: ubuntu-22.04
     permissions:
       contents: write
@@ -217,7 +224,7 @@ jobs:
       - name: Rebuild latest.json with every platform
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ startsWith(github.ref, 'refs/tags/app-v') && github.ref_name || inputs.release_tag }}
         run: |
           set -euo pipefail
 
