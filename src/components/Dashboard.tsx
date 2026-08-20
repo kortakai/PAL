@@ -180,6 +180,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
   const [repairingFiles, setRepairingFiles] = useState(false);
   const [launchingMinecraft, setLaunchingMinecraft] = useState(false);
   const [shadowsError, setShadowsError] = useState<string | null>(null);
+  const [shadowsStatus, setShadowsStatus] = useState<string | null>(null);
   const [reforgedCheck, setReforgedCheck] = useState<ModpackCheckResult | null>(null);
   const [reforgedInstallState, setReforgedInstallState] = useState<ShadowsInstallState>('notChecked');
   const [reforgedProgress, setReforgedProgress] = useState<ShadowsRepairProgress | null>(null);
@@ -762,6 +763,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     setInstallState('checking');
     setRepairProgress(null);
     setShadowsError(null);
+    setShadowsStatus(null);
 
     try {
       const result = await checkShadowsInstall();
@@ -780,6 +782,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     setInstallState('checking');
     setRepairProgress(null);
     setShadowsError(null);
+    setShadowsStatus(null);
 
     try {
       const result = await repairShadowsInstall();
@@ -796,6 +799,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
   async function launchMinecraftLauncher() {
     setLaunchingMinecraft(true);
     setShadowsError(null);
+    setShadowsStatus(null);
 
     try {
       let minecraftProfile: LocalMinecraftProfile = {
@@ -815,12 +819,18 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
         };
       }
 
-      if (!minecraftProfile.name || !minecraftProfile.uuid) {
-        throw new Error('Unable to verify your Minecraft username and UUID. Open the Minecraft Launcher once, sign into Java Edition, then try again.');
-      }
-
       await openMinecraftLauncher();
-      await withFreshSession((activeSession) => recordShadowsLaunch(activeSession, minecraftProfile));
+
+      if (minecraftProfile.name && minecraftProfile.uuid) {
+        try {
+          await withFreshSession((activeSession) => recordShadowsLaunch(activeSession, minecraftProfile));
+        } catch (err) {
+          console.warn('Minecraft Launcher opened, but Shadows launch tracking could not be recorded.', err);
+          setShadowsStatus('Minecraft Launcher opened. We could not sync this launch with your Aethro account right now.');
+        }
+      } else {
+        setShadowsStatus('Minecraft Launcher opened. We could not verify your Minecraft account yet, so this launch was not synced.');
+      }
     } catch (err) {
       setShadowsError(err instanceof Error ? err.message : String(err || 'Unable to open Minecraft Launcher.'));
     } finally {
@@ -1706,6 +1716,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
             </div>
 
             {shadowsError && <p className="error">{shadowsError}</p>}
+            {shadowsStatus && <p className="success">{shadowsStatus}</p>}
 
             {modpackCheck && (
               <div className="patch-summary">
