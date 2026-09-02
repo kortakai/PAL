@@ -143,7 +143,7 @@ The launcher links players to the official uploaded Reforged client folder:
 https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged
 ```
 
-After the player selects the downloaded client folder, the launcher verifies `Wow.exe` and `Data`, writes the Aethro realm list, installs AethroGlobal, and opens the configured client executable.
+After the player selects the downloaded client folder, the launcher verifies `Wow.exe` and `Data`, writes the Aethro realm list, and opens the configured client executable.
 
 ## Shadows Launch Proof
 

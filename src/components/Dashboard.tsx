@@ -1135,7 +1135,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
           <div className="reforged-strip-media" aria-hidden="true" />
           <div className="reforged-strip-copy">
             <strong>Aethro: Reforged</strong>
-            <span>Wrath 3.3.5a client setup, patches, realm list, and AethroGlobal.</span>
+            <span>Wrath 3.3.5a client setup, patches, and realm list.</span>
           </div>
           <div className="reforged-strip-actions">
             <button className="secondary icon-button" onClick={chooseReforgedFolder} disabled={choosingReforgedFolder}>
@@ -1341,7 +1341,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
             <div className="reforged-roster-box">
               <span className="eyebrow">Realm</span>
               <strong>Aethro: Reforged</strong>
-              <p>The launcher keeps your selected client pointed at Aethro and installs the AethroGlobal addon.</p>
+              <p>The launcher keeps your selected client pointed at Aethro.</p>
             </div>
           </div>
         </section>

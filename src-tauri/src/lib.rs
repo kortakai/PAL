@@ -37,14 +37,8 @@ const REFORGED_D3D9_RELATIVE_PATH: &str = "d3d9.dll";
 const REFORGED_DISABLED_D3D9_RELATIVE_PATH: &str = "d3d9.dll.disabled-by-aethro-launcher";
 const REFORGED_REALMLIST_HOST: &str = "51.222.24.20";
 const BUNDLED_REFORGED_MANIFEST: &str = include_str!("../../manifests/reforged-client.json");
-const AETHRO_GLOBAL_LUA_RELATIVE_PATH: &str = "Interface/AddOns/AethroGlobal/AethroGlobal.lua";
-const AETHRO_GLOBAL_TOC_RELATIVE_PATH: &str = "Interface/AddOns/AethroGlobal/AethroGlobal.toc";
-const AETHRO_GLOBAL_LUA_CONTENT: &str =
-    include_str!("../resources/reforged-addons/AethroGlobal/AethroGlobal.lua");
-const AETHRO_GLOBAL_TOC_CONTENT: &str =
-    include_str!("../resources/reforged-addons/AethroGlobal/AethroGlobal.toc");
+const AETHRO_GLOBAL_ADDON_RELATIVE_PATH: &str = "Interface/AddOns/AethroGlobal";
 const REQUIRED_REFORGED_ADDONS: &[&str] = &[
-    "AethroGlobal",
     "AethroParagon",
     "GuildVillageHelper",
     "ReagentBankUI",
@@ -1108,48 +1102,6 @@ fn check_reforged_data_realm_list_file(install_dir: &Path) -> ModpackFileStatus 
     }
 }
 
-fn reforged_addon_files() -> [(&'static str, &'static str); 2] {
-    [
-        (AETHRO_GLOBAL_LUA_RELATIVE_PATH, AETHRO_GLOBAL_LUA_CONTENT),
-        (AETHRO_GLOBAL_TOC_RELATIVE_PATH, AETHRO_GLOBAL_TOC_CONTENT),
-    ]
-}
-
-fn check_reforged_addon_file(
-    install_dir: &Path,
-    relative_path: &str,
-    contents: &str,
-) -> Result<ModpackFileStatus, String> {
-    let file_path = safe_join(install_dir, relative_path)?;
-    let expected_sha256 = sha256_bytes(contents.as_bytes());
-    let expected_size = contents.len() as u64;
-
-    if !file_path.exists() {
-        return Ok(ModpackFileStatus {
-            path: relative_path.to_string(),
-            status: "missing".to_string(),
-            expected_sha256: Some(expected_sha256),
-            actual_sha256: None,
-            size_bytes: Some(expected_size),
-        });
-    }
-
-    let actual_sha256 = sha256_file(&file_path)?;
-    let status = if actual_sha256.eq_ignore_ascii_case(&expected_sha256) {
-        "ok"
-    } else {
-        "changed"
-    };
-
-    Ok(ModpackFileStatus {
-        path: relative_path.to_string(),
-        status: status.to_string(),
-        expected_sha256: Some(expected_sha256),
-        actual_sha256: Some(actual_sha256),
-        size_bytes: Some(expected_size),
-    })
-}
-
 fn check_reforged_realm_list(
     install_dir: &Path,
     manifest: &ReforgedManifest,
@@ -1159,14 +1111,6 @@ fn check_reforged_realm_list(
         check_reforged_realm_list_file(install_dir),
         check_reforged_data_realm_list_file(install_dir),
     ];
-
-    for (relative_path, contents) in reforged_addon_files() {
-        files.push(check_reforged_addon_file(
-            install_dir,
-            relative_path,
-            contents,
-        )?);
-    }
 
     let managed_files = active_reforged_manifest_files(manifest);
     if !managed_files.is_empty() {
@@ -1281,17 +1225,11 @@ fn disable_reforged_d3d9_dll(install_dir: &Path) -> Result<(), String> {
         .map_err(|e| format!("Unable to disable Reforged d3d9.dll: {e}"))
 }
 
-fn install_reforged_addons(install_dir: &Path) -> Result<(), String> {
-    for (relative_path, contents) in reforged_addon_files() {
-        let addon_path = safe_join(install_dir, relative_path)?;
-        let parent = addon_path.parent().ok_or_else(|| {
-            format!("Unable to resolve Reforged addon folder for {relative_path}.")
-        })?;
-
-        fs::create_dir_all(parent)
-            .map_err(|e| format!("Unable to create Reforged addon folder: {e}"))?;
-        fs::write(&addon_path, contents)
-            .map_err(|e| format!("Unable to install Reforged addon {relative_path}: {e}"))?;
+fn remove_obsolete_reforged_addons(install_dir: &Path) -> Result<(), String> {
+    let addon_path = safe_join(install_dir, AETHRO_GLOBAL_ADDON_RELATIVE_PATH)?;
+    if addon_path.exists() {
+        fs::remove_dir_all(&addon_path)
+            .map_err(|e| format!("Unable to remove obsolete AethroGlobal addon: {e}"))?;
     }
 
     Ok(())
@@ -1327,6 +1265,11 @@ fn collect_reforged_addon_state_files(dir: &Path, files: &mut Vec<PathBuf>) -> R
 fn enable_reforged_addons_in_state_file(path: &Path) -> Result<(), String> {
     let text = fs::read_to_string(path).unwrap_or_default();
     let mut lines = text.lines().map(str::to_string).collect::<Vec<_>>();
+
+    lines.retain(|line| {
+        line.split_once(':')
+            .is_none_or(|(addon, _)| !addon.trim().eq_ignore_ascii_case("AethroGlobal"))
+    });
 
     for addon in REQUIRED_REFORGED_ADDONS {
         let prefix = format!("{addon}:");
@@ -2301,7 +2244,7 @@ async fn check_reforged_install(
     let install_dir = required_reforged_install_dir(&app_handle)?;
     let manifest = load_reforged_manifest().await?;
     let managed_files = active_reforged_manifest_files(&manifest);
-    let total_files = 4 + managed_files.len();
+    let total_files = 2 + managed_files.len();
     let total_bytes = managed_files
         .iter()
         .filter_map(|file| file.size_bytes)
@@ -2341,7 +2284,7 @@ async fn repair_reforged_install(
     let install_dir = required_reforged_install_dir(&app_handle)?;
     let manifest = load_reforged_manifest().await?;
     let managed_files = active_reforged_manifest_files(&manifest);
-    let total_files = 4 + managed_files.len();
+    let total_files = 2 + managed_files.len();
 
     emit_reforged_progress(
         &app_handle,
@@ -2371,14 +2314,14 @@ async fn repair_reforged_install(
     emit_reforged_progress(
         &app_handle,
         "installing",
-        "Installing AethroGlobal addon",
-        Some("Interface/AddOns/AethroGlobal".to_string()),
+        "Removing obsolete AethroGlobal addon",
+        Some(AETHRO_GLOBAL_ADDON_RELATIVE_PATH.to_string()),
         2,
         total_files,
         0,
         0,
     );
-    install_reforged_addons(&install_dir)?;
+    remove_obsolete_reforged_addons(&install_dir)?;
     enable_required_reforged_addons(&install_dir)?;
 
     emit_reforged_progress(
@@ -2494,7 +2437,7 @@ async fn prepare_reforged_launch(
     update_reforged_realm_list(&install_dir)?;
     update_reforged_data_realm_list(&install_dir)?;
     update_reforged_addon_config(&install_dir)?;
-    install_reforged_addons(&install_dir)?;
+    remove_obsolete_reforged_addons(&install_dir)?;
     enable_required_reforged_addons(&install_dir)?;
     disable_reforged_d3d9_dll(&install_dir)?;
 
