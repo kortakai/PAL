@@ -22,9 +22,12 @@ use tokio::{
 };
 
 const HTTP_TIMEOUT_SECONDS: u64 = 12;
+const DOWNLOAD_CONNECT_TIMEOUT_SECONDS: u64 = 30;
 const DOWNLOAD_TIMEOUT_SECONDS: u64 = 300;
-const DOWNLOAD_MAX_ATTEMPTS: usize = 8;
-const DOWNLOAD_RETRY_DELAY_SECONDS: u64 = 2;
+const REFORGED_DOWNLOAD_TIMEOUT_SECONDS: u64 = 1_800;
+const DOWNLOAD_MAX_ATTEMPTS: usize = 20;
+const DOWNLOAD_RETRY_DELAY_SECONDS: u64 = 3;
+const DOWNLOAD_MAX_RETRY_DELAY_SECONDS: u64 = 60;
 const SHADOWS_MANIFEST_URL: &str = "https://aethro.net/launcher/shadows/stable/manifest.json";
 const REFORGED_MANIFEST_URL: &str =
     "https://aethro.net/downloads/ar-launcher-stuff/reforged-client.json";
@@ -1648,10 +1651,36 @@ async fn download_manifest_file(
             request = request.header(reqwest::header::RANGE, format!("bytes={resume_at}-"));
         }
 
-        let mut response = request
-            .send()
-            .await
-            .map_err(|e| format!("Unable to download {}: {e}", manifest_file.path))?;
+        let mut response = match request.send().await {
+            Ok(response) => response,
+            Err(err) => {
+                if attempt == DOWNLOAD_MAX_ATTEMPTS {
+                    return Err(format!(
+                        "Unable to start download for {} after {} attempts: {err}. Your partial download was kept; retry the repair to resume.",
+                        manifest_file.path, DOWNLOAD_MAX_ATTEMPTS
+                    ));
+                }
+
+                sleep(download_retry_delay(attempt)).await;
+                continue;
+            }
+        };
+
+        if response.status().is_server_error()
+            || response.status() == reqwest::StatusCode::TOO_MANY_REQUESTS
+        {
+            if attempt == DOWNLOAD_MAX_ATTEMPTS {
+                return Err(format!(
+                    "Download failed for {} after {} attempts with HTTP {}. Your partial download was kept; retry the repair to resume.",
+                    manifest_file.path,
+                    DOWNLOAD_MAX_ATTEMPTS,
+                    response.status()
+                ));
+            }
+
+            sleep(download_retry_delay(attempt)).await;
+            continue;
+        }
 
         if resume_at > 0 && response.status() == reqwest::StatusCode::OK {
             let _ = fs::remove_file(&temp_path);
@@ -1746,7 +1775,7 @@ async fn download_manifest_file(
                 ));
             }
 
-            sleep(Duration::from_secs(DOWNLOAD_RETRY_DELAY_SECONDS)).await;
+            sleep(download_retry_delay(attempt)).await;
             continue;
         }
 
@@ -1760,7 +1789,7 @@ async fn download_manifest_file(
                     ));
                 }
 
-                sleep(Duration::from_secs(DOWNLOAD_RETRY_DELAY_SECONDS)).await;
+                sleep(download_retry_delay(attempt)).await;
                 continue;
             }
         }
@@ -1793,6 +1822,15 @@ async fn download_manifest_file(
         "Unable to download {} after {} attempts.",
         manifest_file.path, DOWNLOAD_MAX_ATTEMPTS
     ))
+}
+
+fn download_retry_delay(attempt: usize) -> Duration {
+    let multiplier = 1_u64 << attempt.saturating_sub(1).min(4);
+    Duration::from_secs(
+        DOWNLOAD_RETRY_DELAY_SECONDS
+            .saturating_mul(multiplier)
+            .min(DOWNLOAD_MAX_RETRY_DELAY_SECONDS),
+    )
 }
 
 async fn resolve_fabric_loader_version(
@@ -2284,7 +2322,7 @@ async fn repair_reforged_install(
     let install_dir = required_reforged_install_dir(&app_handle)?;
     let manifest = load_reforged_manifest().await?;
     let managed_files = active_reforged_manifest_files(&manifest);
-    let total_files = 2 + managed_files.len();
+    let total_files = 3 + managed_files.len();
 
     emit_reforged_progress(
         &app_handle,
@@ -2366,7 +2404,8 @@ async fn repair_reforged_install(
         .sum::<u64>();
 
     let client = reqwest::Client::builder()
-        .timeout(Duration::from_secs(DOWNLOAD_TIMEOUT_SECONDS))
+        .connect_timeout(Duration::from_secs(DOWNLOAD_CONNECT_TIMEOUT_SECONDS))
+        .timeout(Duration::from_secs(REFORGED_DOWNLOAD_TIMEOUT_SECONDS))
         .build()
         .map_err(|e| format!("Unable to create Reforged download client: {e}"))?;
 
