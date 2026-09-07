@@ -1136,6 +1136,13 @@
       "required": true
     },
     {
+      "path": "Data/patch-S.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/patch-S.MPQ",
+      "sha256": "5e542eb6d6a6b84d366adc73d2a7dc865478806fa790da162e58bea3e234cea7",
+      "sizeBytes": 31974,
+      "required": true
+    },
+    {
       "path": "Data/patch.MPQ",
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/patch.MPQ",
       "sha256": "92b4a94a6c7a23c0b9fd88c47823e41792879a7ee1f70c2349a255153ca25d54",
@@ -1187,8 +1194,8 @@
     {
       "path": "Interface/AddOns/AethroParagon/AethroParagon.toc",
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/AethroParagon.toc",
-      "sha256": "6524003de86d825a5bbca940d1bbe12be5b81af41a9be0b4509a9eb1d526eb45",
-      "sizeBytes": 300,
+      "sha256": "6c4c31a4d10bf4e53f71e7fadec3d786cdd7e83580ee28da6d9469ce537d6022",
+      "sizeBytes": 302,
       "required": true
     },
     {
@@ -1201,8 +1208,8 @@
     {
       "path": "Interface/AddOns/AethroParagon/lib/CMH.lua",
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/lib/CMH.lua",
-      "sha256": "53098e5125b1c79fe885aba0511a645e6516c122ba88292c456d11159dbb1a01",
-      "sizeBytes": 8578,
+      "sha256": "a4d36e4158594c0a6efb3a7d42ceb818eda4394063082502f0059a7e3a4851d1",
+      "sizeBytes": 8541,
       "required": true
     },
     {
@@ -1222,8 +1229,8 @@
     {
       "path": "Interface/AddOns/AethroParagon/Paragon/Paragon_Interface.lua",
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/Paragon/Paragon_Interface.lua",
-      "sha256": "ded3b5dd73942609b48f8ef2902f41984216097724da5a29d2a3aa966435e0be",
-      "sizeBytes": 27829,
+      "sha256": "1bfc34dcb0cd986afc6b3455ab47da75dadc82b99f1461b12271807019a4723f",
+      "sizeBytes": 27854,
       "required": true
     },
     {
@@ -1257,8 +1264,8 @@
     {
       "path": "Interface/AddOns/AethroParagon/Paragon/ParagonExpBar.lua",
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/Paragon/ParagonExpBar.lua",
-      "sha256": "1d5368445985499ea6379f72e1b1525994d00c6dea466a056c6a3e27ddaea34b",
-      "sizeBytes": 5123,
+      "sha256": "56e419031dcc76909ecfbb797946518767a71ab12981bf510942e005475babd1",
+      "sizeBytes": 5324,
       "required": true
     },
     {
@@ -1280,6 +1287,48 @@
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/Templates/UITemplate2X.xml",
       "sha256": "f12fdb6314f3d85bf5a73ad92ec539a8da4e2a782de4461e90c5535ec4eefec7",
       "sizeBytes": 15010,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroSanctuary/AethroSanctuary.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroSanctuary/AethroSanctuary.lua",
+      "sha256": "b4f69f09dfbbd4d3da07fd4a363848530d2e8e7cf8a63796bf7ddc2748b408bf",
+      "sizeBytes": 2354,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroSanctuary/AethroSanctuary.toc",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroSanctuary/AethroSanctuary.toc",
+      "sha256": "dca4de694470d9f24dd1417f19254f8d5feafa8d88d6024f94bde08d4124130e",
+      "sizeBytes": 167,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroTitles/AethroTitles.toc",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroTitles/AethroTitles.toc",
+      "sha256": "265489bdf66c5d9b08edae4b4196cbd82ab88309550e14e15c954ebbd3dc3ead",
+      "sizeBytes": 211,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroTitles/Core.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroTitles/Core.lua",
+      "sha256": "7f518d61ce0e095e67baa784ec91abc9a09ca0dc79c2b4e14762c1001217d414",
+      "sizeBytes": 3840,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroTitles/Data.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroTitles/Data.lua",
+      "sha256": "a1e94e7707c064b824ce0443fbe04975cfbaebd35b329513e57c1ec75b23aa45",
+      "sizeBytes": 6753,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/AethroTitles/UI.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroTitles/UI.lua",
+      "sha256": "fb62f8c4228ce97901fbc96f5d0e84214033f85b30adabb3947fa5ac0bbb2b5e",
+      "sizeBytes": 10053,
       "required": true
     },
     {

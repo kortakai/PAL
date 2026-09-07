@@ -43,6 +43,8 @@ const BUNDLED_REFORGED_MANIFEST: &str = include_str!("../../manifests/reforged-c
 const AETHRO_GLOBAL_ADDON_RELATIVE_PATH: &str = "Interface/AddOns/AethroGlobal";
 const REQUIRED_REFORGED_ADDONS: &[&str] = &[
     "AethroParagon",
+    "AethroSanctuary",
+    "AethroTitles",
     "GuildVillageHelper",
     "ReagentBankUI",
 ];
