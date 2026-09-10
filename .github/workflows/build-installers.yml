@@ -236,11 +236,22 @@ jobs:
             --repo "$GITHUB_REPOSITORY" \
             --json publishedAt,assets \
             > release.json
-          gh release download "$TAG" \
-            --repo "$GITHUB_REPOSITORY" \
-            --pattern '*.sig' \
-            --dir sigs \
-            --clobber
+          for attempt in 1 2 3 4 5; do
+            if gh release download "$TAG" \
+              --repo "$GITHUB_REPOSITORY" \
+              --pattern '*.sig' \
+              --dir sigs \
+              --clobber; then
+              break
+            fi
+
+            if [ "$attempt" -eq 5 ]; then
+              echo "Unable to download release signatures after $attempt attempts."
+              exit 1
+            fi
+
+            sleep "$((attempt * 3))"
+          done
 
           VERSION="$VERSION" node <<'NODE'
           const fs = require('fs');
