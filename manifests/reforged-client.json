@@ -1138,8 +1138,8 @@
     {
       "path": "Data/patch-S.MPQ",
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/patch-S.MPQ",
-      "sha256": "5e542eb6d6a6b84d366adc73d2a7dc865478806fa790da162e58bea3e234cea7",
-      "sizeBytes": 31974,
+      "sha256": "89fa6c8f235bb82d20f12cdf8a08f5e91a375faebbfe1de0733d948050a941b0",
+      "sizeBytes": 31826,
       "required": true
     },
     {
@@ -1292,28 +1292,28 @@
     {
       "path": "Interface/AddOns/AethroSanctuary/AethroSanctuary.lua",
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroSanctuary/AethroSanctuary.lua",
-      "sha256": "b4f69f09dfbbd4d3da07fd4a363848530d2e8e7cf8a63796bf7ddc2748b408bf",
-      "sizeBytes": 2354,
+      "sha256": "98fb4a5de1567bc8c0aa69ba2794045ec86ff15c560d3823043ae5a41829d37a",
+      "sizeBytes": 5214,
       "required": true
     },
     {
       "path": "Interface/AddOns/AethroSanctuary/AethroSanctuary.toc",
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroSanctuary/AethroSanctuary.toc",
-      "sha256": "dca4de694470d9f24dd1417f19254f8d5feafa8d88d6024f94bde08d4124130e",
-      "sizeBytes": 167,
+      "sha256": "76de3838acc437682b7e1cf3d7a4ed0efed2a76c23219e59c1a44d7cb79a8cf2",
+      "sizeBytes": 204,
       "required": true
     },
     {
       "path": "Interface/AddOns/AethroTitles/AethroTitles.toc",
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroTitles/AethroTitles.toc",
-      "sha256": "265489bdf66c5d9b08edae4b4196cbd82ab88309550e14e15c954ebbd3dc3ead",
+      "sha256": "f764476c2b85065ede2fd5c01724682c2acdea562f5bef653767af1f02111189",
       "sizeBytes": 211,
       "required": true
     },
     {
       "path": "Interface/AddOns/AethroTitles/Core.lua",
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroTitles/Core.lua",
-      "sha256": "7f518d61ce0e095e67baa784ec91abc9a09ca0dc79c2b4e14762c1001217d414",
+      "sha256": "d4ecbde4bf8d659ffde7b1973d07472a53cf2072c6ddc378460e10f689f6089a",
       "sizeBytes": 3840,
       "required": true
     },

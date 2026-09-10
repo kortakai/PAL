@@ -10,6 +10,7 @@ import type {
   LocalReforgedAccount,
   ModpackCheckResult,
   NewsFeedId,
+  ReforgedManifestUpdate,
   ReforgedLaunchPreparation,
   ReforgedCharacter,
   ReforgedProfile,
@@ -365,6 +366,10 @@ export async function repairShadowsInstall(): Promise<ModpackCheckResult> {
 
 export async function checkReforgedInstall(): Promise<ModpackCheckResult> {
   return invoke<ModpackCheckResult>('check_reforged_install');
+}
+
+export async function checkReforgedManifestUpdate(): Promise<ReforgedManifestUpdate> {
+  return invoke<ReforgedManifestUpdate>('check_reforged_manifest_update');
 }
 
 export async function repairReforgedInstall(): Promise<ModpackCheckResult> {

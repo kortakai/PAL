@@ -140,6 +140,11 @@ export type ReforgedLaunchPreparation = {
   missingCriticalFiles: number;
 };
 
+export type ReforgedManifestUpdate = {
+  manifestSha256?: string;
+  updateAvailable: boolean;
+};
+
 export type KalismorCharacter = {
   id: string;
   name: string;

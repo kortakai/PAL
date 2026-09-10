@@ -9,6 +9,7 @@ import { check as checkLauncherUpdate, type Update } from '@tauri-apps/plugin-up
 import { Terminal } from '@xterm/xterm';
 import {
   checkReforgedInstall,
+  checkReforgedManifestUpdate,
   checkShadowsInstall,
   connectMudTerminal,
   createKalismorCharacter,
@@ -162,7 +163,6 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
   const kalismorTerminalInstanceRef = useRef<Terminal | null>(null);
   const kalismorMudSessionIdRef = useRef<string | null>(null);
   const kalismorSocketRef = useRef<WebSocket | null>(null);
-  const autoCheckedReforgedInstallRef = useRef<string | null>(null);
   const [activeFeed, setActiveFeed] = useState<'all' | NewsFeedId>('all');
   const [view, setView] = useState<LauncherView>('home');
   const [news, setNews] = useState(home.news);
@@ -597,15 +597,20 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     if (view !== 'reforged') return;
 
     const installDir = reforgedAccount?.installDir;
-    if (!installDir || autoCheckedReforgedInstallRef.current === installDir) return;
-    if (reforgedInstallState !== 'notChecked' || checkingReforgedFiles || repairingReforgedFiles) return;
+    if (!installDir || checkingReforgedFiles || repairingReforgedFiles) return;
 
-    autoCheckedReforgedInstallRef.current = installDir;
-    void verifyReforgedFiles();
+    void checkReforgedManifestUpdate()
+      .then((result) => {
+        if (result.updateAvailable) {
+          setReforgedInstallState('needsUpdate');
+        }
+      })
+      .catch((err) => {
+        console.warn('Reforged manifest update check unavailable.', err);
+      });
   }, [
     checkingReforgedFiles,
     reforgedAccount?.installDir,
-    reforgedInstallState,
     repairingReforgedFiles,
     view
   ]);
@@ -1184,7 +1189,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
                 {choosingReforgedFolder ? 'Choosing...' : 'Choose Install Folder'}
               </button>
               <button className="secondary" onClick={verifyReforgedFiles} disabled={checkingReforgedFiles || repairingReforgedFiles || !hasReforgedDestination}>
-                {checkingReforgedFiles ? 'Checking...' : 'Check Setup'}
+                {checkingReforgedFiles ? 'Checking...' : 'Check install'}
               </button>
               <button onClick={repairReforgedFiles} disabled={repairingReforgedFiles || checkingReforgedFiles || !hasReforgedDestination}>
                 {repairingReforgedFiles ? 'Setting up...' : 'Install / Repair Setup'}

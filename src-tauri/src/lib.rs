@@ -118,6 +118,8 @@ struct LocalReforgedAccount {
 #[serde(rename_all = "camelCase")]
 struct ReforgedInstallConfig {
     install_dir: String,
+    #[serde(default)]
+    last_verified_manifest_sha256: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -182,6 +184,13 @@ struct ReforgedLaunchPreparation {
     manifest_sha256: Option<String>,
     ready: bool,
     missing_critical_files: usize,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ReforgedManifestUpdate {
+    manifest_sha256: Option<String>,
+    update_available: bool,
 }
 
 #[derive(Debug, Deserialize)]
@@ -790,9 +799,9 @@ fn reforged_install_config_path(app_handle: &tauri::AppHandle) -> Result<PathBuf
     Ok(app_data_dir.join(REFORGED_INSTALL_CONFIG_FILE))
 }
 
-fn load_saved_reforged_install_dir(
+fn load_reforged_install_config(
     app_handle: &tauri::AppHandle,
-) -> Result<Option<PathBuf>, String> {
+) -> Result<Option<ReforgedInstallConfig>, String> {
     let config_path = reforged_install_config_path(app_handle)?;
     if !config_path.exists() {
         return Ok(None);
@@ -807,12 +816,19 @@ fn load_saved_reforged_install_dir(
     let config = serde_json::from_str::<ReforgedInstallConfig>(&text)
         .map_err(|e| format!("Unable to parse Reforged install settings: {e}"))?;
 
-    Ok(Some(PathBuf::from(config.install_dir)))
+    Ok(Some(config))
 }
 
-fn save_reforged_install_dir(
+fn load_saved_reforged_install_dir(
     app_handle: &tauri::AppHandle,
-    install_dir: &Path,
+) -> Result<Option<PathBuf>, String> {
+    Ok(load_reforged_install_config(app_handle)?
+        .map(|config| PathBuf::from(config.install_dir)))
+}
+
+fn save_reforged_install_config(
+    app_handle: &tauri::AppHandle,
+    config: &ReforgedInstallConfig,
 ) -> Result<(), String> {
     let config_path = reforged_install_config_path(app_handle)?;
     if let Some(parent) = config_path.parent() {
@@ -820,18 +836,43 @@ fn save_reforged_install_dir(
             .map_err(|e| format!("Unable to create launcher settings folder: {e}"))?;
     }
 
-    let config = ReforgedInstallConfig {
-        install_dir: install_dir.to_string_lossy().to_string(),
-    };
     fs::write(
         &config_path,
         format!(
             "{}\n",
-            serde_json::to_string_pretty(&config)
+            serde_json::to_string_pretty(config)
                 .map_err(|e| format!("Unable to serialize Reforged install settings: {e}"))?
         ),
     )
     .map_err(|e| format!("Unable to save Reforged install settings: {e}"))
+}
+
+fn save_reforged_install_dir(
+    app_handle: &tauri::AppHandle,
+    install_dir: &Path,
+) -> Result<(), String> {
+    let config = ReforgedInstallConfig {
+        install_dir: install_dir.to_string_lossy().to_string(),
+        last_verified_manifest_sha256: None,
+    };
+    save_reforged_install_config(app_handle, &config)
+}
+
+fn save_verified_reforged_manifest(
+    app_handle: &tauri::AppHandle,
+    install_dir: &Path,
+    manifest_sha256: Option<String>,
+) -> Result<(), String> {
+    let Some(mut config) = load_reforged_install_config(app_handle)? else {
+        return Ok(());
+    };
+
+    if Path::new(&config.install_dir) != install_dir {
+        return Ok(());
+    }
+
+    config.last_verified_manifest_sha256 = manifest_sha256;
+    save_reforged_install_config(app_handle, &config)
 }
 
 fn required_reforged_install_dir(app_handle: &tauri::AppHandle) -> Result<PathBuf, String> {
@@ -1005,13 +1046,6 @@ fn active_reforged_manifest_files(manifest: &ReforgedManifest) -> Vec<ShadowsMan
         .filter(|file| !is_unsupported_reforged_managed_file(&file.path))
         .cloned()
         .collect()
-}
-
-fn is_reforged_launch_critical_file(path: &str) -> bool {
-    let normalized = path.replace('\\', "/").to_ascii_lowercase();
-    normalized == "wow.exe"
-        || normalized.starts_with("interface/addons/")
-        || (normalized.starts_with("data/") && normalized.ends_with(".mpq"))
 }
 
 fn reforged_manifest_game_id(manifest: &ReforgedManifest) -> &str {
@@ -2314,7 +2348,30 @@ async fn check_reforged_install(
         result.files.iter().filter_map(|file| file.size_bytes).sum(),
         result.files.iter().filter_map(|file| file.size_bytes).sum(),
     );
+    if result.ready {
+        save_verified_reforged_manifest(&app_handle, &install_dir, result.manifest_sha256.clone())?;
+    }
+
     Ok(result)
+}
+
+#[tauri::command]
+async fn check_reforged_manifest_update(
+    app_handle: tauri::AppHandle,
+) -> Result<ReforgedManifestUpdate, String> {
+    let manifest = load_reforged_manifest().await?;
+    let saved_manifest_sha256 = load_reforged_install_config(&app_handle)?
+        .and_then(|config| config.last_verified_manifest_sha256);
+    let manifest_sha256 = manifest.source_sha256;
+    let update_available = match (&saved_manifest_sha256, &manifest_sha256) {
+        (Some(saved), Some(current)) => !saved.eq_ignore_ascii_case(current),
+        _ => true,
+    };
+
+    Ok(ReforgedManifestUpdate {
+        manifest_sha256,
+        update_available,
+    })
 }
 
 #[tauri::command]
@@ -2463,6 +2520,10 @@ async fn repair_reforged_install(
         total_download_bytes,
     );
 
+    if final_check.ready {
+        save_verified_reforged_manifest(&app_handle, &install_dir, final_check.manifest_sha256.clone())?;
+    }
+
     Ok(final_check)
 }
 
@@ -2471,7 +2532,6 @@ async fn prepare_reforged_launch(
     app_handle: tauri::AppHandle,
     ready_manifest_sha256: Option<String>,
 ) -> Result<ReforgedLaunchPreparation, String> {
-    let _ = ready_manifest_sha256;
     let install_dir = required_reforged_install_dir(&app_handle)?;
     let manifest = load_reforged_manifest().await?;
 
@@ -2482,22 +2542,22 @@ async fn prepare_reforged_launch(
     enable_required_reforged_addons(&install_dir)?;
     disable_reforged_d3d9_dll(&install_dir)?;
 
-    let current = check_reforged_realm_list(&install_dir, &manifest, Some(&app_handle))?;
-    let missing_critical_files = current
-        .files
-        .iter()
-        .filter(|file| {
-            file.status != "ok"
-                && (file.path == REFORGED_CONFIG_RELATIVE_PATH
-                    || file.path == REFORGED_DATA_REALMLIST_RELATIVE_PATH
-                    || is_reforged_launch_critical_file(&file.path))
-        })
-        .count();
+    let saved_manifest_sha256 = load_reforged_install_config(&app_handle)?
+        .and_then(|config| config.last_verified_manifest_sha256);
+    let update_available = match (&saved_manifest_sha256, &manifest.source_sha256) {
+        (Some(saved), Some(current)) => !saved.eq_ignore_ascii_case(current),
+        _ => true,
+    };
+    let ready_manifest_matches = ready_manifest_sha256
+        .as_deref()
+        .zip(manifest.source_sha256.as_deref())
+        .map(|(ready, current)| ready.eq_ignore_ascii_case(current))
+        .unwrap_or(true);
 
     Ok(ReforgedLaunchPreparation {
         manifest_sha256: manifest.source_sha256,
-        ready: current.ready && missing_critical_files == 0,
-        missing_critical_files,
+        ready: !update_available && ready_manifest_matches,
+        missing_critical_files: usize::from(update_available || !ready_manifest_matches),
     })
 }
 
@@ -3202,6 +3262,7 @@ pub fn run() {
             check_shadows_install,
             repair_shadows_install,
             check_reforged_install,
+            check_reforged_manifest_update,
             repair_reforged_install,
             prepare_reforged_launch,
             detect_local_minecraft_profile,
