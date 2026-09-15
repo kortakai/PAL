@@ -38,7 +38,7 @@ VITE_AETHRO_API_BASE=http://localhost:3000/api npm run tauri dev
 
 ## Important security note
 
-This starter stores session tokens in `localStorage` for fast development. Do **not** ship public builds that save long-lived refresh tokens there. Before public release, move saved sessions to OS-backed secure storage/keychain.
+The launcher stores remembered Aethro sessions in browser `localStorage` so players remain signed in between launches.
 
 Do not save raw passwords. Ever.
 

@@ -4,6 +4,7 @@ import type {
   LauncherGame,
   LauncherHome,
   LauncherNewsItem,
+  LauncherNewsSource,
   KalismorCharacter,
   KalismorLoginToken,
   LocalMinecraftProfile,
@@ -31,6 +32,7 @@ const SHADOWS_LAUNCH_EVENT_URL = `${PLAY_AETHRO_API_BASE}/account/game-launches`
 const REFORGED_PROFILE_URL = `${PLAY_AETHRO_API_BASE}/account/games/aethro-reforged`;
 const REFORGED_PASSWORD_URL = `${REFORGED_PROFILE_URL}/password`;
 const PLAY_AETHRO_NEWS_URL = 'https://playaethro.online/news';
+const PLAY_AETHRO_FORUM_ANNOUNCEMENTS_RSS_URL = 'https://playaethro.online/forums/announcements.rss';
 
 const GAME_SERVER_STATUS_TARGETS = [
   { id: 'shadows', host: 'mc.aethro.net', port: 25_567 },
@@ -682,7 +684,12 @@ function stripHtml(input: string): string {
   return doc.body.textContent?.replace(/\s+/g, ' ').trim() ?? '';
 }
 
-function parseRss(xml: string, feedId: NewsFeedId, feedName: string): LauncherNewsItem[] {
+function parseRss(
+  xml: string,
+  feedId: NewsFeedId,
+  feedName: string,
+  source: LauncherNewsSource = 'official'
+): LauncherNewsItem[] {
   const doc = new DOMParser().parseFromString(xml, 'application/xml');
   const parserError = doc.querySelector('parsererror');
 
@@ -694,18 +701,20 @@ function parseRss(xml: string, feedId: NewsFeedId, feedName: string): LauncherNe
     const title = textFromElement(item, 'title') || 'Untitled';
     const url = textFromElement(item, 'link') || 'https://playaethro.online';
     const publishedAtRaw = textFromElement(item, 'pubDate');
+    const category = textFromElement(item, 'category');
     const description = textFromElement(item, 'description');
     const summary = stripHtml(description).slice(0, 220);
     const publishedAt = publishedAtRaw ? new Date(publishedAtRaw).toISOString() : new Date().toISOString();
 
     return {
       id: `${feedId}-${publishedAt}-${index}`,
-      feedId,
+      feedId: source === 'forum' ? feedIdFromNewsCategory(category) ?? feedId : feedId,
       feedName,
       title,
       summary: summary || 'Open the article for details.',
       publishedAt,
       url
+      ,source
     };
   });
 }
@@ -750,8 +759,18 @@ function parseNewsIndex(html: string): LauncherNewsItem[] {
       summary: summary || 'Open the article for details.',
       publishedAt,
       url: absolutePlayAethroUrl(href)
+      ,source: 'official'
     }];
   });
+}
+
+function parseForumAnnouncements(xml: string): LauncherNewsItem[] {
+  // This endpoint is deliberately separate from editorial RSS. Forum posts retain
+  // their origin so players can distinguish a staff announcement from site news.
+  return parseRss(xml, 'play-aethro-launcher', 'Community Forums', 'forum').map((item) => ({
+    ...item,
+    feedName: 'Community Forums'
+  }));
 }
 
 export async function getLauncherNews(): Promise<LauncherNewsItem[]> {
@@ -760,6 +779,7 @@ export async function getLauncherNews(): Promise<LauncherNewsItem[]> {
       console.info(`Loading ${feed.name} RSS`, feed.url);
       return parseRss(await fetchText(feed.url), feed.id, feed.name);
     }),
+    async () => parseForumAnnouncements(await fetchText(PLAY_AETHRO_FORUM_ANNOUNCEMENTS_RSS_URL)),
     async () => parseNewsIndex(await fetchText(PLAY_AETHRO_NEWS_URL))
   ];
 
@@ -777,7 +797,7 @@ export async function getLauncherNews(): Promise<LauncherNewsItem[]> {
   const seen = new Set<string>();
   return news
     .filter((item) => {
-      const key = `${item.feedId}:${item.url}`;
+      const key = `${item.url}`;
       if (seen.has(key)) return false;
       seen.add(key);
       return true;
@@ -834,6 +854,23 @@ export function createLauncherHome(
         description: 'Fabric 1.21.1 modded Minecraft adventure.',
         status: gameStatuses.shadows ?? 'offline',
         actionLabel: 'Play Shadows'
+        ,feedId: 'shadows-of-aethro'
+        ,accent: 'shadows'
+        ,premium: { status: 'available', label: 'Premium' }
+        ,links: {
+          website: 'https://playaethro.online/games/shadows-of-aethro',
+          forum: 'https://playaethro.online/forums/shadows-of-aethro',
+          vote: 'https://playaethro.online/vote',
+          shop: 'https://playaethro.online/store'
+        }
+        ,music: {
+          label: 'Shadows Radio',
+          tracks: [
+            { title: 'Pale Orchard', src: '/audio/shadows/pale-orchard.mp3' },
+            { title: 'Iron Crown Run', src: '/audio/shadows/iron-crown-run.mp3' },
+            { title: 'Moss on My Boots', src: '/audio/shadows/moss-on-my-boots.mp3' }
+          ]
+        }
       },
       {
         id: 'aethro-online',
@@ -841,6 +878,15 @@ export function createLauncherHome(
         description: 'A dark fantasy MUD gateway being prepared.',
         status: 'maintenance',
         actionLabel: 'View Kalismor'
+        ,feedId: 'aethro-online'
+        ,accent: 'kalismor'
+        ,premium: { status: 'available', label: 'Premium', url: 'https://playaethro.online/store/products/founder-lifetime' }
+        ,links: {
+          website: 'https://aethro.online',
+          forum: 'https://playaethro.online/forums/chronicles-of-kalismor',
+          shop: 'https://aethro.online/store'
+        }
+        ,music: { label: 'Kalismor Soundtrack', tracks: [] }
       },
       {
         id: 'reforged',
@@ -848,6 +894,16 @@ export function createLauncherHome(
         description: 'Wrath-era realm client, account setup, and patches.',
         status: gameStatuses.reforged ?? 'offline',
         actionLabel: 'Play Reforged'
+        ,feedId: 'aethro-reforged'
+        ,accent: 'reforged'
+        ,premium: { status: 'available', label: 'Premium', url: 'https://playaethro.online/games/reforged/premium' }
+        ,links: {
+          website: 'https://playaethro.online/games/aethro-reforged',
+          forum: 'https://playaethro.online/forums/reforged',
+          vote: 'https://playaethro.online/vote',
+          shop: 'https://playaethro.online/store'
+        }
+        ,music: { label: 'Reforged Soundtrack', tracks: [] }
       }
     ],
     links: {

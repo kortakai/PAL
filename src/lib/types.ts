@@ -23,6 +23,7 @@ export type LoginResponse = {
 };
 
 export type NewsFeedId = 'play-aethro-launcher' | 'aethro-online' | 'aethro-reforged' | 'shadows-of-aethro';
+export type LauncherNewsSource = 'official' | 'forum';
 
 export type LauncherNewsItem = {
   id: string;
@@ -32,6 +33,26 @@ export type LauncherNewsItem = {
   summary: string;
   publishedAt: string;
   url: string;
+  /** Forum announcements and editorial news render together, but stay visibly attributed. */
+  source?: LauncherNewsSource;
+};
+
+export type GamePremium = {
+  status: 'active' | 'available' | 'unavailable';
+  label?: string;
+  url?: string;
+};
+
+export type GameLinks = {
+  website?: string;
+  forum?: string;
+  vote?: string;
+  shop?: string;
+};
+
+export type GameMusic = {
+  label: string;
+  tracks: Array<{ title: string; src: string }>;
 };
 
 export type LauncherGame = {
@@ -40,6 +61,11 @@ export type LauncherGame = {
   description: string;
   status: 'online' | 'offline' | 'maintenance' | 'unknown';
   actionLabel: string;
+  feedId?: NewsFeedId;
+  accent?: 'shadows' | 'kalismor' | 'reforged';
+  premium?: GamePremium;
+  links?: GameLinks;
+  music?: GameMusic;
 };
 
 export type LauncherHome = {

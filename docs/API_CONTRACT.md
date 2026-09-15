@@ -44,7 +44,7 @@ Response:
 }
 ```
 
-The launcher stores tokens, not passwords. The current starter uses `localStorage` for development speed. Before public release, move saved refresh tokens to OS-backed secure storage/keychain.
+The launcher stores tokens, not passwords. Remembered Aethro sessions persist in browser `localStorage` between launcher sessions.
 
 ## Refresh Saved Session
 
@@ -134,6 +134,41 @@ https://playaethro.online/news/aethro-reforged.rss
 https://playaethro.online/news/shadows-of-aethro.rss
 https://playaethro.online/news/play-aethro-launcher.rss
 ```
+
+The home page also requests the forum-announcement feed:
+
+```txt
+https://playaethro.online/forums/announcements.rss
+```
+
+It must contain only public, staff-approved announcements. Each item should use the
+same RSS fields as the editorial feeds and include a category containing one of
+`Shadows`, `Reforged`, `Aethro Online`, or `Launcher` when it belongs to a game.
+The launcher labels these entries **Community Forums** instead of presenting them as
+editorial news.
+
+## Launcher game hub metadata
+
+The launcher currently has safe local defaults, but the account/home endpoint may
+return this optional metadata per game so website URLs, paid status, and music do not
+need a launcher update to change:
+
+```json
+{
+  "games": [{
+    "id": "reforged",
+    "feedId": "aethro-reforged",
+    "accent": "reforged",
+    "premium": { "status": "active", "label": "Premium", "url": "https://..." },
+    "links": { "website": "https://...", "forum": "https://...", "vote": "https://...", "shop": "https://..." },
+    "music": { "label": "Reforged Soundtrack", "tracks": [{ "title": "Track name", "src": "https://cdn.../track.mp3" }] }
+  }]
+}
+```
+
+`premium.status` is an account entitlement, never a client-side guess. Do not expose
+payment history or private account details in this response. Music URLs must be public,
+HTTPS, and licensed for launcher playback.
 
 ## Reforged Client
 

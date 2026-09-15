@@ -1,3 +1,4 @@
+import { GameHub } from './GameHub';
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { getCurrent, onOpenUrl } from '@tauri-apps/plugin-deep-link';
 import { listen } from '@tauri-apps/api/event';
@@ -57,6 +58,7 @@ type LauncherView = 'home' | 'shadows' | 'aethro-online' | 'reforged';
 type ShadowsInstallState = 'notChecked' | 'checking' | 'needsUpdate' | 'installing' | 'ready' | 'failed';
 type LauncherUpdateState = 'idle' | 'checking' | 'available' | 'installing' | 'restarting' | 'failed';
 type NewsRefreshState = 'idle' | 'refreshing' | 'failed';
+type NewsSourceFilter = 'all' | 'official' | 'forum';
 type KalismorClientChoice = 'launcher' | 'external';
 
 const FEED_TABS: Array<{ id: 'all' | NewsFeedId; label: string }> = [
@@ -67,12 +69,6 @@ const FEED_TABS: Array<{ id: 'all' | NewsFeedId; label: string }> = [
   { id: 'shadows-of-aethro', label: 'Shadows' }
 ];
 
-const SHADOWS_TRACKS = [
-  { title: 'Pale Orchard', src: '/audio/shadows/pale-orchard.mp3' },
-  { title: 'Iron Crown Run', src: '/audio/shadows/iron-crown-run.mp3' },
-  { title: 'Moss on My Boots', src: '/audio/shadows/moss-on-my-boots.mp3' }
-];
-
 const SHADOWS_EVENT = {
   title: 'Sunfire Isles',
   url: 'https://playaethro.online/games/shadows-of-aethro/pages/sunfire-isles'
@@ -81,6 +77,7 @@ const SHADOWS_EVENT = {
 const AETHRO_ONLINE_STORE_URL = 'https://aethro.online/store';
 const AETHRO_ONLINE_FORUMS_URL = 'https://aethro.online/forums';
 const PLAY_AETHRO_ACCOUNT_REFORGED_URL = 'https://playaethro.online/account#game-reforged';
+const MUSIC_PREFERENCES_KEY = 'aethro.launcher.music.v1';
 
 function formatDate(iso: string) {
   return new Intl.DateTimeFormat(undefined, {
@@ -164,13 +161,19 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
   const kalismorMudSessionIdRef = useRef<string | null>(null);
   const kalismorSocketRef = useRef<WebSocket | null>(null);
   const [activeFeed, setActiveFeed] = useState<'all' | NewsFeedId>('all');
+  const [newsSource, setNewsSource] = useState<NewsSourceFilter>('all');
   const [view, setView] = useState<LauncherView>('home');
   const [news, setNews] = useState(home.news);
   const [newsRefreshState, setNewsRefreshState] = useState<NewsRefreshState>('idle');
   const [newsRefreshMessage, setNewsRefreshMessage] = useState('');
-  const [musicEnabled, setMusicEnabled] = useState(true);
-  const [musicVolume, setMusicVolume] = useState(42);
+  const [musicEnabled, setMusicEnabled] = useState<boolean>(() => {
+    try { return JSON.parse(localStorage.getItem(MUSIC_PREFERENCES_KEY) ?? '{}').enabled ?? true; } catch { return true; }
+  });
+  const [musicVolume, setMusicVolume] = useState<number>(() => {
+    try { return JSON.parse(localStorage.getItem(MUSIC_PREFERENCES_KEY) ?? '{}').volume ?? 42; } catch { return 42; }
+  });
   const [trackIndex, setTrackIndex] = useState(0);
+  const [showDetails, setShowDetails] = useState(false);
   const [modpackCheck, setModpackCheck] = useState<ModpackCheckResult | null>(null);
   const [installState, setInstallState] = useState<ShadowsInstallState>('notChecked');
   const [repairProgress, setRepairProgress] = useState<ShadowsRepairProgress | null>(null);
@@ -319,10 +322,17 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     setNews(home.news);
   }, [home.news]);
 
+  useEffect(() => {
+    localStorage.setItem(MUSIC_PREFERENCES_KEY, JSON.stringify({ enabled: musicEnabled, volume: musicVolume }));
+  }, [musicEnabled, musicVolume]);
+
   const visibleNews = useMemo(() => {
-    if (activeFeed === 'all') return news;
-    return news.filter((item) => item.feedId === activeFeed);
-  }, [activeFeed, news]);
+    return news.filter((item) => {
+      const matchesFeed = activeFeed === 'all' || item.feedId === activeFeed;
+      const matchesSource = newsSource === 'all' || (item.source ?? 'official') === newsSource;
+      return matchesFeed && matchesSource;
+    });
+  }, [activeFeed, news, newsSource]);
 
   const shadowsNews = useMemo(() => news.filter((item) => item.feedId === 'shadows-of-aethro'), [news]);
   const aethroOnlineNews = useMemo(() => news.filter((item) => item.feedId === 'aethro-online'), [news]);
@@ -330,7 +340,9 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     () => kalismorCharacters.find((character) => character.id === selectedKalismorCharacterId) ?? null,
     [kalismorCharacters, selectedKalismorCharacterId]
   );
-  const activeTrack = SHADOWS_TRACKS[trackIndex];
+  const activeGame = home.games.find((game) => game.id === view);
+  const activeTracks = activeGame?.music?.tracks ?? [];
+  const activeTrack = activeTracks[trackIndex] ?? null;
   const accountInitial = (home.user.displayName || home.user.username || 'A').slice(0, 1).toUpperCase();
 
   async function refreshNews() {
@@ -546,7 +558,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     const audio = launcherAudioRef.current;
     if (!audio) return;
 
-    if (view !== 'shadows' || !musicEnabled) {
+    if (!activeTrack || !musicEnabled) {
       audio.pause();
       return;
     }
@@ -555,7 +567,11 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     audio.play().catch(() => {
       setMusicEnabled(false);
     });
-  }, [musicEnabled, musicVolume, trackIndex, view]);
+  }, [activeTrack, musicEnabled, musicVolume, trackIndex]);
+
+  useEffect(() => {
+    setTrackIndex(0);
+  }, [view]);
 
   useEffect(() => {
     if (view === 'shadows') return;
@@ -760,7 +776,20 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
   }
 
   function playNextTrack() {
-    setTrackIndex((index) => (index + 1) % SHADOWS_TRACKS.length);
+    if (activeTracks.length < 2) return;
+    setTrackIndex((index) => (index + 1) % activeTracks.length);
+  }
+
+  function renderHubMusic() {
+    return <div className="hub-music">
+      {activeTrack ? <>
+        <span title={activeTrack.title}>{activeTrack.title}</span>
+        <button onClick={toggleMusic} aria-pressed={musicEnabled}>{musicEnabled ? 'Pause music' : 'Play music'}</button>
+        <button onClick={playNextTrack} disabled={activeTracks.length < 2} aria-label="Next track">Next</button>
+        <input type="range" min="0" max="100" value={musicVolume} onChange={event => updateMusicVolume(event.target.value)} aria-label="Music volume" />
+        <audio ref={launcherAudioRef} src={activeTrack.src} onEnded={playNextTrack} preload="metadata" />
+      </> : <span>Soundtrack coming soon</span>}
+    </div>;
   }
 
   async function verifyShadowsFiles() {
@@ -1122,34 +1151,15 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
         : 'Choose or create an install folder for Aethro: Reforged.');
 
     return (
-      <main className="dashboard reforged-page">
-        <header className="topbar reforged-topbar">
-          <div>
-            <span className="eyebrow">Aethro: Reforged</span>
-            <h1>Aethro: Reforged</h1>
-          </div>
-          <div className="topbar-actions">
-            <button className="secondary" onClick={() => setView('home')}>Back</button>
-            <button className="secondary" onClick={onLogout}>Log out</button>
-          </div>
-        </header>
-
-        {renderLauncherUpdateNotice()}
-
-        <section className="reforged-action-strip">
-          <div className="reforged-strip-media" aria-hidden="true" />
-          <div className="reforged-strip-copy">
-            <strong>Aethro: Reforged</strong>
-            <span>Wrath 3.3.5a client setup, patches, and realm list.</span>
-          </div>
-          <div className="reforged-strip-actions">
-            <button className="secondary icon-button" onClick={chooseReforgedFolder} disabled={choosingReforgedFolder}>
-              <span className="button-icon icon-globe" aria-hidden="true" />
-              Install Folder
-            </button>
-          </div>
-        </section>
-
+      <GameHub key="reforged" game={activeGame!} player={home.user.displayName} avatarUrl={home.user.avatarUrl} news={news.filter(item => item.feedId === 'aethro-reforged')}
+        onHome={() => setView('home')} openExternal={openExternal} showDetails={showDetails} onDetails={() => setShowDetails(value => !value)}
+        primary={{ label: !hasReforgedDestination ? 'Choose install folder' : !hasReforgedClient ? 'Install Reforged' : reforgedPrimaryLabel,
+          disabled: launchingReforged || repairingReforgedFiles || checkingReforgedFiles || choosingReforgedFolder,
+          action: () => { void (!hasReforgedDestination ? chooseReforgedFolder() : !hasReforgedClient ? repairReforgedFiles() : reforgedPrimaryAction()); } }}
+        status={repairingReforgedFiles ? `Updating · ${progressPercent}%` : hasReforgedUpdate ? 'Update available' : hasReforgedClient ? 'Client installed' : 'Setup required'}
+        music={renderHubMusic()} notice={<>{renderLauncherUpdateNotice()}{reforgedError && <p className="error">{reforgedError}</p>}</>}
+        summary={<div className="hub-roster">{reforgedProfileLoading ? <p>Loading characters…</p> : reforgedProfile?.characters.length ? reforgedProfile.characters.slice(0, 5).map(character => <div className="hub-character" key={character.id}><span className="hub-character-initial">{character.name.slice(0, 1)}</span><div><strong>{character.name}</strong><small>Level {character.level} · {character.online ? 'Online' : 'Offline'}</small></div></div>) : <p>Your characters will appear here when your account is connected and your roster is available.</p>}</div>}
+      >
         <section className="reforged-layout">
           <div className="panel">
             <div className="panel-heading">
@@ -1201,7 +1211,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
 
             {reforgedError && <p className="error">{reforgedError}</p>}
 
-            {reforgedCheck && (
+            {reforgedCheck && showDetails && (
               <div className="patch-summary">
                 <div>
                   <strong>{reforgedCheck.ready ? 'Setup ready' : 'Update available'}</strong>
@@ -1216,7 +1226,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
               </div>
             )}
 
-            {reforgedCheck && reforgedCheck.files.length > 0 && (
+            {reforgedCheck && showDetails && reforgedCheck.files.length > 0 && (
               <div className="file-list">
                 {reforgedCheck.files.slice(0, 8).map((file) => (
                   <div key={file.path} className="file-row">
@@ -1248,6 +1258,8 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
                   ? 'This is the Reforged login linked to your Play Aethro account.'
                   : 'Set your Aethro: Reforged password before connecting.'}
               </p>
+              <details className="hub-details" open={!reforgedProfile?.account.passwordSet}>
+                <summary>{reforgedProfile?.account.passwordSet ? 'Change game password' : 'Set up your game password'}</summary>
               <form className="reforged-password-form" onSubmit={submitReforgedPassword}>
                 <label>
                   <span>Game Password</span>
@@ -1301,6 +1313,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
                   </button>
                 </div>
               </form>
+              </details>
             </div>
 
             <div className="reforged-roster-box">
@@ -1350,7 +1363,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
             </div>
           </div>
         </section>
-      </main>
+      </GameHub>
     );
   }
 
@@ -1403,44 +1416,13 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     }
 
     return (
-      <main className="dashboard kalismor-page">
-        <header className="topbar kalismor-topbar">
-          <div>
-            <span className="eyebrow">Aethro Online</span>
-            <h1>Chronicles of Kalismor</h1>
-          </div>
-          <div className="topbar-actions">
-            <button className="secondary" onClick={() => setView('home')}>Back</button>
-            <button className="secondary" onClick={onLogout}>Log out</button>
-          </div>
-        </header>
-
-        {renderLauncherUpdateNotice()}
-
-        <section className="kalismor-hero">
-          <div className="kalismor-sigil" aria-hidden="true">
-            <span />
-          </div>
-          <div className="kalismor-hero-copy">
-            <span className="eyebrow">The Gate Is Stirring</span>
-            <h2>Choose a character and open the way into Kalismor.</h2>
-            <p>
-              Pull your Chronicles roster, create a new name, then choose whether to enter
-              through your own MUD client or the launcher terminal.
-            </p>
-            <div className="kalismor-actions">
-              <button className="icon-button" onClick={() => openExternal(AETHRO_ONLINE_STORE_URL)}>
-                Store
-                <span className="button-icon icon-external" aria-hidden="true" />
-              </button>
-              <button className="secondary icon-button" onClick={() => openExternal(AETHRO_ONLINE_FORUMS_URL)}>
-                Forums
-                <span className="button-icon icon-external" aria-hidden="true" />
-              </button>
-            </div>
-          </div>
-        </section>
-
+      <GameHub key="kalismor" game={activeGame!} player={home.user.displayName} avatarUrl={home.user.avatarUrl} news={aethroOnlineNews}
+        onHome={() => setView('home')} openExternal={openExternal} showDetails={showDetails} onDetails={() => setShowDetails(value => !value)}
+        primary={{ label: startingKalismor ? 'Connecting…' : 'Enter Kalismor', disabled: startingKalismor || !selectedKalismorCharacter, action: () => { void startKalismorLogin(); } }}
+        status={selectedKalismorCharacter ? `Playing as ${selectedKalismorCharacter.name}` : 'Choose a character in Account & setup'}
+        music={renderHubMusic()} notice={<>{renderLauncherUpdateNotice()}{kalismorError && <p className="error">{kalismorError}</p>}</>}
+        summary={<div className="hub-roster">{kalismorLoading ? <p>Loading characters…</p> : kalismorCharacters.length ? kalismorCharacters.map(character => <button aria-pressed={selectedKalismorCharacterId === character.id} className="hub-character" key={character.id} onClick={() => setSelectedKalismorCharacterId(character.id)}><span className="hub-character-initial">{character.name.slice(0, 1)}</span><span><strong>{character.name}</strong><small>{character.className || 'Adventurer'}{character.level ? ` · Level ${character.level}` : ''}</small></span></button>) : <p>Create your first character in Account & setup, then choose how you want to connect.</p>}</div>}
+      >
         <section className="aethro-online-layout">
           <div className="panel">
             <div className="panel-heading">
@@ -1573,7 +1555,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
             </div>
           </div>
         </section>
-      </main>
+      </GameHub>
     );
   }
 
@@ -1603,62 +1585,15 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
         : 'Preparing Shadows status.');
 
     return (
-      <main className="dashboard shadows-page">
-        <header className="topbar">
-          <div>
-            <span className="eyebrow">Shadows of Aethro</span>
-            <h1>Expedition Ready</h1>
-          </div>
-          <div className="topbar-actions">
-            <div className="music-control">
-              <div className="topbar-now-playing">
-                <span>Now Playing</span>
-                <strong>{activeTrack.title}</strong>
-              </div>
-              <label>
-                <span>Volume</span>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  value={musicVolume}
-                  onChange={(event) => updateMusicVolume(event.target.value)}
-                  aria-label="Music volume"
-                />
-              </label>
-            </div>
-            <button
-              className={`secondary music-toggle ${musicEnabled ? 'active' : ''}`}
-              onClick={toggleMusic}
-              aria-pressed={musicEnabled}
-            >
-              {musicEnabled ? 'Music On' : 'Music Off'}
-            </button>
-            <button className="secondary" onClick={() => setView('home')}>Back</button>
-            <button className="secondary" onClick={onLogout}>Log out</button>
-          </div>
-        </header>
-
-        {renderLauncherUpdateNotice()}
-
-        <audio ref={launcherAudioRef} src={activeTrack.src} onEnded={playNextTrack} preload="auto" />
-
-        <section className="shadows-adventure-banner">
-          <div className="shadows-landscape" aria-hidden="true">
-            <span className="pixel-sun" />
-            <span className="pixel-cloud cloud-one" />
-            <span className="pixel-cloud cloud-two" />
-            <span className="capture-capsule" />
-            <span className="village-hut" />
-            <div className="block-ridge ridge-back" />
-            <div className="block-ridge ridge-front" />
-          </div>
-          <div className="shadows-banner-copy">
-            <span className="eyebrow">Shadows Client</span>
-            <h2>Install, verify, and launch Shadows of Aethro.</h2>
-          </div>
-        </section>
-
+      <GameHub key="shadows" game={activeGame!} player={home.user.displayName} avatarUrl={home.user.avatarUrl} news={shadowsNews}
+        onHome={() => setView('home')} openExternal={openExternal} showDetails={showDetails} onDetails={() => setShowDetails(value => !value)}
+        primary={{ label: repairingFiles ? 'Installing…' : launchingMinecraft ? 'Opening…' : ready ? 'Open Minecraft' : 'Install / update',
+          disabled: repairingFiles || checkingFiles || launchingMinecraft,
+          action: () => { void (ready ? launchMinecraftLauncher() : repairShadowsFiles()); } }}
+        status={repairingFiles ? `Installing · ${progressPercent}%` : ready ? 'Ready to play' : 'Prepare your client to play'}
+        music={renderHubMusic()} notice={<>{renderLauncherUpdateNotice()}{shadowsError && <p className="error">{shadowsError}</p>}{shadowsStatus && <p className="success">{shadowsStatus}</p>}</>}
+        summary={<div className="hub-roster"><div className="hub-character"><span className="hub-character-initial">{(minecraftName || '?').slice(0, 1)}</span><div><strong>{minecraftName || 'Minecraft account'}</strong><small>{minecraftName ? 'Linked player' : 'Link your Minecraft identity in Account & setup'}</small></div></div><p>Explore, build, and catch up with your community.</p><button className="hub-event-link" onClick={() => void openExternal(SHADOWS_EVENT.url)}>{SHADOWS_EVENT.title} · Event details →</button></div>}
+      >
         <section className="shadows-layout">
           <div className="panel">
             <div className="panel-heading">
@@ -1723,7 +1658,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
             {shadowsError && <p className="error">{shadowsError}</p>}
             {shadowsStatus && <p className="success">{shadowsStatus}</p>}
 
-            {modpackCheck && (
+            {modpackCheck && showDetails && (
               <div className="patch-summary">
                 <div>
                   <strong>{modpackCheck.ready ? 'Ready' : 'Needs files'}</strong>
@@ -1738,7 +1673,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
               </div>
             )}
 
-            {modpackCheck && modpackCheck.files.length > 0 && (
+            {modpackCheck && showDetails && modpackCheck.files.length > 0 && (
               <div className="file-list">
                 {modpackCheck.files.slice(0, 8).map((file) => (
                   <div key={file.path} className="file-row">
@@ -1789,19 +1724,19 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
             </div>
           </div>
         </section>
-      </main>
+      </GameHub>
     );
   }
 
   return (
-    <main className="dashboard home-dashboard">
+    <main className="dashboard home-dashboard reference-home">
       <header className="home-topbar">
         <div className="home-brand">
-          <div className="home-brand-mark">PA</div>
+          <div className="home-brand-mark"><span>PA</span></div>
           <div>
-            <span className="eyebrow">Play Aethro Launcher</span>
-            <h1>Welcome back, {home.user.displayName}</h1>
+            <h1>Play Aethro Launcher</h1>
           </div>
+          <div className="reference-greeting">Welcome back!<small>Good to see you again.</small></div>
         </div>
         <div className="home-actions">
           <button className="secondary icon-button" onClick={() => openExternal(home.links.website)}>
@@ -1816,34 +1751,18 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
             <span className="button-icon icon-exit" aria-hidden="true" />
             Log out
           </button>
+          <div className="reference-account"><span className="home-avatar">{home.user.avatarUrl ? <img src={home.user.avatarUrl} alt="" /> : accountInitial}</span><span>{home.user.displayName}</span></div>
         </div>
       </header>
 
       {renderLauncherUpdateNotice()}
 
-      <section className="home-hero">
-        <img src="/images/play-aethro-hero.png" alt="" />
-        <div className="home-hero-copy">
-          <span className="eyebrow">Gateway Open</span>
-          <h2>Choose your world</h2>
-          <p>Launch Shadows, step into Kalismor, boot Reforged, or catch up on the latest Aethro updates.</p>
-          <div className="home-hero-actions">
-            <button className="icon-button" onClick={() => playGame('shadows')}>
-              <span className="button-icon icon-play" aria-hidden="true" />
-              Play Shadows
-            </button>
-            <button className="secondary icon-button" onClick={() => playGame('reforged')}>
-              <span className="button-icon icon-play" aria-hidden="true" />
-              Reforged
-            </button>
-            <button className="secondary icon-button" onClick={() => playGame('aethro-online')}>
-              <span className="button-icon icon-star" aria-hidden="true" />
-              Kalismor
-            </button>
-          </div>
+      <section className="home-command-bar">
+        <div>
+          <h2>Enter the Aethro realms.</h2>
         </div>
-        <div className="home-account-card">
-          <div className="home-avatar">{accountInitial}</div>
+        <div className="home-account-card compact-account-card">
+          <div className="home-avatar">{home.user.avatarUrl ? <img src={home.user.avatarUrl} alt="" /> : accountInitial}</div>
           <div>
             <span className="eyebrow">Signed In</span>
             <strong>{home.user.displayName}</strong>
@@ -1851,53 +1770,66 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
         </div>
       </section>
 
-      <section className="home-layout">
-        <div className="worlds-panel">
+      <section className="home-layout home-layout-streamlined">
+        <div className="worlds-panel compact-worlds-panel">
           <div className="section-heading">
             <div>
-              <span className="eyebrow">World Select</span>
-              <h2>Play</h2>
+              <h2>My Games</h2>
             </div>
-            <span>{home.games.length} worlds</span>
           </div>
 
-          <div className="world-grid">
+          <div className="world-grid compact-world-grid">
             {home.games.map((game) => (
               <article key={game.id} className={worldCardClass(game.id)}>
                 <div className="world-card-art" aria-hidden="true">
                   <span />
                 </div>
                 <div className="world-card-content">
-                  <div className="world-card-title">
-                    <div>
-                      <span className="eyebrow">
-                        {game.id === 'aethro-online' ? 'Chronicles' : game.id === 'reforged' ? 'Realm' : 'Adventure'}
-                      </span>
-                      <h3>{game.title}</h3>
+                  <div className="world-card-main">
+                    <div className="world-card-badges">
+                      <span className={`status ${game.status}`}>{game.status}</span>
+                      {game.premium && (
+                        <span className={`premium-badge premium-${game.premium.status}`}>
+                          {game.premium.status === 'active' ? 'Premium Active' : game.premium.label ?? 'Premium'}
+                        </span>
+                      )}
                     </div>
-                    <span className={`status ${game.status}`}>{game.status}</span>
+                    <h3>{game.title}</h3>
+                    {showDetails && <p>{game.description}</p>}
                   </div>
-                  <p>{game.description}</p>
-                  <button className="icon-button" onClick={() => playGame(game.id)}>
-                    <span className="button-icon icon-play" aria-hidden="true" />
-                    {game.actionLabel}
-                  </button>
+                  <div className="world-card-actions">
+                    <button className="icon-button" onClick={() => playGame(game.id)}>
+                      <span className="button-icon icon-play" aria-hidden="true" />
+                      Play
+                    </button>
+                    {game.links?.vote && <button className="secondary compact-button" onClick={() => openExternal(game.links!.vote!)}>Vote</button>}
+                    {game.links?.shop && <button className="secondary compact-button" onClick={() => openExternal(game.links!.shop!)}>Shop</button>}
+                  </div>
                 </div>
               </article>
             ))}
           </div>
+          <button className="link-button details-toggle" onClick={() => setShowDetails((visible) => !visible)}>
+            {showDetails ? 'Hide world details' : 'Show all world details'}
+          </button>
         </div>
 
         <aside className="home-news-panel">
           <div className="section-heading">
             <div>
-              <span className="eyebrow">Aethro Wire</span>
-              <h2>News</h2>
+              <h2>Network News</h2>
             </div>
-            <span>{visibleNews.length} article{visibleNews.length === 1 ? '' : 's'}</span>
           </div>
 
-          <div className="feed-tabs home-feed-tabs">
+          <div className="news-source-tabs" aria-label="News source">
+            {(['all', 'official', 'forum'] as const).map((source) => (
+              <button key={source} className={newsSource === source ? 'active' : ''} onClick={() => setNewsSource(source)}>
+                {source === 'all' ? 'All updates' : source === 'official' ? 'Official' : 'Forums'}
+              </button>
+            ))}
+          </div>
+
+          <div className="feed-tabs home-feed-tabs" hidden={!showDetails}>
             {FEED_TABS.map((feed) => (
               <button
                 key={feed.id}
@@ -1915,10 +1847,10 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
                 <h3>No news loaded</h3>
                 <p>The RSS feed did not return articles yet.</p>
               </article>
-            ) : visibleNews.slice(0, 4).map((item) => (
+            ) : visibleNews.slice(0, 5).map((item) => (
               <article key={item.id} className="news-item">
                 <div className="news-meta">
-                  <span>{item.feedName}</span>
+                  <span>{item.source === 'forum' ? 'Community Forums' : item.feedName}</span>
                   <span>{formatDate(item.publishedAt)}</span>
                 </div>
                 <h3>{item.title}</h3>

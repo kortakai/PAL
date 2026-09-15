@@ -1,0 +1,64 @@
+/* Home reference: scaled from the approved 1586 x 992 composition. */
+.reference-home {
+  --unit: calc(100vw / 1586);
+  padding: 0 14px 18px 26px;
+  min-height: 100vh;
+  color: #deebf5;
+  background: linear-gradient(180deg, transparent 0, #030c12 32%), url('/images/launcher-home-citadel.png') center top / 100% auto no-repeat;
+  font-family: 'Segoe UI', Arial, sans-serif;
+}
+.reference-home::before { display:none; }
+.reference-home .home-topbar { height:calc(100 * var(--unit)); min-height:0; margin:0 -14px 0 -26px; padding:0 calc(44 * var(--unit)); border-bottom:1px solid #1c313e; background:#020a1280; gap:20px; }
+.reference-home .home-brand { gap:calc(24 * var(--unit)); }
+.reference-home .home-brand-mark { width:calc(64 * var(--unit)); height:calc(64 * var(--unit)); min-width:38px; border:1px solid #6edff0; border-radius:0; background:transparent; color:#e6f7ff; transform:rotate(45deg); font-size:18px; }
+.reference-home .home-brand h1 { color:#deebf5; font-size:calc(31 * var(--unit)); font-weight:600; white-space:nowrap; }
+.reference-home .home-brand-mark span { transform:rotate(-45deg); }
+.reference-greeting { border-left:1px solid #486071; padding-left:18px; font-size:calc(18 * var(--unit)); white-space:nowrap; }
+.reference-greeting small { display:block; margin-top:5px; color:#b1bdce; }
+.reference-home .home-actions { flex-wrap:nowrap; gap:calc(22 * var(--unit)); }
+.reference-home .home-actions button { padding:8px 0; background:transparent; border:0; box-shadow:none; color:#deebf5; font-size:calc(14 * var(--unit)); font-weight:500; }
+.reference-home .home-actions button:nth-child(3) { font-size:11px; }
+.reference-account { display:flex; align-items:center; gap:12px; border-left:1px solid #486071; padding-left:20px; font-size:14px; }
+.reference-account .home-avatar { width:44px; height:44px; border-radius:50%; border:1px solid #6c889f; background:#132330; color:#d3e4f0; }
+.reference-home .home-command-bar { height:calc(138 * var(--unit)); min-height:0; margin:0 -14px 0 -26px; padding:0 calc(56 * var(--unit)); border:0; border-radius:0; background:transparent; box-shadow:none; }
+.reference-home .home-command-bar h2 { font-size:calc(34 * var(--unit)); font-weight:600; color:#e8eff6; letter-spacing:0; }
+.reference-home .compact-account-card { display:none; }
+.reference-home .home-layout-streamlined { display:grid; grid-template-columns:minmax(0, 2.52fr) minmax(0, 1fr); gap:calc(18 * var(--unit)); }
+.reference-home .compact-worlds-panel { padding:0; border:0; border-radius:0; background:transparent; box-shadow:none; backdrop-filter:none; }
+.reference-home .section-heading { height:calc(64 * var(--unit)); margin:0; align-items:center; padding-left:8px; }
+.reference-home .section-heading h2 { margin:0; font-size:calc(28 * var(--unit)); color:#deebf5; font-weight:600; }
+.reference-home .compact-world-grid { gap:calc(14 * var(--unit)); }
+.reference-home .world-card { border:1px solid #23664f; border-radius:9px; min-height:0; }
+.reference-home .kalismor-world-card { border-color:#433f8a; }
+.reference-home .reforged-world-card { border-color:#87333f; }
+.reference-home .world-card-content { display:flex; align-items:center; justify-content:space-between; gap:12px; height:calc(196 * var(--unit)); min-height:0; padding:calc(18 * var(--unit)) calc(27 * var(--unit)); background:linear-gradient(90deg,#00180de0 0%,#00180d91 32%,transparent 65%,#00150c99); }
+.reference-home .kalismor-world-card .world-card-content { background:linear-gradient(90deg,#080b28eb,#1011337a 35%,transparent 65%,#080c2499); }
+.reference-home .reforged-world-card .world-card-content { background:linear-gradient(90deg,#2b080deb,#2b080d7a 35%,transparent 65%,#2b080d99); }
+.reference-home .world-card-art { background-position:center 45% !important; }
+.reference-home .world-card-main { align-self:stretch; display:flex; flex-direction:column; justify-content:center; min-width:0; }
+.reference-home .world-card-badges { position:absolute; top:calc(18 * var(--unit)); left:calc(18 * var(--unit)); gap:calc(24 * var(--unit)); }
+.reference-home .world-card h3 { font-family:Georgia, 'Times New Roman',serif; font-size:calc(42 * var(--unit)); font-weight:600; color:#e9edf8; letter-spacing:-.02em; margin:calc(36 * var(--unit)) 0 0; white-space:nowrap; }
+.reference-home .status { border:1px solid #486577; background:#07141bb0; color:#e4edf4; font-weight:400; text-transform:capitalize; font-size:calc(14 * var(--unit)); padding:4px 12px; }
+.reference-home .status::before { content:''; display:inline-block; width:9px; height:9px; border-radius:50%; background:currentColor; margin-right:9px; box-shadow:0 0 12px currentColor; }
+.reference-home .status.online { color:#4ff489; }
+.reference-home .premium-badge { font-size:calc(14 * var(--unit)); text-transform:none; letter-spacing:0; font-weight:500; color:#ffdc69; border-radius:6px; background:#0b140a9c; }
+.reference-home .premium-badge::before { content:'♛'; margin-right:8px; }
+.reference-home .world-card-actions { flex-shrink:0; width:calc(234 * var(--unit)); gap:calc(10 * var(--unit)); }
+.reference-home .world-card-actions > :first-child { min-height:calc(66 * var(--unit)); font-size:calc(27 * var(--unit)); border:1px solid #60dcb3; border-radius:7px; box-shadow:inset 0 1px 8px #ffffff30,0 5px 15px #0008; background:linear-gradient(145deg,#146a50d9,#003e31ed); }
+.reference-home .kalismor-world-card .world-card-actions > :first-child { background:linear-gradient(145deg,#6128a9d9,#25124eed); border-color:#ad7ade; }
+.reference-home .reforged-world-card .world-card-actions > :first-child { background:linear-gradient(145deg,#a83a46d9,#52121aed); border-color:#db8990; }
+.reference-home .world-card-actions > :not(:first-child) { min-height:calc(46 * var(--unit)); font-size:calc(17 * var(--unit)); color:#deebf5; background:#020b15bd; border:1px solid #637382; border-radius:6px; font-weight:500; }
+.reference-home .home-news-panel { padding:0 calc(16 * var(--unit)) 16px; border:1px solid #243947; border-radius:10px; background:#071018ad; box-shadow:none; }
+.reference-home .news-source-tabs { justify-content:space-between; gap:8px; margin:4px 0 12px; }
+.reference-home .news-source-tabs button { flex:1; font-size:calc(14 * var(--unit)); font-weight:500; padding:calc(10 * var(--unit)) 4px; background:#0b1622; border:1px solid #263644; color:#dce8f5; }
+.reference-home .news-source-tabs button.active { border-color:#74eceb; box-shadow:0 0 14px #3be7de38; background:#071b22; color:#84ffff; }
+.reference-home .home-feed-tabs[hidden] { display:none; }
+.reference-home .news-item { position:relative; border:1px solid #1a2c3b; border-radius:7px; background:linear-gradient(120deg,#0c1925,#07111b); padding:12px; margin-bottom:8px; }
+.reference-home .news-item h3 { color:#dfebf6; font-size:calc(15 * var(--unit)); font-weight:500; line-height:1.35; padding-right:10px; }
+.reference-home .news-item p { color:#a4b0c2; font-size:calc(15 * var(--unit)); line-height:1.35; }
+.reference-home .news-meta { font-size:calc(12 * var(--unit)); }
+.reference-home .news-item .link-button { position:absolute; inset:0; width:100%; padding:0; font-size:0; background:transparent; border:0; box-shadow:none; }
+.reference-home .news-item .button-icon { position:absolute; right:8px; top:42%; color:#8ea7b9; }
+.reference-home .details-toggle { font-size:11px; background:transparent; color:#8ba6b6; box-shadow:none; padding:8px; }
+body:has(.reference-home) .app-version-badge { top:auto; bottom:4px; left:auto; right:8px; font-size:9px; opacity:.55; }
+@media(max-width:1150px) { .reference-greeting { display:none; } .reference-account { padding-left:12px; } }

@@ -49,12 +49,12 @@ export function LoginScreen({ onLoggedIn }: Props) {
         </div>
         <div className="hero-copy brand-hero-copy">
           <span className="eyebrow">Play Aethro Launcher</span>
-          <h1>Choose Your World</h1>
-          <p>Shadows of Aethro, Chronicles of Kalismor, and the next gate beyond.</p>
+          <h1>Choose Your Adventure</h1>
+          <p>One Aethro account for the games and communities you want to explore.</p>
           <div className="brand-worlds">
-            <span>Shadows</span>
-            <span>Kalismor</span>
-            <span>Aethro.net</span>
+            <span>Games</span>
+            <span>Community</span>
+            <span>More Ahead</span>
           </div>
         </div>
       </section>

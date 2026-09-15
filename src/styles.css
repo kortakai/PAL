@@ -467,6 +467,7 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
   font-size: 24px;
   font-weight: 950;
 }
+.home-avatar img { width:100%; height:100%; border-radius:inherit; object-fit:cover; }
 .home-account-card strong { display: block; margin-top: 4px; color: #fff1c0; font-size: 19px; }
 .home-account-card p { margin: 4px 0 0; color: #d8cab2; font-size: 13px; }
 .home-layout {
@@ -634,6 +635,234 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
 .home-news-list .news-item p { color: #d8cab2; }
 .home-news-list .link-button {
   font-size: 13px;
+}
+
+/* Streamlined launcher home and reusable game hubs. */
+.home-dashboard {
+  padding: 16px 28px 22px;
+  background:
+    radial-gradient(circle at 7% 4%, rgba(39, 150, 142, .17), transparent 27%),
+    radial-gradient(circle at 88% 5%, rgba(146, 62, 129, .16), transparent 30%),
+    linear-gradient(180deg, #080e14 0%, #090d13 68%, #07090d 100%);
+}
+.home-dashboard::before { opacity: .46; }
+.home-topbar { min-height: 76px; margin-bottom: 12px; }
+.home-brand-mark {
+  border-radius: 18px 9px 18px 9px;
+  background: linear-gradient(145deg, #132d36, #30233d);
+  color: #fff4be;
+}
+.home-command-bar {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: clamp(152px, 20vh, 198px);
+  margin-bottom: 14px;
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 18px;
+  padding: 26px 30px;
+  background:
+    linear-gradient(90deg, rgba(5, 12, 19, .96) 0%, rgba(7, 14, 20, .76) 43%, rgba(5, 10, 17, .08) 100%),
+    linear-gradient(0deg, rgba(3, 8, 14, .54), transparent 72%),
+    url('/images/launcher-home-citadel.png') center 44% / cover no-repeat;
+  box-shadow: 0 26px 76px rgba(0,0,0,.4);
+}
+.home-command-bar h2 {
+  margin: 7px 0 7px;
+  color: #fff4df;
+  font-size: clamp(30px, 2.65vw, 46px);
+  letter-spacing: -.035em;
+}
+.home-command-bar p { max-width: 520px; margin: 0; color: #cad5de; font-size: 15px; line-height: 1.45; }
+.compact-account-card {
+  position: static;
+  width: auto;
+  min-width: 218px;
+  padding: 10px 13px;
+  background: rgba(5, 10, 16, .64);
+}
+.compact-account-card .home-avatar { width: 42px; height: 42px; font-size: 19px; }
+.home-layout-streamlined { grid-template-columns: minmax(0, 1.4fr) minmax(370px, .6fr); gap: 18px; }
+.compact-worlds-panel, .home-news-panel {
+  border-color: rgba(255,255,255,.1);
+  border-radius: 18px;
+  background: rgba(10, 15, 22, .8);
+}
+.compact-world-grid { grid-template-columns: 1fr; gap: 12px; }
+.compact-world-grid .world-card {
+  display: block;
+  min-height: clamp(150px, 18vh, 196px);
+  border-width: 1px 1px 1px 4px;
+  transition: border-color .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+.compact-world-grid .world-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255,255,255,.32);
+  box-shadow: 0 16px 38px rgba(0,0,0,.34);
+}
+.compact-world-grid .world-card-art {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+}
+.compact-world-grid .world-card-art::before,
+.compact-world-grid .world-card-art::after,
+.compact-world-grid .world-card-art span { display: none; }
+.compact-world-grid .world-card-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 236px;
+  grid-template-rows: auto 1fr;
+  align-content: center;
+  min-height: clamp(150px, 18vh, 196px);
+  padding: 18px 27px;
+  background:
+    linear-gradient(90deg, rgba(4, 10, 15, .91) 0%, rgba(4, 10, 15, .71) 43%, rgba(4, 10, 15, .1) 72%, rgba(4, 10, 15, .28) 100%),
+    linear-gradient(0deg, rgba(3, 7, 11, .36), transparent 64%);
+}
+.compact-world-grid .world-card-main {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+  align-self: center;
+  max-width: 510px;
+}
+.compact-world-grid .world-card h3 { margin: 5px 0 7px; color: #fff5d7; font-size: clamp(25px, 2vw, 31px); letter-spacing: -.035em; }
+.compact-world-grid .world-card-main p { min-height: 0; margin: 0; color: #d4dde2; font-size: 14px; }
+.compact-world-grid .world-card-main .eyebrow { display: block; margin-top: 10px; }
+.compact-world-grid .shadows-world-card { border-left-color: #4fd58a; }
+.compact-world-grid .kalismor-world-card { border-left-color: #7e66e7; }
+.compact-world-grid .reforged-world-card { border-left-color: #d54d52; }
+.compact-world-grid .shadows-world-card .world-card-art {
+  background:
+    linear-gradient(90deg, rgba(7, 35, 24, .06), rgba(7, 35, 24, .24)),
+    url('/images/game-shadows-home.png') center / cover no-repeat;
+}
+.compact-world-grid .kalismor-world-card .world-card-art {
+  background:
+    linear-gradient(90deg, rgba(12, 12, 32, .06), rgba(12, 12, 32, .32)),
+    url('/images/game-kalismor-home.png') center / cover no-repeat;
+}
+.compact-world-grid .reforged-world-card .world-card-art {
+  background:
+    linear-gradient(90deg, rgba(33, 9, 12, .06), rgba(33, 9, 12, .34)),
+    url('/images/game-reforged-home.png') center / cover no-repeat;
+}
+.world-card-badges { display: flex; flex-wrap: wrap; justify-content: flex-start; gap: 6px; }
+.compact-world-grid .world-card-badges { margin-bottom: 2px; }
+.premium-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 23px;
+  border: 1px solid rgba(255, 220, 112, .35);
+  border-radius: 999px;
+  padding: 3px 8px;
+  color: #ffe6a3;
+  background: rgba(112, 78, 22, .34);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.premium-active { border-color: rgba(90, 224, 174, .48); color: #b8ffdd; background: rgba(18, 111, 75, .34); }
+.premium-unavailable { opacity: .62; }
+.world-card-actions, .game-hub-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.compact-world-grid .world-card-actions {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  justify-content: flex-end;
+  width: 236px;
+}
+.compact-world-grid .world-card-actions > :first-child { flex: 0 0 100%; min-height: 52px; justify-content: center; font-size: 16px; }
+.compact-world-grid .world-card-actions > :not(:first-child) { flex: 1 1 0; justify-content: center; }
+.compact-world-grid .shadows-world-card .world-card-actions > :first-child { color: #eafff1; background: linear-gradient(135deg, #16845d, #34b982); }
+.compact-world-grid .kalismor-world-card .world-card-actions > :first-child { color: #f6efff; background: linear-gradient(135deg, #5330b5, #8a59ed); }
+.compact-world-grid .reforged-world-card .world-card-actions > :first-child { color: #fff0e9; background: linear-gradient(135deg, #922d35, #d65357); }
+.world-card-actions .compact-button, .game-hub-actions .compact-button { padding: 8px 10px; font-size: 12px; }
+.visually-condensed { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.details-toggle { margin-top: 15px; color: #a8dccc; }
+.news-source-tabs { display: flex; gap: 7px; margin: -3px 0 10px; }
+.news-source-tabs button {
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 999px;
+  padding: 6px 9px;
+  color: #aebbc8;
+  background: rgba(255,255,255,.04);
+  box-shadow: none;
+  font-size: 11px;
+}
+.news-source-tabs button.active { border-color: rgba(101, 215, 191, .45); color: #d8fff6; background: rgba(35, 124, 111, .28); }
+.home-news-list .news-item { margin-bottom: 9px; padding: 12px; }
+.home-news-list .news-item p { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; margin: 6px 0; font-size: 13px; }
+.game-hub-bar {
+  display: flex;
+  position: relative;
+  z-index: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 0 0 16px;
+  border: 1px solid rgba(255,255,255,.13);
+  border-left: 4px solid #e8c76e;
+  border-radius: 14px;
+  padding: 12px 15px;
+  background: rgba(7, 12, 18, .78);
+  box-shadow: 0 14px 38px rgba(0,0,0,.2);
+}
+.dashboard.shadows-page,
+.dashboard.kalismor-page,
+.dashboard.reforged-page {
+  padding: 24px 32px 38px;
+  background-color: #070b11;
+  background-image:
+    radial-gradient(circle at 8% 0%, rgba(47, 149, 134, .13), transparent 28%),
+    radial-gradient(circle at 92% 0%, rgba(116, 68, 147, .14), transparent 30%);
+}
+.dashboard.shadows-page .topbar,
+.dashboard.kalismor-page .topbar,
+.dashboard.reforged-page .topbar {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,.1);
+}
+.dashboard .panel {
+  border-color: rgba(255,255,255,.11);
+  border-radius: 16px;
+  background: rgba(9, 14, 21, .86);
+  box-shadow: 0 20px 56px rgba(0,0,0,.28);
+}
+.dashboard .panel h2 { color: #fff2d1; }
+.dashboard .panel .identity-box,
+.dashboard .panel .client-box,
+.dashboard .panel .current-event-box,
+.dashboard .panel .install-status,
+.dashboard .panel .patch-summary,
+.dashboard .panel .news-item {
+  border-color: rgba(255,255,255,.1);
+  background: rgba(4, 8, 13, .6);
+}
+.game-hub-identity { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.game-hub-identity .eyebrow { margin-right: 4px; }
+.game-hub-identity strong { color: #fff4de; font-size: 15px; }
+.music-status { color: #95a8b5; font-size: 11px; font-weight: 800; }
+.music-status.ready { color: #a7eac8; }
+.music-status.coming-soon { color: #b8a9ce; }
+.game-hub-shadows { border-left-color: #79d092; }
+.game-hub-kalismor { border-left-color: #71d8d6; }
+.game-hub-reforged { border-left-color: #d6a75d; }
+.reforged-page .game-hub-bar { background: rgba(29, 12, 15, .78); }
+.kalismor-page .game-hub-bar { background: rgba(13, 17, 29, .8); }
+.shadows-page .game-hub-bar { background: rgba(8, 25, 21, .8); }
+@media (max-width: 1100px) {
+  .home-layout-streamlined { grid-template-columns: 1fr; }
+  .compact-world-grid .world-card-content { grid-template-columns: minmax(0, 1fr) 190px; }
+  .compact-world-grid .world-card-actions { width: 190px; }
 }
 .kalismor-page {
   min-height: 100vh;
