@@ -1,6 +1,8 @@
 import { invoke } from '@tauri-apps/api/core';
 import type {
   AuthSession,
+  DominionAccess,
+  DominionLaunchHandoff,
   LauncherGame,
   LauncherHome,
   LauncherNewsItem,
@@ -31,6 +33,9 @@ const KALISMOR_PUBLIC_MUD_PORT = 25_000;
 const SHADOWS_LAUNCH_EVENT_URL = `${PLAY_AETHRO_API_BASE}/account/game-launches`;
 const REFORGED_PROFILE_URL = `${PLAY_AETHRO_API_BASE}/account/games/aethro-reforged`;
 const REFORGED_PASSWORD_URL = `${REFORGED_PROFILE_URL}/password`;
+const DOMINION_ACCESS_URL = `${PLAY_AETHRO_API_BASE}/account/games/dominion/beta-access`;
+const DOMINION_LAUNCH_URL = `${PLAY_AETHRO_API_BASE}/account/games/dominion/launch`;
+const DOMINION_HEALTH_URL = 'https://dominion.playaethro.online/api/health';
 const PLAY_AETHRO_NEWS_URL = 'https://playaethro.online/news';
 const PLAY_AETHRO_FORUM_ANNOUNCEMENTS_RSS_URL = 'https://playaethro.online/forums/announcements.rss';
 
@@ -559,6 +564,57 @@ export async function getReforgedProfile(session: AuthSession): Promise<Reforged
   return normalizeReforgedProfile(response);
 }
 
+function normalizeDominionAccess(response: unknown): DominionAccess {
+  const candidate = response && typeof response === 'object'
+    ? (response as Record<string, unknown>).data && typeof (response as Record<string, unknown>).data === 'object'
+      ? (response as Record<string, unknown>).data as Record<string, unknown>
+      : response as Record<string, unknown>
+    : {};
+
+  return {
+    enabled: Boolean(candidate.enabled),
+    access: stringFrom(candidate.access) || 'denied'
+  };
+}
+
+function normalizeDominionLaunchHandoff(response: unknown): DominionLaunchHandoff {
+  const candidate = response && typeof response === 'object'
+    ? (response as Record<string, unknown>).data && typeof (response as Record<string, unknown>).data === 'object'
+      ? (response as Record<string, unknown>).data as Record<string, unknown>
+      : response as Record<string, unknown>
+    : {};
+  const launchUrl = stringFrom(candidate.launch_url ?? candidate.launchUrl);
+
+  if (!launchUrl) throw new Error('Dominion did not return a browser launch link.');
+
+  const parsed = new URL(launchUrl);
+  if (parsed.origin !== 'https://dominion.playaethro.online') {
+    throw new Error('Dominion returned an untrusted browser launch link.');
+  }
+
+  return { launchUrl, expiresAt: stringFrom(candidate.expires_at ?? candidate.expiresAt) };
+}
+
+export async function getDominionAccess(session: AuthSession): Promise<DominionAccess> {
+  const accountId = session.user?.id;
+  const query = accountId ? `?aethro_account_id=${encodeURIComponent(accountId)}` : '';
+  const response = await withTimeout(
+    apiRequestUrl<unknown>(`${DOMINION_ACCESS_URL}${query}`, { token: session.accessToken }),
+    REFORGED_TIMEOUT_MS,
+    'Dominion access'
+  );
+  return normalizeDominionAccess(response);
+}
+
+export async function requestDominionLaunch(session: AuthSession): Promise<DominionLaunchHandoff> {
+  const response = await withTimeout(
+    apiRequestUrl<unknown>(DOMINION_LAUNCH_URL, { method: 'POST', token: session.accessToken }),
+    REFORGED_TIMEOUT_MS,
+    'Dominion launcher handoff'
+  );
+  return normalizeDominionLaunchHandoff(response);
+}
+
 export async function setReforgedGamePassword(
   session: AuthSession,
   password: string,
@@ -651,11 +707,21 @@ export async function getGameServerStatuses(): Promise<Partial<Record<LauncherGa
     }))
   );
 
-  return settled.reduce<Partial<Record<LauncherGame['id'], LauncherGame['status']>>>((statuses, result, index) => {
+  const statuses = settled.reduce<Partial<Record<LauncherGame['id'], LauncherGame['status']>>>((statuses, result, index) => {
     const target = GAME_SERVER_STATUS_TARGETS[index];
     statuses[target.id] = result.status === 'fulfilled' ? result.value.status : 'offline';
     return statuses;
   }, {});
+
+  try {
+    const response = await fetchText(DOMINION_HEALTH_URL);
+    const health = JSON.parse(response) as { status?: unknown };
+    statuses.dominion = health.status === 'ok' ? 'online' : 'offline';
+  } catch {
+    statuses.dominion = 'offline';
+  }
+
+  return statuses;
 }
 
 export type { MudTerminalOutput };
@@ -904,6 +970,20 @@ export function createLauncherHome(
           shop: 'https://playaethro.online/store'
         }
         ,music: { label: 'Reforged Soundtrack', tracks: [] }
+      },
+      {
+        id: 'dominion',
+        title: 'Dominion',
+        description: 'Build your House and shape the fate of Kalismor from the browser.',
+        status: gameStatuses.dominion ?? 'unknown',
+        actionLabel: 'Play Dominion'
+        ,accent: 'dominion'
+        ,premium: { status: 'available', label: 'Premium' }
+        ,links: {
+          website: 'https://dominion.playaethro.online/',
+          forum: 'https://playaethro.online/forums/chronicles-of-kalismor'
+        }
+        ,music: { label: 'Dominion Soundtrack', tracks: [] }
       }
     ],
     links: {

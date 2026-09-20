@@ -170,6 +170,42 @@ need a launcher update to change:
 payment history or private account details in this response. Music URLs must be public,
 HTTPS, and licensed for launcher playback.
 
+## Dominion launcher handoff
+
+The launcher checks closed-beta eligibility using the existing bearer-authenticated
+endpoint. `aethro_account_id` must match the account resolved from that bearer token;
+the server must reject a mismatch.
+
+```http
+GET /api/account/games/dominion/beta-access?aethro_account_id={immutable_aethro_id}
+Authorization: Bearer {aethro_access_token}
+```
+
+```json
+{ "enabled": true, "access": "tester" }
+```
+
+When a player presses **Play Dominion**, the launcher calls:
+
+```http
+POST /api/account/games/dominion/launch
+Authorization: Bearer {aethro_access_token}
+```
+
+The Play Aethro API verifies the bearer token and Dominion eligibility, then creates
+a short-lived, single-use handoff and responds with the Dominion-origin URL only:
+
+```json
+{
+  "launch_url": "https://dominion.playaethro.online/auth/launcher/consume?code={single_use_code}",
+  "expires_at": "2026-09-18T18:00:00Z"
+}
+```
+
+Dominion consumes the code once, creates its own secure HttpOnly browser session, and
+redirects to the game. Never put Aethro access tokens, refresh tokens, passwords, or
+profile data in this URL.
+
 ## Reforged Client
 
 The launcher links players to the official uploaded Reforged client folder:

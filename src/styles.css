@@ -596,6 +596,11 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
   background: linear-gradient(180deg, #d8c071 0 8px, rgba(112, 31, 38, .86) 8px 100%);
   clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
 }
+.dominion-world-card .world-card-art {
+  background: linear-gradient(90deg, rgba(17, 13, 7, .52), rgba(17, 13, 7, .08)), url('/images/game-dominion-home.png') center / cover no-repeat;
+}
+.compact-world-grid .dominion-world-card { border-left-color: #c49a4d; }
+.compact-world-grid .dominion-world-card .world-card-actions > :first-child { color: #fff4dc; background: linear-gradient(135deg, #735321, #b5863b); }
 .world-card-content {
   position: relative;
   z-index: 1;

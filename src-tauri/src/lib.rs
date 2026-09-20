@@ -2754,6 +2754,7 @@ async fn fetch_text(url: String) -> Result<String, String> {
         "https://playaethro.online/news/shadows-of-aethro.rss",
         "https://playaethro.online/news/play-aethro-launcher.rss",
         "https://playaethro.online/news",
+        "https://dominion.playaethro.online/api/health",
     ];
 
     if !allowed.contains(&url.as_str()) {

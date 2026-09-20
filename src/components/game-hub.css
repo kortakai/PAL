@@ -5,6 +5,7 @@
 }
 .hub-shadows { --hub-accent:#80d8a9; --hub-deep:#07533f; --hub-bright:#198564; background:radial-gradient(ellipse at top,#0d3024,#060d13 62%); }
 .hub-aethro-online { --hub-accent:#a6a1ee; --hub-deep:#38216b; --hub-bright:#6744a1; background:radial-gradient(ellipse at top,#211831,#070c15 62%); }
+.hub-dominion { --hub-accent:#d7b66c; --hub-deep:#483516; --hub-bright:#8f6d2c; background:radial-gradient(ellipse at top,#2c2415,#080b10 62%); }
 .game-window [hidden] { display:none !important; }
 .game-window button { display:inline-flex; justify-content:center; align-items:center; gap:8px; border:1px solid #526070; border-radius:5px; background:linear-gradient(#172432,#0b1420); color:#deebf5; font-family:inherit; font-weight:500; box-shadow:none; padding:10px 15px; }
 .game-window button:hover { border-color:var(--hub-accent); background:#24323f; transform:none; }

@@ -3,6 +3,7 @@ import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import { getCurrent, onOpenUrl } from '@tauri-apps/plugin-deep-link';
 import { listen } from '@tauri-apps/api/event';
 import { getCurrentWindow } from '@tauri-apps/api/window';
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import { openUrl } from '@tauri-apps/plugin-opener';
 import { open as openDialog } from '@tauri-apps/plugin-dialog';
 import { relaunch } from '@tauri-apps/plugin-process';
@@ -17,6 +18,7 @@ import {
   detectLocalMinecraftProfile,
   detectLocalReforgedAccount,
   disconnectMudTerminal,
+  getDominionAccess,
   getKalismorCharacters,
   getLauncherNews,
   getReforgedProfile,
@@ -28,6 +30,7 @@ import {
   repairShadowsInstall,
   runWithFreshAethroSession,
   requestKalismorLoginToken,
+  requestDominionLaunch,
   sendMudTerminalInput,
   setReforgedGamePassword,
   setReforgedInstallDir,
@@ -35,6 +38,7 @@ import {
 } from '../lib/api';
 import type {
   AuthSession,
+  DominionAccess,
   KalismorCharacter,
   KalismorLoginToken,
   LauncherHome,
@@ -54,7 +58,7 @@ type Props = {
   onSessionUpdated: (session: AuthSession) => void;
 };
 
-type LauncherView = 'home' | 'shadows' | 'aethro-online' | 'reforged';
+type LauncherView = 'home' | 'shadows' | 'aethro-online' | 'reforged' | 'dominion';
 type ShadowsInstallState = 'notChecked' | 'checking' | 'needsUpdate' | 'installing' | 'ready' | 'failed';
 type LauncherUpdateState = 'idle' | 'checking' | 'available' | 'installing' | 'restarting' | 'failed';
 type NewsRefreshState = 'idle' | 'refreshing' | 'failed';
@@ -149,6 +153,7 @@ function worldCardClass(gameId: string) {
   if (gameId === 'shadows') return 'world-card shadows-world-card';
   if (gameId === 'aethro-online') return 'world-card kalismor-world-card';
   if (gameId === 'reforged') return 'world-card reforged-world-card';
+  if (gameId === 'dominion') return 'world-card dominion-world-card';
   return 'world-card';
 }
 
@@ -216,9 +221,38 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
   const [kalismorCommandInput, setKalismorCommandInput] = useState('');
   const [startingKalismor, setStartingKalismor] = useState(false);
   const [kalismorTerminalOpen, setKalismorTerminalOpen] = useState(false);
+  const [dominionAccess, setDominionAccess] = useState<DominionAccess | null>(null);
+  const [dominionAccessLoading, setDominionAccessLoading] = useState(false);
+  const [dominionLaunching, setDominionLaunching] = useState(false);
+  const [dominionError, setDominionError] = useState<string | null>(null);
 
   async function openExternal(url: string) {
     await openUrl(url);
+  }
+
+  async function openDominionBrowser(url: string) {
+    const existing = await WebviewWindow.getByLabel('dominion');
+    if (existing) {
+      await existing.show();
+      await existing.setFocus();
+      return;
+    }
+
+    const browser = new WebviewWindow('dominion', {
+      url,
+      title: 'Dominion — Play Aethro',
+      width: 1440,
+      height: 900,
+      minWidth: 1024,
+      minHeight: 680,
+      center: true,
+      resizable: true
+    });
+
+    await new Promise<void>((resolve, reject) => {
+      browser.once('tauri://created', () => resolve());
+      browser.once('tauri://error', (event) => reject(new Error(String(event.payload))));
+    });
   }
 
   async function withFreshSession<T>(action: (activeSession: AuthSession) => Promise<T>): Promise<T> {
@@ -278,6 +312,12 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     if (target === 'reforged') {
       setKalismorTerminalOpen(false);
       setView('reforged');
+      return;
+    }
+
+    if (target === 'dominion') {
+      setKalismorTerminalOpen(false);
+      setView('dominion');
     }
   }
 
@@ -294,6 +334,11 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
 
     if (gameId === 'reforged') {
       setView('reforged');
+      return;
+    }
+
+    if (gameId === 'dominion') {
+      setView('dominion');
       return;
     }
 
@@ -635,6 +680,11 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     if (view !== 'reforged' || reforgedProfileLoaded || reforgedProfileLoading) return;
     void loadReforgedProfile();
   }, [view, reforgedProfileLoaded, reforgedProfileLoading]);
+
+  useEffect(() => {
+    if (view !== 'dominion' || dominionAccess || dominionAccessLoading) return;
+    void loadDominionAccess();
+  }, [view, dominionAccess, dominionAccessLoading]);
 
   useEffect(() => {
     if (!kalismorTerminalOpen || !kalismorTerminalRef.current || !selectedKalismorCharacter || !kalismorLoginToken) return;
@@ -1047,6 +1097,36 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     }
   }
 
+  async function loadDominionAccess() {
+    setDominionAccessLoading(true);
+    setDominionError(null);
+
+    try {
+      setDominionAccess(await withFreshSession((activeSession) => getDominionAccess(activeSession)));
+    } catch (err) {
+      setDominionAccess(null);
+      setDominionError(err instanceof Error ? err.message : String(err || 'Unable to check Dominion access.'));
+    } finally {
+      setDominionAccessLoading(false);
+    }
+  }
+
+  async function launchDominion() {
+    if (!dominionAccess || dominionAccess.access === 'denied' || !dominionAccess.enabled) return;
+
+    setDominionLaunching(true);
+    setDominionError(null);
+
+    try {
+      const handoff = await withFreshSession((activeSession) => requestDominionLaunch(activeSession));
+      await openDominionBrowser(handoff.launchUrl);
+    } catch (err) {
+      setDominionError(err instanceof Error ? err.message : String(err || 'Unable to open Dominion.'));
+    } finally {
+      setDominionLaunching(false);
+    }
+  }
+
   async function loadKalismorCharacters() {
     setKalismorLoading(true);
     setKalismorError(null);
@@ -1360,6 +1440,48 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
               <span className="eyebrow">Realm</span>
               <strong>Aethro: Reforged</strong>
               <p>The launcher keeps your selected client pointed at Aethro.</p>
+            </div>
+          </div>
+        </section>
+      </GameHub>
+    );
+  }
+
+  if (view === 'dominion') {
+    const canPlayDominion = Boolean(dominionAccess?.enabled && dominionAccess.access !== 'denied');
+    const accessLabel = dominionAccessLoading
+      ? 'Checking your Aethro access…'
+      : canPlayDominion
+        ? dominionAccess?.access === 'staff' ? 'Staff access active' : dominionAccess?.access === 'tester' ? 'Closed-beta access active' : 'Access active'
+        : dominionAccess ? 'Access not granted yet' : 'Access check unavailable';
+
+    return (
+      <GameHub key="dominion" game={activeGame!} player={home.user.displayName} avatarUrl={home.user.avatarUrl} news={[]}
+        onHome={() => setView('home')} openExternal={openExternal} showDetails={showDetails} onDetails={() => setShowDetails(value => !value)}
+        primary={{ label: dominionLaunching ? 'Opening Dominion…' : canPlayDominion ? 'Play Dominion' : dominionAccessLoading ? 'Checking access…' : 'Dominion access required',
+          disabled: dominionLaunching || dominionAccessLoading || !canPlayDominion,
+          action: () => { void launchDominion(); } }}
+        status={accessLabel}
+        music={renderHubMusic()} notice={<>{renderLauncherUpdateNotice()}{dominionError && <p className="error">{dominionError}</p>}</>}
+        summary={<div className="hub-roster"><div className="hub-character"><span className="hub-character-initial">D</span><div><strong>Dominion of Kalismor</strong><small>{canPlayDominion ? 'Your House is ready to enter the realm.' : 'Access is managed through your Aethro account.'}</small></div></div></div>}
+      >
+        <section className="aethro-online-layout">
+          <div className="panel">
+            <div className="panel-heading"><h2>Your Dominion</h2><span>{home.user.displayName}</span></div>
+            <div className="identity-box">
+              <span className="eyebrow">Aethro account</span>
+              <strong>{accessLabel}</strong>
+              <p>{canPlayDominion
+                ? 'Play opens Dominion in its own launcher window with a short-lived, single-use handoff. Your launcher login is never placed in the URL.'
+                : 'Dominion closed-beta eligibility is checked against the Aethro account currently signed into this launcher.'}</p>
+            </div>
+            <div className="kalismor-panel-actions">
+              <button className="secondary compact-button" onClick={() => void loadDominionAccess()} disabled={dominionAccessLoading || dominionLaunching}>
+                {dominionAccessLoading ? 'Checking…' : 'Refresh access'}
+              </button>
+              <button className="secondary compact-button" onClick={() => void openExternal('https://dominion.playaethro.online/')}>
+                Open in external browser
+              </button>
             </div>
           </div>
         </section>

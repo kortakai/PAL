@@ -56,13 +56,13 @@ export type GameMusic = {
 };
 
 export type LauncherGame = {
-  id: 'shadows' | 'aethro-online' | 'reforged' | string;
+  id: 'shadows' | 'aethro-online' | 'reforged' | 'dominion' | string;
   title: string;
   description: string;
   status: 'online' | 'offline' | 'maintenance' | 'unknown';
   actionLabel: string;
   feedId?: NewsFeedId;
-  accent?: 'shadows' | 'kalismor' | 'reforged';
+  accent?: 'shadows' | 'kalismor' | 'reforged' | 'dominion';
   premium?: GamePremium;
   links?: GameLinks;
   music?: GameMusic;
@@ -188,4 +188,16 @@ export type KalismorLoginToken = {
   port?: number;
   websocketUrl?: string;
   launchUrl?: string;
+};
+
+/** The launcher only needs the eligibility result; account identity stays with Aethro OAuth. */
+export type DominionAccess = {
+  enabled: boolean;
+  access: 'staff' | 'tester' | 'public' | 'denied' | string;
+};
+
+/** A short-lived, single-use browser destination issued by Play Aethro. */
+export type DominionLaunchHandoff = {
+  launchUrl: string;
+  expiresAt?: string;
 };

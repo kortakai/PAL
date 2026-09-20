@@ -23,7 +23,8 @@ type Props = {
 const themes: Record<string, { image: string; kicker: string; description: string }> = {
   reforged: { image: '/images/game-reforged-home.png', kicker: 'Aethro: Reforged', description: 'Return to the realm. Your next adventure is waiting.' },
   shadows: { image: '/images/game-shadows-home.png', kicker: 'Shadows of Aethro', description: 'Explore the wilds. Build a home. Find your next adventure.' },
-  'aethro-online': { image: '/images/game-kalismor-home.png', kicker: 'Aethro Online', description: 'Choose your character and step into Kalismor.' }
+  'aethro-online': { image: '/images/game-kalismor-home.png', kicker: 'Aethro Online', description: 'Choose your character and step into Kalismor.' },
+  dominion: { image: '/images/game-dominion-home.png', kicker: 'Kalismor', description: 'Raise your House, govern your settlement, and contend for Dominion.' }
 };
 const tabs = [
   { id: 'overview', label: 'Overview', Icon: Home },
