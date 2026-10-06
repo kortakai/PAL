@@ -1115,6 +1115,13 @@
       "required": true
     },
     {
+      "path": "Data/Patch-B.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/Patch-B.MPQ",
+      "sha256": "b0d920ea5a8a7c2d592328d8bc64c5d4aa43c06efe0a92318312165d3608d305",
+      "sizeBytes": 26685,
+      "required": true
+    },
+    {
       "path": "Data/Patch-F.mpq",
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/Patch-F.mpq",
       "sha256": "4fef7ed6a3b24c90235ae902ffc8e77dc476fbee073f749469f8fa8ce193feff",
@@ -1140,6 +1147,13 @@
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/patch-S.MPQ",
       "sha256": "89fa6c8f235bb82d20f12cdf8a08f5e91a375faebbfe1de0733d948050a941b0",
       "sizeBytes": 31826,
+      "required": true
+    },
+    {
+      "path": "Data/patch-T.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/patch-T.MPQ",
+      "sha256": "9ff60a2ee80904ac63880e38f92d8e4bf47620f87c4c702f3f0cf0471a7a9a3a",
+      "sizeBytes": 317918471,
       "required": true
     },
     {
@@ -1287,20 +1301,6 @@
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroParagon/Templates/UITemplate2X.xml",
       "sha256": "f12fdb6314f3d85bf5a73ad92ec539a8da4e2a782de4461e90c5535ec4eefec7",
       "sizeBytes": 15010,
-      "required": true
-    },
-    {
-      "path": "Interface/AddOns/AethroSanctuary/AethroSanctuary.lua",
-      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroSanctuary/AethroSanctuary.lua",
-      "sha256": "98fb4a5de1567bc8c0aa69ba2794045ec86ff15c560d3823043ae5a41829d37a",
-      "sizeBytes": 5214,
-      "required": true
-    },
-    {
-      "path": "Interface/AddOns/AethroSanctuary/AethroSanctuary.toc",
-      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroSanctuary/AethroSanctuary.toc",
-      "sha256": "76de3838acc437682b7e1cf3d7a4ed0efed2a76c23219e59c1a44d7cb79a8cf2",
-      "sizeBytes": 204,
       "required": true
     },
     {
@@ -2699,7 +2699,7 @@
     {
       "path": "Wow.exe",
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Wow.exe",
-      "sha256": "aa63a5750d60ef16746c686b3d5e26876d98953eab08b1c026cd0faf78e88cb8",
+      "sha256": "083f374095d20038999d293bfe95f51ccfe31820a53c6432336859bb7bd18b48",
       "sizeBytes": 7704216,
       "required": true
     },

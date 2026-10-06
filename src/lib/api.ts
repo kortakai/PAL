@@ -40,7 +40,7 @@ const PLAY_AETHRO_NEWS_URL = 'https://playaethro.online/news';
 const PLAY_AETHRO_FORUM_ANNOUNCEMENTS_RSS_URL = 'https://playaethro.online/forums/announcements.rss';
 
 const GAME_SERVER_STATUS_TARGETS = [
-  { id: 'shadows', host: 'mc.aethro.net', port: 25_567 },
+  { id: 'aethro-online', host: 'aethro.online', port: KALISMOR_PUBLIC_MUD_PORT },
   { id: 'reforged', host: 'aethro.net', port: 3_724 }
 ] as const;
 
@@ -407,8 +407,10 @@ export async function openMinecraftLauncher(): Promise<string> {
   return invoke<string>('open_minecraft_launcher');
 }
 
-export async function openReforgedClient(): Promise<string> {
-  return invoke<string>('open_reforged_client');
+export async function openReforgedClient(session: AuthSession): Promise<string> {
+  return invoke<string>('open_reforged_client', {
+    accessToken: session.accessToken
+  });
 }
 
 export async function recordShadowsLaunch(session: AuthSession, minecraft: LocalMinecraftProfile): Promise<void> {
@@ -915,34 +917,10 @@ export function createLauncherHome(
     news,
     games: [
       {
-        id: 'shadows',
-        title: 'Shadows of Aethro',
-        description: 'Fabric 1.21.1 modded Minecraft adventure.',
-        status: gameStatuses.shadows ?? 'offline',
-        actionLabel: 'Play Shadows'
-        ,feedId: 'shadows-of-aethro'
-        ,accent: 'shadows'
-        ,premium: { status: 'available', label: 'Premium' }
-        ,links: {
-          website: 'https://playaethro.online/games/shadows-of-aethro',
-          forum: 'https://playaethro.online/forums/shadows-of-aethro',
-          vote: 'https://playaethro.online/vote',
-          shop: 'https://playaethro.online/store'
-        }
-        ,music: {
-          label: 'Shadows Radio',
-          tracks: [
-            { title: 'Pale Orchard', src: '/audio/shadows/pale-orchard.mp3' },
-            { title: 'Iron Crown Run', src: '/audio/shadows/iron-crown-run.mp3' },
-            { title: 'Moss on My Boots', src: '/audio/shadows/moss-on-my-boots.mp3' }
-          ]
-        }
-      },
-      {
         id: 'aethro-online',
         title: 'Chronicles of Kalismor',
-        description: 'A dark fantasy MUD gateway being prepared.',
-        status: 'maintenance',
+        description: 'A dark fantasy MUD gateway.',
+        status: gameStatuses['aethro-online'] ?? 'offline',
         actionLabel: 'View Kalismor'
         ,feedId: 'aethro-online'
         ,accent: 'kalismor'

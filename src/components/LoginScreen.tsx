@@ -45,7 +45,7 @@ export function LoginScreen({ onLoggedIn }: Props) {
       <section className="hero-card brand-hero">
         <img className="brand-hero-image" src="/images/play-aethro-hero.png" alt="" />
         <div className="brand-mark">
-          <span>PA</span>
+          <span>Play Aethro</span>
         </div>
         <div className="hero-copy brand-hero-copy">
           <span className="eyebrow">Play Aethro Launcher</span>

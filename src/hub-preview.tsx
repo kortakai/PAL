@@ -6,7 +6,6 @@ import type { LauncherGame } from './lib/types';
 import './styles.css';
 const games: LauncherGame[] = [
   { id:'reforged', title:'Aethro: Reforged', status:'unknown', actionLabel:'Play', feedId:'aethro-reforged' },
-  { id:'shadows', title:'Shadows of Aethro', status:'unknown', actionLabel:'Play', feedId:'shadows-of-aethro' },
   { id:'aethro-online', title:'Chronicles of Kalismor', status:'unknown', actionLabel:'Play', feedId:'aethro-online' }
 ].map(game => ({ ...game, description:'Design preview', status:'unknown' as const } as LauncherGame));
 function Preview() {

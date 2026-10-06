@@ -1,5 +1,5 @@
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine as _};
-use rand::{distributions::Alphanumeric, Rng};
+use rand::{distributions::Alphanumeric, Rng, RngCore};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::{
@@ -31,9 +31,12 @@ const DOWNLOAD_MAX_RETRY_DELAY_SECONDS: u64 = 60;
 const SHADOWS_MANIFEST_URL: &str = "https://aethro.net/launcher/shadows/stable/manifest.json";
 const REFORGED_MANIFEST_URL: &str =
     "https://aethro.net/downloads/ar-launcher-stuff/reforged-client.json";
+const REFORGED_LAUNCH_AUTHORIZATION_URL: &str =
+    "https://playaethro.online/api/account/games/aethro-reforged/launch";
 const SHADOWS_DOWNLOAD_PATH_PREFIX: &str = "/launcher/shadows/stable/files/";
 const REFORGED_DOWNLOAD_PATH_PREFIX: &str = "/downloads/ar-launcher-stuff/Aethro_Reforged/";
 const REFORGED_INSTALL_CONFIG_FILE: &str = "reforged-install.json";
+const REFORGED_DEVICE_FILE: &str = "reforged-device.json";
 const REFORGED_CONFIG_RELATIVE_PATH: &str = "WTF/Config.wtf";
 const REFORGED_DATA_REALMLIST_RELATIVE_PATH: &str = "Data/enUS/realmlist.wtf";
 const REFORGED_D3D9_RELATIVE_PATH: &str = "d3d9.dll";
@@ -41,9 +44,13 @@ const REFORGED_DISABLED_D3D9_RELATIVE_PATH: &str = "d3d9.dll.disabled-by-aethro-
 const REFORGED_REALMLIST_HOST: &str = "51.222.24.20";
 const BUNDLED_REFORGED_MANIFEST: &str = include_str!("../../manifests/reforged-client.json");
 const AETHRO_GLOBAL_ADDON_RELATIVE_PATH: &str = "Interface/AddOns/AethroGlobal";
+const AETHRO_SANCTUARY_ADDON_RELATIVE_PATH: &str = "Interface/AddOns/AethroSanctuary";
+const OBSOLETE_REFORGED_ADDONS: &[(&str, &str)] = &[
+    ("AethroGlobal", AETHRO_GLOBAL_ADDON_RELATIVE_PATH),
+    ("AethroSanctuary", AETHRO_SANCTUARY_ADDON_RELATIVE_PATH),
+];
 const REQUIRED_REFORGED_ADDONS: &[&str] = &[
     "AethroParagon",
-    "AethroSanctuary",
     "AethroTitles",
     "GuildVillageHelper",
     "ReagentBankUI",
@@ -122,6 +129,11 @@ struct ReforgedInstallConfig {
     last_verified_manifest_sha256: Option<String>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct ReforgedDeviceConfig {
+    device_id: String,
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ShadowsManifest {
@@ -176,6 +188,13 @@ struct ShadowsManifestFile {
     url: Option<String>,
     sha256: String,
     size_bytes: Option<u64>,
+    #[serde(default)]
+    required: bool,
+}
+
+#[derive(Debug, Deserialize)]
+struct ReforgedLaunchAuthorizationResponse {
+    allowed: bool,
 }
 
 #[derive(Debug, Serialize)]
@@ -720,17 +739,12 @@ async fn load_reforged_manifest() -> Result<ReforgedManifest, String> {
             .unwrap_or(false)
     }
 
-    fn with_bundled_files(mut manifest: ReforgedManifest) -> Result<ReforgedManifest, String> {
+    fn require_complete_file_list(manifest: ReforgedManifest) -> Result<ReforgedManifest, String> {
         if has_file_list(&manifest) {
             return Ok(manifest);
         }
 
-        let bundled = load_bundled_reforged_manifest()?;
-        manifest.files = bundled.files;
-        manifest.game_id = manifest.game_id.or(bundled.game_id);
-        manifest.channel = manifest.channel.or(bundled.channel);
-        manifest.display_name = manifest.display_name.or(bundled.display_name);
-        Ok(manifest)
+        Err("Remote Reforged manifest is missing its required file list.".to_string())
     }
 
     let client = reqwest::Client::builder()
@@ -752,7 +766,7 @@ async fn load_reforged_manifest() -> Result<ReforgedManifest, String> {
             let mut manifest = serde_json::from_str::<ReforgedManifest>(&text)
                 .map_err(|e| format!("Unable to parse remote Reforged manifest: {e}"))?;
             manifest.source_sha256 = Some(manifest_text_sha256(&text));
-            with_bundled_files(manifest)
+            require_complete_file_list(manifest)
         }
         Ok(response) => {
             eprintln!(
@@ -797,6 +811,76 @@ fn reforged_install_config_path(app_handle: &tauri::AppHandle) -> Result<PathBuf
         .app_data_dir()
         .map_err(|e| format!("Unable to locate launcher data folder: {e}"))?;
     Ok(app_data_dir.join(REFORGED_INSTALL_CONFIG_FILE))
+}
+
+fn reforged_device_config_path(app_handle: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let app_data_dir = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Unable to locate launcher data folder: {e}"))?;
+    Ok(app_data_dir.join(REFORGED_DEVICE_FILE))
+}
+
+fn generate_uuid_v4() -> String {
+    let mut bytes = [0_u8; 16];
+    rand::thread_rng().fill_bytes(&mut bytes);
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+
+    format!(
+        "{:02x}{:02x}{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}-{:02x}{:02x}{:02x}{:02x}{:02x}{:02x}",
+        bytes[0], bytes[1], bytes[2], bytes[3], bytes[4], bytes[5], bytes[6], bytes[7],
+        bytes[8], bytes[9], bytes[10], bytes[11], bytes[12], bytes[13], bytes[14], bytes[15]
+    )
+}
+
+fn load_or_create_reforged_device_id_at(config_path: &Path) -> Result<String, String> {
+    if config_path.exists() {
+        let text = fs::read_to_string(config_path)
+            .map_err(|e| format!("Unable to read Reforged device settings: {e}"))?;
+        let config = serde_json::from_str::<ReforgedDeviceConfig>(&text)
+            .map_err(|e| format!("Unable to parse Reforged device settings: {e}"))?;
+        if is_uuid_v4(&config.device_id) {
+            return Ok(config.device_id);
+        }
+        return Err("Reforged device settings are invalid. Reinstall the launcher to create a new device binding.".to_string());
+    }
+
+    if let Some(parent) = config_path.parent() {
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Unable to create launcher settings folder: {e}"))?;
+    }
+    let device_id = generate_uuid_v4();
+    let config = ReforgedDeviceConfig { device_id: device_id.clone() };
+    fs::write(
+        config_path,
+        format!(
+            "{}\n",
+            serde_json::to_string_pretty(&config)
+                .map_err(|e| format!("Unable to serialize Reforged device settings: {e}"))?
+        ),
+    )
+    .map_err(|e| format!("Unable to save Reforged device settings: {e}"))?;
+
+    Ok(device_id)
+}
+
+fn load_or_create_reforged_device_id(app_handle: &tauri::AppHandle) -> Result<String, String> {
+    load_or_create_reforged_device_id_at(&reforged_device_config_path(app_handle)?)
+}
+
+fn is_uuid_v4(value: &str) -> bool {
+    let bytes = value.as_bytes();
+    bytes.len() == 36
+        && bytes[8] == b'-'
+        && bytes[13] == b'-'
+        && bytes[18] == b'-'
+        && bytes[23] == b'-'
+        && bytes[14] == b'4'
+        && matches!(bytes[19], b'8' | b'9' | b'a' | b'b')
+        && bytes.iter().enumerate().all(|(index, byte)| {
+            matches!(index, 8 | 13 | 18 | 23) || byte.is_ascii_hexdigit()
+        })
 }
 
 fn load_reforged_install_config(
@@ -959,8 +1043,13 @@ fn check_manifest_files(
             continue;
         }
 
+        let actual_size = fs::metadata(&file_path)
+            .map_err(|e| format!("Unable to inspect {}: {e}", file_path.display()))?
+            .len();
         let actual_sha256 = sha256_file(&file_path)?;
-        let status = if actual_sha256.eq_ignore_ascii_case(&manifest_file.sha256) {
+        let status = if manifest_file.size_bytes.map_or(true, |expected| expected == actual_size)
+            && actual_sha256.eq_ignore_ascii_case(&manifest_file.sha256)
+        {
             "ok"
         } else {
             "changed"
@@ -1265,10 +1354,12 @@ fn disable_reforged_d3d9_dll(install_dir: &Path) -> Result<(), String> {
 }
 
 fn remove_obsolete_reforged_addons(install_dir: &Path) -> Result<(), String> {
-    let addon_path = safe_join(install_dir, AETHRO_GLOBAL_ADDON_RELATIVE_PATH)?;
-    if addon_path.exists() {
-        fs::remove_dir_all(&addon_path)
-            .map_err(|e| format!("Unable to remove obsolete AethroGlobal addon: {e}"))?;
+    for (addon_name, relative_path) in OBSOLETE_REFORGED_ADDONS {
+        let addon_path = safe_join(install_dir, relative_path)?;
+        if addon_path.exists() {
+            fs::remove_dir_all(&addon_path)
+                .map_err(|e| format!("Unable to remove obsolete {addon_name} addon: {e}"))?;
+        }
     }
 
     Ok(())
@@ -1307,7 +1398,11 @@ fn enable_reforged_addons_in_state_file(path: &Path) -> Result<(), String> {
 
     lines.retain(|line| {
         line.split_once(':')
-            .is_none_or(|(addon, _)| !addon.trim().eq_ignore_ascii_case("AethroGlobal"))
+            .is_none_or(|(addon, _)| {
+                !OBSOLETE_REFORGED_ADDONS
+                    .iter()
+                    .any(|(obsolete_addon, _)| addon.trim().eq_ignore_ascii_case(obsolete_addon))
+            })
     });
 
     for addon in REQUIRED_REFORGED_ADDONS {
@@ -1393,6 +1488,90 @@ fn find_reforged_executable(
     }
 
     Ok(executable_path)
+}
+
+fn manifest_requires_wow_exe(manifest: &ReforgedManifest) -> bool {
+    reforged_manifest_files(manifest).iter().any(|file| {
+        file.path.replace('\\', "/").eq_ignore_ascii_case("Wow.exe") && file.required
+    })
+}
+
+fn verify_reforged_launch_ready(
+    install_dir: &Path,
+    manifest: &ReforgedManifest,
+) -> Result<ModpackCheckResult, String> {
+    if !manifest_requires_wow_exe(manifest) {
+        return Err("The Reforged manifest must declare Wow.exe as a required managed file.".to_string());
+    }
+
+    let verification = check_reforged_realm_list(install_dir, manifest, None)?;
+    if !verification.ready {
+        return Err("Reforged verification failed. Run Install / Repair Setup before launching.".to_string());
+    }
+    Ok(verification)
+}
+
+fn require_verified_and_authorized_launch(verification_ready: bool, authorization_allowed: bool) -> Result<(), String> {
+    if !verification_ready {
+        return Err("Reforged verification failed. The game was not launched.".to_string());
+    }
+    if !authorization_allowed {
+        return Err("Reforged launch authorization was rejected. The game was not launched.".to_string());
+    }
+    Ok(())
+}
+
+fn parse_reforged_launch_authorization(body: &str) -> Result<bool, String> {
+    serde_json::from_str::<ReforgedLaunchAuthorizationResponse>(body)
+        .map(|response| response.allowed)
+        .map_err(|_| "Reforged launch authorization returned an invalid response.".to_string())
+}
+
+async fn authorize_reforged_launch(
+    access_token: &str,
+    device_id: &str,
+    manifest_sha256: &str,
+) -> Result<(), String> {
+    if access_token.trim().is_empty() {
+        return Err("Reforged launch authorization requires an active Aethro session.".to_string());
+    }
+
+    let client = reqwest::Client::builder()
+        .timeout(Duration::from_secs(HTTP_TIMEOUT_SECONDS))
+        .build()
+        .map_err(|e| format!("Unable to create Reforged authorization client: {e}"))?;
+    let response = client
+        .post(REFORGED_LAUNCH_AUTHORIZATION_URL)
+        .bearer_auth(access_token)
+        .json(&serde_json::json!({
+            "device_id": device_id,
+            "manifest_sha256": manifest_sha256,
+            "launcher_version": env!("CARGO_PKG_VERSION"),
+        }))
+        .send()
+        .await
+        .map_err(|_| "Unable to reach Reforged launch authorization. The game was not launched.".to_string())?;
+    let status = response.status();
+    if !status.is_success() {
+        return Err(format!(
+            "Reforged launch authorization was rejected (HTTP {status}). The game was not launched."
+        ));
+    }
+    let body = response
+        .text()
+        .await
+        .map_err(|_| "Unable to read Reforged launch authorization. The game was not launched.".to_string())?;
+    let allowed = parse_reforged_launch_authorization(&body)?;
+    require_verified_and_authorized_launch(true, allowed)
+}
+
+fn prepare_reforged_install_for_launch(install_dir: &Path) -> Result<(), String> {
+    update_reforged_realm_list(install_dir)?;
+    update_reforged_data_realm_list(install_dir)?;
+    update_reforged_addon_config(install_dir)?;
+    remove_obsolete_reforged_addons(install_dir)?;
+    enable_required_reforged_addons(install_dir)?;
+    disable_reforged_d3d9_dll(install_dir)
 }
 
 fn collect_regular_files(root: &Path, files: &mut Vec<PathBuf>) -> Result<(), String> {
@@ -2411,8 +2590,8 @@ async fn repair_reforged_install(
     emit_reforged_progress(
         &app_handle,
         "installing",
-        "Removing obsolete AethroGlobal addon",
-        Some(AETHRO_GLOBAL_ADDON_RELATIVE_PATH.to_string()),
+        "Removing obsolete Reforged addons",
+        None,
         2,
         total_files,
         0,
@@ -2535,12 +2714,7 @@ async fn prepare_reforged_launch(
     let install_dir = required_reforged_install_dir(&app_handle)?;
     let manifest = load_reforged_manifest().await?;
 
-    update_reforged_realm_list(&install_dir)?;
-    update_reforged_data_realm_list(&install_dir)?;
-    update_reforged_addon_config(&install_dir)?;
-    remove_obsolete_reforged_addons(&install_dir)?;
-    enable_required_reforged_addons(&install_dir)?;
-    disable_reforged_d3d9_dll(&install_dir)?;
+    prepare_reforged_install_for_launch(&install_dir)?;
 
     let saved_manifest_sha256 = load_reforged_install_config(&app_handle)?
         .and_then(|config| config.last_verified_manifest_sha256);
@@ -2709,23 +2883,29 @@ async fn open_minecraft_launcher(app_handle: tauri::AppHandle) -> Result<String,
 }
 
 #[tauri::command]
-async fn open_reforged_client(app_handle: tauri::AppHandle) -> Result<String, String> {
+async fn open_reforged_client(
+    app_handle: tauri::AppHandle,
+    access_token: String,
+) -> Result<String, String> {
     let install_dir = required_reforged_install_dir(&app_handle)?;
-    let manifest = load_reforged_manifest().await.ok();
+    let manifest = load_reforged_manifest().await?;
+    prepare_reforged_install_for_launch(&install_dir)?;
+    let verification = verify_reforged_launch_ready(&install_dir, &manifest)?;
+    let manifest_sha256 = verification
+        .manifest_sha256
+        .as_deref()
+        .ok_or_else(|| "Reforged manifest verification did not produce a manifest hash.".to_string())?;
+    let device_id = load_or_create_reforged_device_id(&app_handle)?;
+    authorize_reforged_launch(&access_token, &device_id, manifest_sha256).await?;
     let executable_path = find_reforged_executable(
         &install_dir,
-        manifest
-            .as_ref()
-            .and_then(|manifest| manifest.launch.as_ref()),
+        manifest.launch.as_ref(),
     )?;
     let launch_args = manifest
+        .launch
         .as_ref()
-        .and_then(|manifest| manifest.launch.as_ref())
         .and_then(|launch| launch.args.clone())
         .unwrap_or_default();
-    update_reforged_realm_list(&install_dir)?;
-    update_reforged_data_realm_list(&install_dir)?;
-    disable_reforged_d3d9_dll(&install_dir)?;
 
     #[cfg(target_os = "windows")]
     {
@@ -3283,4 +3463,98 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running Play Aethro Launcher");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn write_ready_reforged_config(install_dir: &Path) {
+        fs::create_dir_all(install_dir.join("WTF")).expect("create WTF directory");
+        fs::create_dir_all(install_dir.join("Data/enUS")).expect("create Data directory");
+        let realm_list = format!("SET realmList \"{REFORGED_REALMLIST_HOST}\"\n");
+        fs::write(install_dir.join(REFORGED_CONFIG_RELATIVE_PATH), &realm_list)
+            .expect("write Config.wtf");
+        fs::write(
+            install_dir.join(REFORGED_DATA_REALMLIST_RELATIVE_PATH),
+            realm_list,
+        )
+        .expect("write realmlist.wtf");
+    }
+
+    #[test]
+    fn reforged_device_id_is_created_once_and_persisted() {
+        let temp_dir = env::temp_dir().join(format!("aethro-device-test-{}", generate_uuid_v4()));
+        let config_path = temp_dir.join(REFORGED_DEVICE_FILE);
+
+        let first = load_or_create_reforged_device_id_at(&config_path).expect("create device ID");
+        let second = load_or_create_reforged_device_id_at(&config_path).expect("reuse device ID");
+
+        assert!(is_uuid_v4(&first));
+        assert_eq!(first, second);
+        fs::remove_dir_all(temp_dir).expect("remove test directory");
+    }
+
+    #[test]
+    fn verification_failure_blocks_launch() {
+        let temp_dir = env::temp_dir().join(format!("aethro-verification-test-{}", generate_uuid_v4()));
+        fs::create_dir_all(&temp_dir).expect("create test directory");
+        write_ready_reforged_config(&temp_dir);
+        fs::write(temp_dir.join("Wow.exe"), b"modified client").expect("write test executable");
+        let manifest = ReforgedManifest {
+            game_id: Some("reforged".to_string()),
+            channel: Some("stable-client".to_string()),
+            display_name: Some("Aethro: Reforged".to_string()),
+            launch: Some(ReforgedManifestLaunch { executable: Some("Wow.exe".to_string()), args: None }),
+            files: Some(vec![ShadowsManifestFile {
+                path: "Wow.exe".to_string(),
+                url: None,
+                sha256: "0".repeat(64),
+                size_bytes: Some(1),
+                required: true,
+            }]),
+            source_sha256: Some("a".repeat(64)),
+        };
+
+        assert!(verify_reforged_launch_ready(&temp_dir, &manifest).is_err());
+        assert!(require_verified_and_authorized_launch(false, true).is_err());
+        fs::remove_dir_all(temp_dir).expect("remove test directory");
+    }
+
+    #[test]
+    fn rejected_authorization_blocks_launch() {
+        let allowed = parse_reforged_launch_authorization(r#"{"allowed":false}"#)
+            .expect("parse authorization response");
+        assert!(!allowed);
+        assert!(require_verified_and_authorized_launch(true, allowed).is_err());
+    }
+
+    #[test]
+    fn verified_and_authorized_launch_passes_the_gate() {
+        let temp_dir = env::temp_dir().join(format!("aethro-launch-test-{}", generate_uuid_v4()));
+        fs::create_dir_all(&temp_dir).expect("create test directory");
+        write_ready_reforged_config(&temp_dir);
+        let executable = b"approved client";
+        fs::write(temp_dir.join("Wow.exe"), executable).expect("write test executable");
+        let manifest = ReforgedManifest {
+            game_id: Some("reforged".to_string()),
+            channel: Some("stable-client".to_string()),
+            display_name: Some("Aethro: Reforged".to_string()),
+            launch: Some(ReforgedManifestLaunch { executable: Some("Wow.exe".to_string()), args: None }),
+            files: Some(vec![ShadowsManifestFile {
+                path: "Wow.exe".to_string(),
+                url: None,
+                sha256: sha256_bytes(executable),
+                size_bytes: Some(executable.len() as u64),
+                required: true,
+            }]),
+            source_sha256: Some("a".repeat(64)),
+        };
+        let verification = verify_reforged_launch_ready(&temp_dir, &manifest)
+            .expect("verify approved client");
+        let allowed = parse_reforged_launch_authorization(r#"{"allowed":true}"#)
+            .expect("parse authorization response");
+        assert!(require_verified_and_authorized_launch(verification.ready, allowed).is_ok());
+        fs::remove_dir_all(temp_dir).expect("remove test directory");
+    }
 }

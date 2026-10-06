@@ -1087,7 +1087,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
         await refreshReforgedAccount();
       }
 
-      await openReforgedClient();
+      await withFreshSession((activeSession) => openReforgedClient(activeSession));
     } catch (err) {
       setReforgedInstallState('failed');
       setReforgedError(err instanceof Error ? err.message : String(err || 'Unable to open Reforged.'));
@@ -1854,9 +1854,8 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     <main className="dashboard home-dashboard reference-home">
       <header className="home-topbar">
         <div className="home-brand">
-          <div className="home-brand-mark"><span>PA</span></div>
           <div>
-            <h1>Play Aethro Launcher</h1>
+            <h1>Play Aethro</h1>
           </div>
           <div className="reference-greeting">Welcome back!<small>Good to see you again.</small></div>
         </div>

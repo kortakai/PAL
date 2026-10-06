@@ -52,7 +52,7 @@ export function GameHub({ game, player, avatarUrl, news, onHome, openExternal, p
   return (
     <main className={`game-window hub-${game.id}`}>
       <header className="hub-header">
-        <button className="hub-brand" onClick={onHome}><span>PA</span>Play Aethro Launcher</button>
+        <button className="hub-brand" onClick={onHome}>Play Aethro</button>
         <button className="hub-back" onClick={onHome}><ArrowLeft size={16} /> Home</button>
         <span className="hub-header-title">{game.title}</span>
         <span className="hub-player" title={player}>
