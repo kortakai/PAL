@@ -40,6 +40,7 @@ const REFORGED_DEVICE_FILE: &str = "reforged-device.json";
 const REFORGED_CONFIG_RELATIVE_PATH: &str = "WTF/Config.wtf";
 const REFORGED_DATA_REALMLIST_RELATIVE_PATH: &str = "Data/enUS/realmlist.wtf";
 const REFORGED_D3D9_RELATIVE_PATH: &str = "d3d9.dll";
+#[cfg(target_os = "windows")]
 const REFORGED_DISABLED_D3D9_RELATIVE_PATH: &str = "d3d9.dll.disabled-by-aethro-launcher";
 const REFORGED_REALMLIST_HOST: &str = "51.222.24.20";
 const BUNDLED_REFORGED_MANIFEST: &str = include_str!("../../manifests/reforged-client.json");
@@ -127,6 +128,23 @@ struct ReforgedInstallConfig {
     install_dir: String,
     #[serde(default)]
     last_verified_manifest_sha256: Option<String>,
+    #[serde(default)]
+    macos_launch_shortcut: Option<String>,
+    #[serde(default)]
+    macos_launch_shortcut_name: Option<String>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ReforgedMacRuntime {
+    supported: bool,
+    apple_silicon: bool,
+    app_installed: bool,
+    app_version: Option<String>,
+    shortcut_export_supported: bool,
+    app_path: Option<String>,
+    launch_shortcut: Option<String>,
+    launch_shortcut_name: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -423,7 +441,7 @@ fn read_http_request(stream: &mut TcpStream) -> Result<String, String> {
         .set_read_timeout(Some(Duration::from_secs(120)))
         .map_err(|e| format!("Unable to set OAuth callback timeout: {e}"))?;
 
-    let mut buffer = [0_u8; 8192];
+    let mut buffer = [0_u8; 1024 * 1024];
     let size = stream
         .read(&mut buffer)
         .map_err(|e| format!("Unable to read OAuth callback: {e}"))?;
@@ -935,11 +953,212 @@ fn save_reforged_install_dir(
     app_handle: &tauri::AppHandle,
     install_dir: &Path,
 ) -> Result<(), String> {
+    let saved_config = load_reforged_install_config(app_handle)?;
     let config = ReforgedInstallConfig {
         install_dir: install_dir.to_string_lossy().to_string(),
         last_verified_manifest_sha256: None,
+        macos_launch_shortcut: saved_config
+            .as_ref()
+            .and_then(|value| value.macos_launch_shortcut.clone()),
+        macos_launch_shortcut_name: saved_config
+            .and_then(|value| value.macos_launch_shortcut_name),
     };
     save_reforged_install_config(app_handle, &config)
+}
+
+fn detect_installed_wowsilicon_app() -> Option<PathBuf> {
+    #[cfg(target_os = "macos")]
+    {
+        let mut candidates = vec![PathBuf::from("/Applications/WoWSilicon.app")];
+        if let Some(home) = env::var_os("HOME") {
+            candidates.push(PathBuf::from(home).join("Applications/WoWSilicon.app"));
+        }
+        return candidates.into_iter().find(|path| path.join("Contents/Info.plist").is_file());
+    }
+
+    #[allow(unreachable_code)]
+    None
+}
+
+fn locate_wowsilicon_app(app_handle: &tauri::AppHandle) -> Option<PathBuf> {
+    let installed = detect_installed_wowsilicon_app();
+    let bundled = app_handle
+        .path()
+        .resource_dir()
+        .ok()
+        .map(|resources| resources.join("wowsilicon/WoWSilicon.app"))
+        .filter(|path| path.join("Contents/Info.plist").is_file());
+
+    #[cfg(target_os = "macos")]
+    if let (Some(installed_path), Some(bundled_path)) = (&installed, &bundled) {
+        if let (Some(installed_version), Some(bundled_version)) = (
+            wowsilicon_app_version(installed_path),
+            wowsilicon_app_version(bundled_path),
+        ) {
+            if compare_dotted_versions(&bundled_version, &installed_version).is_gt() {
+                return Some(bundled_path.clone());
+            }
+        }
+    }
+
+    installed.or(bundled)
+}
+
+#[cfg(target_os = "macos")]
+fn wowsilicon_app_version(app_path: &Path) -> Option<String> {
+    Command::new("/usr/bin/plutil")
+        .args(["-extract", "CFBundleShortVersionString", "raw", "-o", "-"])
+        .arg(app_path.join("Contents/Info.plist"))
+        .output()
+        .ok()
+        .filter(|output| output.status.success())
+        .and_then(|output| String::from_utf8(output.stdout).ok())
+        .map(|version| version.trim().to_string())
+        .filter(|version| !version.is_empty())
+}
+
+fn compare_dotted_versions(left: &str, right: &str) -> std::cmp::Ordering {
+    let left_parts = left
+        .split('.')
+        .map(|part| part.parse::<u64>().unwrap_or(0))
+        .collect::<Vec<_>>();
+    let right_parts = right
+        .split('.')
+        .map(|part| part.parse::<u64>().unwrap_or(0))
+        .collect::<Vec<_>>();
+    for index in 0..left_parts.len().max(right_parts.len()) {
+        let ordering = left_parts.get(index).copied().unwrap_or(0).cmp(
+            &right_parts.get(index).copied().unwrap_or(0),
+        );
+        if !ordering.is_eq() {
+            return ordering;
+        }
+    }
+    std::cmp::Ordering::Equal
+}
+
+#[tauri::command]
+fn get_reforged_mac_runtime(app_handle: tauri::AppHandle) -> Result<ReforgedMacRuntime, String> {
+    let config = load_reforged_install_config(&app_handle)?;
+    let detected_app = locate_wowsilicon_app(&app_handle);
+
+    #[cfg(target_os = "macos")]
+    let supported = true;
+    #[cfg(not(target_os = "macos"))]
+    let supported = false;
+
+    #[cfg(target_os = "macos")]
+    let app_version = detected_app.as_deref().and_then(wowsilicon_app_version);
+    #[cfg(not(target_os = "macos"))]
+    let app_version: Option<String> = None;
+    let shortcut_export_supported = app_version
+        .as_deref()
+        .is_some_and(|version| !compare_dotted_versions(version, "3.2.2").is_lt());
+
+    Ok(ReforgedMacRuntime {
+        supported,
+        apple_silicon: cfg!(target_arch = "aarch64"),
+        app_installed: detected_app.is_some(),
+        app_version,
+        shortcut_export_supported,
+        app_path: detected_app.map(|path| path.to_string_lossy().to_string()),
+        launch_shortcut: config.as_ref().and_then(|value| value.macos_launch_shortcut.clone()),
+        launch_shortcut_name: config.and_then(|value| value.macos_launch_shortcut_name),
+    })
+}
+
+#[tauri::command]
+fn set_reforged_macos_shortcut(
+    app_handle: tauri::AppHandle,
+    shortcut_path: String,
+) -> Result<ReforgedMacRuntime, String> {
+    #[cfg(target_os = "macos")]
+    {
+        let shortcut = PathBuf::from(&shortcut_path);
+        if shortcut.extension().and_then(|value| value.to_str()) != Some("shortcut")
+            || !shortcut.is_file()
+        {
+            return Err("Choose the .shortcut file exported by WoWSilicon for Reforged.".to_string());
+        }
+
+        let parsed_name = Command::new("/usr/bin/plutil")
+            .args(["-extract", "WFWorkflowName", "raw", "-o", "-"])
+            .arg(&shortcut)
+            .output()
+            .ok()
+            .filter(|output| output.status.success())
+            .and_then(|output| String::from_utf8(output.stdout).ok())
+            .map(|name| name.trim().to_string())
+            .filter(|name| !name.is_empty());
+        let shortcut_name = parsed_name
+            .or_else(|| shortcut.file_stem().map(|name| name.to_string_lossy().to_string()))
+            .ok_or_else(|| "Unable to read the WoWSilicon shortcut name.".to_string())?;
+
+        let mut config = load_reforged_install_config(&app_handle)?
+            .ok_or_else(|| "Choose the Reforged install folder first.".to_string())?;
+        config.macos_launch_shortcut = Some(shortcut.to_string_lossy().to_string());
+        config.macos_launch_shortcut_name = Some(shortcut_name);
+        save_reforged_install_config(&app_handle, &config)?;
+        return get_reforged_mac_runtime(app_handle);
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = (app_handle, shortcut_path);
+        Err("The WoWSilicon profile shortcut is only available on macOS.".to_string())
+    }
+}
+
+#[tauri::command]
+fn open_wowsilicon_app(app_handle: tauri::AppHandle) -> Result<String, String> {
+    #[cfg(target_os = "macos")]
+    {
+        let app_path = locate_wowsilicon_app(&app_handle)
+            .ok_or_else(|| "WoWSilicon is missing. Repair this launcher installation or install WoWSilicon from its official release.".to_string())?;
+        let status = Command::new("/usr/bin/open")
+            .arg(&app_path)
+            .status()
+            .map_err(|error| format!("Unable to open WoWSilicon: {error}"))?;
+        if status.success() {
+            return Ok("WoWSilicon opened.".to_string());
+        }
+        return Err("macOS could not open WoWSilicon.".to_string());
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = app_handle;
+        Err("WoWSilicon is available only on macOS.".to_string())
+    }
+}
+
+#[tauri::command]
+fn get_recent_wowsilicon_shortcut_directory() -> Option<String> {
+    #[cfg(target_os = "macos")]
+    {
+        let mut newest: Option<(SystemTime, PathBuf)> = None;
+        for export_dir in fs::read_dir(env::temp_dir()).ok()?.flatten() {
+            let dir_path = export_dir.path();
+            if !export_dir.file_name().to_string_lossy().starts_with("WoWSilicon-Shortcut-") {
+                continue;
+            }
+            let Ok(shortcuts) = fs::read_dir(&dir_path) else { continue };
+            for shortcut in shortcuts.flatten() {
+                let path = shortcut.path();
+                if path.extension().and_then(|value| value.to_str()) != Some("shortcut") {
+                    continue;
+                }
+                let Ok(modified) = shortcut.metadata().and_then(|metadata| metadata.modified()) else { continue };
+                if newest.as_ref().is_none_or(|(last_modified, _)| modified > *last_modified) {
+                    newest = Some((modified, dir_path.clone()));
+                }
+            }
+        }
+        return newest.map(|(_, directory)| directory.to_string_lossy().to_string());
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    None
 }
 
 fn save_verified_reforged_manifest(
@@ -1132,9 +1351,33 @@ fn is_unsupported_reforged_managed_file(path: &str) -> bool {
 fn active_reforged_manifest_files(manifest: &ReforgedManifest) -> Vec<ShadowsManifestFile> {
     reforged_manifest_files(manifest)
         .iter()
-        .filter(|file| !is_unsupported_reforged_managed_file(&file.path))
+        .filter(|file| {
+            !is_unsupported_reforged_managed_file(&file.path)
+                && !is_wowsilicon_managed_file(&file.path)
+        })
         .cloned()
         .collect()
+}
+
+fn is_wowsilicon_managed_file(path: &str) -> bool {
+    #[cfg(target_os = "macos")]
+    {
+        let normalized = path.replace('\\', "/");
+        return [
+            "mods/winerosetta.dll",
+            "mods/libSiliconPatch.dll",
+            "DivxDecoder.dll",
+            "DivxDecoder.dll.bak",
+            "dlls.txt",
+            "libDllLdr.dll",
+            "mods/libDllLdr.dll",
+        ]
+        .iter()
+        .any(|managed| normalized.eq_ignore_ascii_case(managed));
+    }
+
+    #[allow(unreachable_code)]
+    false
 }
 
 fn reforged_manifest_game_id(manifest: &ReforgedManifest) -> &str {
@@ -1336,6 +1579,7 @@ fn update_reforged_addon_config(install_dir: &Path) -> Result<(), String> {
     update_wow_config_setting(install_dir, "checkAddonVersion", "0")
 }
 
+#[cfg(target_os = "windows")]
 fn disable_reforged_d3d9_dll(install_dir: &Path) -> Result<(), String> {
     let d3d9_path = safe_join(install_dir, REFORGED_D3D9_RELATIVE_PATH)?;
     if !d3d9_path.exists() {
@@ -1496,6 +1740,7 @@ fn manifest_requires_wow_exe(manifest: &ReforgedManifest) -> bool {
     })
 }
 
+#[cfg(test)]
 fn verify_reforged_launch_ready(
     install_dir: &Path,
     manifest: &ReforgedManifest,
@@ -1570,8 +1815,7 @@ fn prepare_reforged_install_for_launch(install_dir: &Path) -> Result<(), String>
     update_reforged_data_realm_list(install_dir)?;
     update_reforged_addon_config(install_dir)?;
     remove_obsolete_reforged_addons(install_dir)?;
-    enable_required_reforged_addons(install_dir)?;
-    disable_reforged_d3d9_dll(install_dir)
+    enable_required_reforged_addons(install_dir)
 }
 
 fn collect_regular_files(root: &Path, files: &mut Vec<PathBuf>) -> Result<(), String> {
@@ -2600,17 +2844,20 @@ async fn repair_reforged_install(
     remove_obsolete_reforged_addons(&install_dir)?;
     enable_required_reforged_addons(&install_dir)?;
 
-    emit_reforged_progress(
-        &app_handle,
-        "installing",
-        "Applying Reforged Windows compatibility",
-        Some(REFORGED_D3D9_RELATIVE_PATH.to_string()),
-        3,
-        total_files,
-        0,
-        0,
-    );
-    disable_reforged_d3d9_dll(&install_dir)?;
+    #[cfg(target_os = "windows")]
+    {
+        emit_reforged_progress(
+            &app_handle,
+            "installing",
+            "Applying Reforged Windows compatibility",
+            Some(REFORGED_D3D9_RELATIVE_PATH.to_string()),
+            3,
+            total_files,
+            0,
+            0,
+        );
+        disable_reforged_d3d9_dll(&install_dir)?;
+    }
 
     let current = check_reforged_realm_list(&install_dir, &manifest, Some(&app_handle))?;
     if current.invalid_manifest_files > 0 {
@@ -2648,6 +2895,7 @@ async fn repair_reforged_install(
         .map_err(|e| format!("Unable to create Reforged download client: {e}"))?;
 
     let mut downloaded_bytes = 0_u64;
+    let mut repaired_paths = Vec::with_capacity(repair_files.len());
     for (index, manifest_file) in repair_files.iter().enumerate() {
         let current_index = index + 4;
         emit_reforged_progress(
@@ -2677,9 +2925,30 @@ async fn repair_reforged_install(
             }),
         )
         .await?;
+        repaired_paths.push(manifest_file.path.clone());
     }
 
-    let final_check = check_reforged_realm_list(&install_dir, &manifest, Some(&app_handle))?;
+    // Existing files were checked against the manifest above; downloaded files were
+    // independently size/SHA-256 checked before being atomically installed. Reuse
+    // those results instead of hashing every large game archive a second time here.
+    let mut final_check = current;
+    for file in &mut final_check.files {
+        if repaired_paths.iter().any(|path| path == &file.path) {
+            if let Some(manifest_file) = managed_files.iter().find(|entry| entry.path == file.path) {
+                file.status = "ok".to_string();
+                file.expected_sha256 = Some(manifest_file.sha256.clone());
+                file.actual_sha256 = Some(manifest_file.sha256.clone());
+                file.size_bytes = manifest_file.size_bytes;
+            }
+        }
+    }
+    final_check.ok_files = final_check.files.iter().filter(|file| file.status == "ok").count();
+    final_check.missing_files = final_check.files.iter().filter(|file| file.status == "missing").count();
+    final_check.changed_files = final_check.files.iter().filter(|file| file.status == "changed").count();
+    final_check.invalid_manifest_files = final_check.files.iter().filter(|file| file.status == "invalidManifest").count();
+    final_check.ready = final_check.missing_files == 0
+        && final_check.changed_files == 0
+        && final_check.invalid_manifest_files == 0;
     emit_reforged_progress(
         &app_handle,
         if final_check.ready {
@@ -2890,13 +3159,20 @@ async fn open_reforged_client(
     let install_dir = required_reforged_install_dir(&app_handle)?;
     let manifest = load_reforged_manifest().await?;
     prepare_reforged_install_for_launch(&install_dir)?;
-    let verification = verify_reforged_launch_ready(&install_dir, &manifest)?;
-    let manifest_sha256 = verification
-        .manifest_sha256
+    if !manifest_requires_wow_exe(&manifest) {
+        return Err("The Reforged manifest must declare Wow.exe as a required managed file.".to_string());
+    }
+    let manifest_sha256 = manifest.source_sha256
         .as_deref()
         .ok_or_else(|| "Reforged manifest verification did not produce a manifest hash.".to_string())?;
-    let device_id = load_or_create_reforged_device_id(&app_handle)?;
-    authorize_reforged_launch(&access_token, &device_id, manifest_sha256).await?;
+    let saved_manifest_sha256 = load_reforged_install_config(&app_handle)?
+        .and_then(|config| config.last_verified_manifest_sha256);
+    if !saved_manifest_sha256
+        .as_deref()
+        .is_some_and(|verified| verified.eq_ignore_ascii_case(manifest_sha256))
+    {
+        return Err("The Reforged manifest changed since the last successful file check. Run Install / Update before launching.".to_string());
+    }
     let executable_path = find_reforged_executable(
         &install_dir,
         manifest.launch.as_ref(),
@@ -2906,9 +3182,12 @@ async fn open_reforged_client(
         .as_ref()
         .and_then(|launch| launch.args.clone())
         .unwrap_or_default();
+    let device_id = load_or_create_reforged_device_id(&app_handle)?;
+    authorize_reforged_launch(&access_token, &device_id, manifest_sha256).await?;
 
     #[cfg(target_os = "windows")]
     {
+        disable_reforged_d3d9_dll(&install_dir)?;
         Command::new(&executable_path)
             .current_dir(&install_dir)
             .args(launch_args)
@@ -2918,11 +3197,34 @@ async fn open_reforged_client(
         return Ok("Aethro: Reforged opened.".to_string());
     }
 
-    #[cfg(not(target_os = "windows"))]
+    #[cfg(target_os = "macos")]
+    {
+        let _ = (executable_path, launch_args);
+        let config = load_reforged_install_config(&app_handle)?
+            .ok_or_else(|| "Set up the Reforged profile shortcut in WoWSilicon first.".to_string())?;
+        let shortcut_path = PathBuf::from(config.macos_launch_shortcut.ok_or_else(|| "Set up the Reforged profile shortcut in WoWSilicon first.".to_string())?);
+        if !shortcut_path.is_file() || shortcut_path.extension().and_then(|value| value.to_str()) != Some("shortcut") {
+            return Err("The saved WoWSilicon profile shortcut is missing. Select it again in Reforged setup.".to_string());
+        }
+        let shortcut_name = config.macos_launch_shortcut_name
+            .or_else(|| shortcut_path.file_stem().map(|name| name.to_string_lossy().to_string()))
+            .ok_or_else(|| "The saved WoWSilicon shortcut has no name. Select it again in Reforged setup.".to_string())?;
+        let shortcut_url = format!("shortcuts://run-shortcut?name={}", urlencoding::encode(&shortcut_name));
+        let status = Command::new("/usr/bin/open")
+            .arg(shortcut_url)
+            .status()
+            .map_err(|error| format!("Unable to launch the Reforged WoWSilicon profile: {error}"))?;
+        if status.success() {
+            return Ok("Aethro: Reforged opened through WoWSilicon.".to_string());
+        }
+        return Err("macOS could not open the Reforged WoWSilicon profile shortcut.".to_string());
+    }
+
+    #[cfg(not(any(target_os = "windows", target_os = "macos")))]
     {
         let _ = executable_path;
         let _ = launch_args;
-        Err("Aethro: Reforged uses the Windows WoW 3.3.5a client. Launching is supported on Windows once the game is installed.".to_string())
+        Err("Aethro: Reforged launching is currently supported on Windows and macOS.".to_string())
     }
 }
 
@@ -3431,6 +3733,7 @@ pub fn run() {
     tauri::Builder::default()
         .manage(MudTerminalState::default())
         .plugin(tauri_plugin_single_instance::init(|_app, _args, _cwd| {}))
+        .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, None))
         .plugin(tauri_plugin_deep_link::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_process::init())
@@ -3448,6 +3751,10 @@ pub fn run() {
             prepare_reforged_launch,
             detect_local_minecraft_profile,
             detect_local_reforged_account,
+            get_reforged_mac_runtime,
+            set_reforged_macos_shortcut,
+            open_wowsilicon_app,
+            get_recent_wowsilicon_shortcut_directory,
             set_reforged_install_dir,
             fetch_text,
             api_request_json,
@@ -3468,6 +3775,13 @@ pub fn run() {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn wowsilicon_shortcut_export_requires_bundled_generation_or_newer() {
+        assert!(compare_dotted_versions("3.2.2", "3.2.2").is_eq());
+        assert!(compare_dotted_versions("3.3.0", "3.2.2").is_gt());
+        assert!(compare_dotted_versions("3.0.2", "3.2.2").is_lt());
+    }
 
     fn write_ready_reforged_config(install_dir: &Path) {
         fs::create_dir_all(install_dir.join("WTF")).expect("create WTF directory");

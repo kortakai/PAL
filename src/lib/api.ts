@@ -3,6 +3,10 @@ import type {
   AuthSession,
   DominionAccess,
   DominionLaunchHandoff,
+  LauncherStaffAccess,
+  LauncherStaffAction,
+  LauncherStaffAuditEntry,
+  LauncherStaffPlayer,
   LauncherGame,
   LauncherHome,
   LauncherNewsItem,
@@ -14,6 +18,7 @@ import type {
   ModpackCheckResult,
   NewsFeedId,
   ReforgedManifestUpdate,
+  ReforgedMacRuntime,
   ReforgedLaunchPreparation,
   ReforgedCharacter,
   ReforgedProfile,
@@ -403,6 +408,22 @@ export async function setReforgedInstallDir(installDir: string): Promise<LocalRe
   });
 }
 
+export async function getReforgedMacRuntime(): Promise<ReforgedMacRuntime> {
+  return invoke<ReforgedMacRuntime>('get_reforged_mac_runtime');
+}
+
+export async function setReforgedMacShortcut(shortcutPath: string): Promise<ReforgedMacRuntime> {
+  return invoke<ReforgedMacRuntime>('set_reforged_macos_shortcut', { shortcutPath });
+}
+
+export async function openWoWSilicon(): Promise<string> {
+  return invoke<string>('open_wowsilicon_app');
+}
+
+export async function getRecentWoWSiliconShortcutDirectory(): Promise<string | null> {
+  return invoke<string | null>('get_recent_wowsilicon_shortcut_directory');
+}
+
 export async function openMinecraftLauncher(): Promise<string> {
   return invoke<string>('open_minecraft_launcher');
 }
@@ -615,6 +636,41 @@ export async function requestDominionLaunch(session: AuthSession): Promise<Domin
     'Dominion launcher handoff'
   );
   return normalizeDominionLaunchHandoff(response);
+}
+
+export async function getLauncherStaffAccess(session: AuthSession): Promise<LauncherStaffAccess> {
+  return withTimeout(
+    apiRequestUrl<LauncherStaffAccess>(`${PLAY_AETHRO_API_BASE}/launcher/staff/access`, { token: session.accessToken }),
+    REFORGED_TIMEOUT_MS,
+    'launcher staff access'
+  );
+}
+
+export async function searchReforgedStaffPlayers(session: AuthSession, query: string): Promise<LauncherStaffPlayer[]> {
+  const params = new URLSearchParams({ q: query });
+  const response = await withTimeout(
+    apiRequestUrl<{ players: LauncherStaffPlayer[] }>(`${PLAY_AETHRO_API_BASE}/launcher/staff/reforged/players?${params}`, { token: session.accessToken }),
+    REFORGED_TIMEOUT_MS,
+    'Reforged staff player search'
+  );
+  return response.players || [];
+}
+
+export async function getReforgedStaffAudit(session: AuthSession): Promise<LauncherStaffAuditEntry[]> {
+  const response = await withTimeout(
+    apiRequestUrl<{ actions: LauncherStaffAuditEntry[] }>(`${PLAY_AETHRO_API_BASE}/launcher/staff/reforged/audit`, { token: session.accessToken }),
+    REFORGED_TIMEOUT_MS,
+    'Reforged staff audit'
+  );
+  return response.actions || [];
+}
+
+export async function runReforgedStaffAction(session: AuthSession, action: LauncherStaffAction): Promise<{ message: string }> {
+  return withTimeout(
+    apiRequestUrl<{ ok: boolean; message: string }>(`${PLAY_AETHRO_API_BASE}/launcher/staff/reforged/actions`, { method: 'POST', token: session.accessToken, body: action }),
+    REFORGED_TIMEOUT_MS,
+    'Reforged staff action'
+  );
 }
 
 export async function setReforgedGamePassword(

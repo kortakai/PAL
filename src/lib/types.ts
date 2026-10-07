@@ -106,6 +106,17 @@ export type LocalReforgedAccount = {
   message?: string;
 };
 
+export type ReforgedMacRuntime = {
+  supported: boolean;
+  appleSilicon: boolean;
+  appInstalled: boolean;
+  appVersion?: string;
+  shortcutExportSupported: boolean;
+  appPath?: string;
+  launchShortcut?: string;
+  launchShortcutName?: string;
+};
+
 export type ReforgedServerAccount = {
   exists: boolean;
   username: string;
@@ -201,3 +212,24 @@ export type DominionLaunchHandoff = {
   launchUrl: string;
   expiresAt?: string;
 };
+
+export type LauncherStaffGameAccess = {
+  label: string;
+  access: boolean;
+  controlUrl: string;
+  actions?: { broadcast: boolean; kick: boolean; mute: boolean };
+};
+
+export type LauncherStaffAccess = { games: Record<string, LauncherStaffGameAccess> };
+export type LauncherStaffPlayer = { id: number; name: string; level: number };
+export type LauncherStaffAuditEntry = {
+  action: string;
+  target: string | null;
+  message: string;
+  result: 'success' | 'failed' | string;
+  created_at: string;
+};
+export type LauncherStaffAction =
+  | { action: 'broadcast'; message: string }
+  | { action: 'kick'; character_id: number; reason: string }
+  | { action: 'mute'; character_id: number; minutes: number; reason: string };

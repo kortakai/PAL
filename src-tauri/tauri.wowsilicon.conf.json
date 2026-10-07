@@ -1,0 +1,9 @@
+{
+  "bundle": {
+    "resources": {
+      "resources/wowsilicon/WoWSilicon.app": "wowsilicon/WoWSilicon.app",
+      "resources/wowsilicon/WoWSilicon-3.2.2-source.tar.gz": "legal/WoWSilicon-3.2.2-source.tar.gz",
+      "resources/wowsilicon/WoWSilicon-GPL-3.0.txt": "legal/WoWSilicon-GPL-3.0.txt"
+    }
+  }
+}

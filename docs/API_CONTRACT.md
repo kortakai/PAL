@@ -214,7 +214,11 @@ The launcher links players to the official uploaded Reforged client folder:
 https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged
 ```
 
-After the player selects the downloaded client folder, the launcher verifies `Wow.exe` and `Data`, writes the Aethro realm list, and opens the configured client executable.
+After the player selects the downloaded client folder, the launcher verifies `Wow.exe` and `Data`, writes the Aethro realm list, and checks every managed file against the HTTPS-delivered manifest hashes before launch.
+
+On Windows, the launcher opens the verified client executable. On Apple Silicon macOS, the launcher keeps Reforged installation, repair, file verification, realm setup, and launch authorization in its own flow, then runs the imported WoWSilicon `.shortcut` by its workflow name using Apple's `shortcuts://run-shortcut` URL scheme. The Apple Silicon installer bundles the official WoWSilicon 3.2.2 app plus its matching GPL-3.0 source archive and license. WoWSilicon owns its Wine/graphics runtime and runtime updates; the launcher owns the Reforged client files and their manifest checks. Do not remove or rename WoWSilicon's installed Direct3D 9 runtime file during macOS launch preparation. Exclude files WoWSilicon mutates or supplies (`mods/winerosetta.dll`, `mods/libSiliconPatch.dll`, `DivxDecoder.dll`, `DivxDecoder.dll.bak`, `dlls.txt`, and WoWSilicon DLL loader files) from macOS integrity checks and repairs. Users must approve first open in Gatekeeper; launcher code must never clear the macOS quarantine attribute.
+
+The launcher stores the user-selected WoWSilicon `.shortcut` file path and workflow name in local launcher configuration only; neither value is sent to Aethro APIs. The selected shortcut must be imported into Apple Shortcuts. macOS may request shortcut permissions on first run. First-time Reforged setup still requires choosing/patching the game profile in WoWSilicon and importing its exported shortcut; subsequent updates and launches are handled from the Aethro launcher.
 
 ## Shadows Launch Proof
 
@@ -254,3 +258,26 @@ Recommended endpoint shape:
 GET  /mud/characters
 POST /mud/characters/{characterId}/token
 ```
+
+## Launcher Staff Blades
+
+All staff requests are Bearer-authenticated with the signed-in Aethro account. The
+server resolves the account with Aethro OAuth, then checks the account's per-game
+staff role for every read and mutation; launcher-supplied role claims are never trusted.
+
+```txt
+GET  https://playaethro.online/api/launcher/staff/access
+GET  https://playaethro.online/api/launcher/staff/reforged/players?q={name}
+GET  https://playaethro.online/api/launcher/staff/reforged/audit
+POST https://playaethro.online/api/launcher/staff/reforged/actions
+```
+
+The access response includes a `games` map keyed by `shadows-of-aethro`,
+`aethro-online`, `aethro-reforged`, and `dominion`. The launcher only renders a game's
+Staff rail when its `access` value is true. The current non-Reforged rails link to the
+existing protected game control centers; Reforged quick actions are executed by the
+server through its configured SOAP/RA relay and recorded in `launcher_staff_audits`.
+Allowlisted Reforged actions are `broadcast`, `kick`, and `mute`; each request is
+permission-checked server-side and player actions require a reason. SOAP credentials
+must remain server-side. Maintenance notices are forum posts surfaced by the existing
+forum RSS feed; there is no launcher maintenance scheduler.
