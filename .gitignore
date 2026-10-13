@@ -13,6 +13,7 @@ dist/
 # Tauri / Rust build output
 src-tauri/target/
 target/
+/src-tauri/resources/wowsilicon/
 
 # Local logs and env files
 *.log

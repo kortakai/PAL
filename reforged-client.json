@@ -1152,8 +1152,141 @@
     {
       "path": "Data/patch-T.MPQ",
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/patch-T.MPQ",
-      "sha256": "9ff60a2ee80904ac63880e38f92d8e4bf47620f87c4c702f3f0cf0471a7a9a3a",
-      "sizeBytes": 317918471,
+      "sha256": "d332b150d3a9e9def609abdf5633db45db79d32b49210d0f12de92a4f6281602",
+      "sizeBytes": 435926337,
+      "required": true
+    },
+    {
+      "path": "Data/patch-U.MPQ",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/patch-U.MPQ",
+      "sha256": "c785e079089c7ddc1f91d24f2070729639896394d67a85c4c0c2e51bbe2fab05",
+      "sizeBytes": 1476933,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/WarbandCamp/Core/CommandRunner.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/WarbandCamp/Core/CommandRunner.lua",
+      "sha256": "26623c9649555560ba57c161d126fd789c6023120f7e1ca0fbbc17ad2da7ea1b",
+      "sizeBytes": 2868,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/WarbandCamp/Core/GOMove.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/WarbandCamp/Core/GOMove.lua",
+      "sha256": "624c3576c23543bcfc032b4c73f7dd692a4af6d7e8afdd2e76cdfafe21708239",
+      "sizeBytes": 34413,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/WarbandCamp/Core/Init.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/WarbandCamp/Core/Init.lua",
+      "sha256": "55da09b2e3dd8861005e03269cf3d17b8add23db30f09f2caa2686bf7e60a66c",
+      "sizeBytes": 6196,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/WarbandCamp/Core/SavedVars.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/WarbandCamp/Core/SavedVars.lua",
+      "sha256": "fc6aed5bcd6d7426390b457f912e96f49dbed4e80e160b3e616d0c6ec2ad6144",
+      "sizeBytes": 3656,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/WarbandCamp/Core/Util.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/WarbandCamp/Core/Util.lua",
+      "sha256": "9f95568907eeded4befae7f056652ca458f20be2aff0fe8d8e1d6d6942c770ad",
+      "sizeBytes": 2720,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/WarbandCamp/Core/Warband.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/WarbandCamp/Core/Warband.lua",
+      "sha256": "cc17f701b516aaade88a599593694b02b39463cf8eec23be8e889586fa3a9884",
+      "sizeBytes": 5378,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/WarbandCamp/Data/WarbandProps.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/WarbandCamp/Data/WarbandProps.lua",
+      "sha256": "f2dfa9b7951408dd6b68b1565f1795da3ce7fb750b0066d86ead2d28fcbd7b9b",
+      "sizeBytes": 15045,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/WarbandCamp/README.md",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/WarbandCamp/README.md",
+      "sha256": "ab9c18328b6a778bd23fc24a3ac76a65ec72788da7f3e35637077db403a9bc60",
+      "sizeBytes": 4088,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/WarbandCamp/UI/CampObjectBrowser.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/WarbandCamp/UI/CampObjectBrowser.lua",
+      "sha256": "32d8e291e455f890fc8a1b96b7f295218c5ae3cd79d2183e0946b99a0a0e8570",
+      "sizeBytes": 26602,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/WarbandCamp/UI/ConfirmDialog.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/WarbandCamp/UI/ConfirmDialog.lua",
+      "sha256": "8a088c42f2ad2de7bbc3f916273adbe576e18cb970a0b41d1632b5f6ecc3f415",
+      "sizeBytes": 2809,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/WarbandCamp/UI/MainFrame.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/WarbandCamp/UI/MainFrame.lua",
+      "sha256": "d5e16a74c818d73d611e3032c06a50d1e101fde91ce9ad1059c7449f64bebbfe",
+      "sizeBytes": 8157,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/WarbandCamp/UI/Tabs/Builder.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/WarbandCamp/UI/Tabs/Builder.lua",
+      "sha256": "ccf3f4554ab848916694e9de78959214f44417caa66e12cdf5cbc77327dc5dc4",
+      "sizeBytes": 23660,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/WarbandCamp/UI/Tabs/Camp.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/WarbandCamp/UI/Tabs/Camp.lua",
+      "sha256": "a6e261e5af95d27663a424ec9bfa3ec4687d895b852a026891518adc46a8c056",
+      "sizeBytes": 12726,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/WarbandCamp/UI/Tabs/Favorites.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/WarbandCamp/UI/Tabs/Favorites.lua",
+      "sha256": "0639cecebd92b6280d12a4a5987ceeb388fb1d9613c5eda03b32557b76c3b135",
+      "sizeBytes": 1352,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/WarbandCamp/UI/Tabs/History.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/WarbandCamp/UI/Tabs/History.lua",
+      "sha256": "e5c7ed2701e45aa8a0e7cd8fc3bc187b7004949089f20752243189f3983ea21b",
+      "sizeBytes": 2574,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/WarbandCamp/UI/ToggleButton.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/WarbandCamp/UI/ToggleButton.lua",
+      "sha256": "0073b369ab54700c9cff15550ecb77de6d64d96bf8d0e8d67e874a613775e1c8",
+      "sizeBytes": 3108,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/WarbandCamp/UI/Widgets.lua",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/WarbandCamp/UI/Widgets.lua",
+      "sha256": "5ba2814813658a569944c4f230d61360f5928e7b2a8fb160b11dbfb011534a80",
+      "sizeBytes": 19343,
+      "required": true
+    },
+    {
+      "path": "Interface/AddOns/WarbandCamp/WarbandCamp.toc",
+      "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/WarbandCamp/WarbandCamp.toc",
+      "sha256": "68c5558c1f1629ad6cdc02b70dc73b6c776d9f8222dea158c5e3711eb00e3adb",
+      "sizeBytes": 1532,
       "required": true
     },
     {
@@ -1306,29 +1439,29 @@
     {
       "path": "Interface/AddOns/AethroTitles/AethroTitles.toc",
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroTitles/AethroTitles.toc",
-      "sha256": "f764476c2b85065ede2fd5c01724682c2acdea562f5bef653767af1f02111189",
+      "sha256": "8e6fa12f1327ad1a427ca3aee14637cb5ca0dec5e1c483d3580a6d751dbeac35",
       "sizeBytes": 211,
       "required": true
     },
     {
       "path": "Interface/AddOns/AethroTitles/Core.lua",
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroTitles/Core.lua",
-      "sha256": "d4ecbde4bf8d659ffde7b1973d07472a53cf2072c6ddc378460e10f689f6089a",
+      "sha256": "c242cec76e50aeaae3a52a83a0dc16bbbd3259789b8841a65e546075836f5915",
       "sizeBytes": 3840,
       "required": true
     },
     {
       "path": "Interface/AddOns/AethroTitles/Data.lua",
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroTitles/Data.lua",
-      "sha256": "a1e94e7707c064b824ce0443fbe04975cfbaebd35b329513e57c1ec75b23aa45",
-      "sizeBytes": 6753,
+      "sha256": "dd5d49f5111497c04bc54b942d6dcb63174ea946d1a828d523c57a830f012a12",
+      "sizeBytes": 10323,
       "required": true
     },
     {
       "path": "Interface/AddOns/AethroTitles/UI.lua",
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Interface/AddOns/AethroTitles/UI.lua",
-      "sha256": "fb62f8c4228ce97901fbc96f5d0e84214033f85b30adabb3947fa5ac0bbb2b5e",
-      "sizeBytes": 10053,
+      "sha256": "4853bed5d5f86bc2f702609e9c64dae90f88b94f4696f611e1b986e807f4bce7",
+      "sizeBytes": 11517,
       "required": true
     },
     {

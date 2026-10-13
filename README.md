@@ -46,13 +46,20 @@ Do not save raw passwords. Ever.
 
 See `docs/API_CONTRACT.md`.
 
-## Build installers later
+## Build installers
 
 ```bash
 npm run tauri build
 ```
 
-Public releases should be signed/notarized for Windows/macOS.
+For an Apple Silicon macOS package that includes WoWSilicon, prepare the pinned upstream app and matching GPL-3.0 source before building:
+
+```bash
+npm run prepare:wowsilicon:macos
+npm run tauri build -- --target aarch64-apple-darwin --config src-tauri/tauri.wowsilicon.conf.json
+```
+
+This test package is unsigned. macOS will require users to approve its first open; the launcher does not bypass Gatekeeper or remove quarantine. First-time Reforged setup still includes creating and importing the WoWSilicon profile shortcut. Public releases should be signed and notarized once Apple Developer ID access is available.
 
 
 ## Aethro OAuth login

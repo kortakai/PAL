@@ -370,20 +370,6 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
   margin-bottom: 24px;
 }
 .home-brand { display: flex; align-items: center; gap: 16px; }
-.home-brand-mark {
-  display: grid;
-  place-items: center;
-  width: 58px;
-  height: 58px;
-  border: 2px solid rgba(255, 211, 110, .62);
-  border-radius: 50%;
-  background: rgba(8, 18, 18, .78);
-  color: #ffd36e;
-  font-size: 15px;
-  font-weight: 950;
-  letter-spacing: .08em;
-  box-shadow: 0 12px 36px rgba(0,0,0,.32);
-}
 .home-topbar h1 {
   margin: 4px 0 0;
   color: #fff1c0;
@@ -653,11 +639,6 @@ label { display: block; margin: 16px 0; color: #d7c9df; font-size: 14px; font-we
 }
 .home-dashboard::before { opacity: .46; }
 .home-topbar { min-height: 76px; margin-bottom: 12px; }
-.home-brand-mark {
-  border-radius: 18px 9px 18px 9px;
-  background: linear-gradient(145deg, #132d36, #30233d);
-  color: #fff4be;
-}
 .home-command-bar {
   position: relative;
   z-index: 1;

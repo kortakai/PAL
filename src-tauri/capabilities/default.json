@@ -8,6 +8,7 @@
     "core:webview:allow-create-webview-window",
     "deep-link:default",
     "dialog:default",
+    "autostart:default",
     "opener:default",
     "shell:allow-open",
     "store:default"
