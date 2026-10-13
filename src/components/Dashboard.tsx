@@ -1633,7 +1633,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
               <button onClick={repairReforgedFiles} disabled={repairingReforgedFiles || checkingReforgedFiles || !hasReforgedDestination}>
                 {repairingReforgedFiles ? 'Setting up...' : 'Install / Repair Setup'}
               </button>
-              <button className={hasReforgedUpdate ? undefined : 'secondary'} onClick={reforgedPrimaryAction} disabled={launchingReforged || repairingReforgedFiles || checkingReforgedFiles || !hasReforgedDestination || Boolean(reforgedMacRuntime?.supported && !reforgedMacRuntime.launchShortcut)}>
+              <button className={hasReforgedUpdate ? undefined : 'secondary'} onClick={() => void reforgedPrimaryAction()} disabled={launchingReforged || repairingReforgedFiles || checkingReforgedFiles || !hasReforgedDestination || Boolean(reforgedMacRuntime?.supported && !reforgedMacRuntime.launchShortcut)}>
                 {checkingReforgedFiles ? 'Checking...' : reforgedMacRuntime?.supported && !reforgedMacRuntime.launchShortcut ? 'Connect WoWSilicon profile first' : reforgedPrimaryLabel}
               </button>
             </div>
