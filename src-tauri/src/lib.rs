@@ -1600,7 +1600,6 @@ fn update_reforged_music_volume(install_dir: &Path) -> Result<(), String> {
 
     Ok(())
 }
-
 #[cfg(target_os = "windows")]
 fn disable_reforged_d3d9_dll(install_dir: &Path) -> Result<(), String> {
     let d3d9_path = safe_join(install_dir, REFORGED_D3D9_RELATIVE_PATH)?;
