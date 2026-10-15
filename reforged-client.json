@@ -1152,8 +1152,8 @@
     {
       "path": "Data/patch-T.MPQ",
       "url": "https://aethro.net/downloads/ar-launcher-stuff/Aethro_Reforged/Data/patch-T.MPQ",
-      "sha256": "01de097e75f96ccfece42ca3f2e692b4a3c0837e3ba5bc17a160690ba98483a7",
-      "sizeBytes": 436317401,
+      "sha256": "d332b150d3a9e9def609abdf5633db45db79d32b49210d0f12de92a4f6281602",
+      "sizeBytes": 435926337,
       "required": true
     },
     {
