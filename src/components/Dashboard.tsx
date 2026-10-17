@@ -401,7 +401,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     };
     return <div className="hub-library-grid">{home.games.map((game) => <article className="hub-library-game" key={game.id}>
       <div className="hub-library-art" style={{ backgroundImage: `linear-gradient(0deg,#070c13e8,transparent 78%),url(${art[game.id] || art.reforged})` }} />
-      <div className="hub-library-copy"><div className="hub-library-meta"><span className={`hub-server server-${game.status}`}><i />{game.status}</span>{game.premium?.status === 'active' && <span className="hub-premium">Premium active</span>}</div><h3>{game.title}</h3><p>{game.description}</p><button onClick={() => playGame(game.id)}>Open game →</button></div>
+      <div className="hub-library-copy"><div className="hub-library-meta"><span className={`hub-server server-${game.status}`}><i />{game.status}{game.pingMs !== undefined && <small>{game.pingMs} ms</small>}</span>{game.premium?.status === 'active' && <span className="hub-premium">Premium active</span>}</div><h3>{game.title}</h3><p>{game.description}</p><button onClick={() => playGame(game.id)}>Open game →</button></div>
     </article>)}</div>;
   }
 
@@ -2163,7 +2163,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
         <section className="launcher-home-overview" aria-label="Your characters and realms">
           <div className="launcher-home-panel launcher-world-status">
             <div className="launcher-home-panel-heading"><h2>Realm status</h2></div>
-            {home.games.map(game => <div className="launcher-realm-row" key={game.id}><span className={`launcher-realm-dot server-${game.status}`} /><strong>{game.id === 'aethro-online' ? 'Kalismor' : game.title}</strong><span>{game.status === 'unknown' ? 'Status unavailable' : game.status[0].toUpperCase() + game.status.slice(1)}</span></div>)}
+            {home.games.map(game => <div className="launcher-realm-row" key={game.id}><span className={`launcher-realm-dot server-${game.status}`} /><strong>{game.id === 'aethro-online' ? 'Kalismor' : game.title}</strong><span>{game.status === 'unknown' ? 'Status unavailable' : `${game.status[0].toUpperCase()}${game.status.slice(1)}${game.pingMs !== undefined ? ` · ${game.pingMs} ms` : ''}`}</span></div>)}
           </div>
           <div className="launcher-home-panel launcher-home-roster">
             <div className="launcher-home-panel-heading"><h2>Your characters</h2><button onClick={() => openHomeGame('reforged')}>Reforged roster →</button></div>

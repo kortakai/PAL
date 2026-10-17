@@ -60,12 +60,19 @@ export type LauncherGame = {
   title: string;
   description: string;
   status: 'online' | 'offline' | 'maintenance' | 'unknown';
+  /** Round-trip connection time to the game's status endpoint, in milliseconds. */
+  pingMs?: number;
   actionLabel: string;
   feedId?: NewsFeedId;
   accent?: 'shadows' | 'kalismor' | 'reforged' | 'dominion';
   premium?: GamePremium;
   links?: GameLinks;
   music?: GameMusic;
+};
+
+export type LauncherGameStatus = {
+  status: LauncherGame['status'];
+  pingMs?: number;
 };
 
 export type LauncherHome = {

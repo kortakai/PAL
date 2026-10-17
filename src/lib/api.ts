@@ -8,6 +8,7 @@ import type {
   LauncherStaffAuditEntry,
   LauncherStaffPlayer,
   LauncherGame,
+  LauncherGameStatus,
   LauncherHome,
   LauncherNewsItem,
   LauncherNewsSource,
@@ -754,29 +755,35 @@ function normalizeGameServerStatus(value: unknown): LauncherGame['status'] {
   return value === 'online' ? 'online' : 'offline';
 }
 
-export async function getGameServerStatuses(): Promise<Partial<Record<LauncherGame['id'], LauncherGame['status']>>> {
+export async function getGameServerStatuses(): Promise<Partial<Record<LauncherGame['id'], LauncherGameStatus>>> {
   const settled = await Promise.allSettled(
     GAME_SERVER_STATUS_TARGETS.map(async (target) => ({
       id: target.id,
-      status: normalizeGameServerStatus(await invoke<string>('check_game_server_status', {
+      result: await invoke<{ status: string; pingMs?: number }>('check_game_server_status', {
         host: target.host,
         port: target.port
-      }))
+      })
     }))
   );
 
-  const statuses = settled.reduce<Partial<Record<LauncherGame['id'], LauncherGame['status']>>>((statuses, result, index) => {
+  const statuses = settled.reduce<Partial<Record<LauncherGame['id'], LauncherGameStatus>>>((statuses, result, index) => {
     const target = GAME_SERVER_STATUS_TARGETS[index];
-    statuses[target.id] = result.status === 'fulfilled' ? result.value.status : 'offline';
+    statuses[target.id] = result.status === 'fulfilled'
+      ? { status: normalizeGameServerStatus(result.value.result.status), pingMs: result.value.result.pingMs }
+      : { status: 'offline' };
     return statuses;
-  }, {});
+  }, {} as Partial<Record<LauncherGame['id'], LauncherGameStatus>>);
 
   try {
+    const startedAt = performance.now();
     const response = await fetchText(DOMINION_HEALTH_URL);
     const health = JSON.parse(response) as { status?: unknown };
-    statuses.dominion = health.status === 'ok' ? 'online' : 'offline';
+    statuses.dominion = {
+      status: health.status === 'ok' ? 'online' : 'offline',
+      pingMs: Math.max(1, Math.round(performance.now() - startedAt))
+    };
   } catch {
-    statuses.dominion = 'offline';
+    statuses.dominion = { status: 'offline' };
   }
 
   return statuses;
@@ -961,7 +968,7 @@ export async function getLauncherHome(session: AuthSession): Promise<LauncherHom
 export function createLauncherHome(
   user: UserProfile,
   news: LauncherNewsItem[] = [],
-  gameStatuses: Partial<Record<LauncherGame['id'], LauncherGame['status']>> = {}
+  gameStatuses: Partial<Record<LauncherGame['id'], LauncherGameStatus>> = {}
 ): LauncherHome {
   return {
     user,
@@ -976,7 +983,7 @@ export function createLauncherHome(
         id: 'aethro-online',
         title: 'Chronicles of Kalismor',
         description: 'A dark fantasy MUD gateway.',
-        status: gameStatuses['aethro-online'] ?? 'offline',
+        ...gameStatus(gameStatuses['aethro-online']),
         actionLabel: 'View Kalismor'
         ,feedId: 'aethro-online'
         ,accent: 'kalismor'
@@ -992,7 +999,7 @@ export function createLauncherHome(
         id: 'reforged',
         title: 'Aethro: Reforged',
         description: 'Wrath-era realm client, account setup, and patches.',
-        status: gameStatuses.reforged ?? 'offline',
+        ...gameStatus(gameStatuses.reforged),
         actionLabel: 'Play Reforged'
         ,feedId: 'aethro-reforged'
         ,accent: 'reforged'
@@ -1009,7 +1016,7 @@ export function createLauncherHome(
         id: 'dominion',
         title: 'Dominion',
         description: 'Build your House and shape the fate of Kalismor from the browser.',
-        status: gameStatuses.dominion ?? 'unknown',
+        ...gameStatus(gameStatuses.dominion, 'unknown'),
         actionLabel: 'Play Dominion'
         ,accent: 'dominion'
         ,premium: { status: 'available', label: 'Premium' }
@@ -1025,4 +1032,8 @@ export function createLauncherHome(
       discord: 'https://dsc.gg/aethro'
     }
   };
+}
+
+function gameStatus(value: LauncherGameStatus | undefined, fallback: LauncherGame['status'] = 'offline'): LauncherGameStatus {
+  return value ?? { status: fallback };
 }

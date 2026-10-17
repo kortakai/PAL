@@ -11,7 +11,7 @@ use std::{
     path::{Component, Path, PathBuf},
     process::Command,
     sync::Arc,
-    time::{Duration, SystemTime, UNIX_EPOCH},
+    time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 use tauri::{Emitter, Manager};
 use tokio::{
@@ -58,6 +58,13 @@ const REQUIRED_REFORGED_ADDONS: &[&str] = &[
     "ReagentBankUI",
 ];
 const GAME_SERVER_STATUS_TIMEOUT_SECONDS: u64 = 2;
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+struct GameServerStatus {
+    status: String,
+    ping_ms: Option<u128>,
+}
 
 #[derive(Debug, Serialize, Deserialize)]
 struct HashResult {
@@ -3725,7 +3732,7 @@ async fn mud_terminal_disconnect(
 }
 
 #[tauri::command]
-async fn check_game_server_status(host: String, port: u16) -> Result<String, String> {
+async fn check_game_server_status(host: String, port: u16) -> Result<GameServerStatus, String> {
     if host.trim().is_empty() {
         return Err("Server host is missing.".to_string());
     }
@@ -3735,6 +3742,7 @@ async fn check_game_server_status(host: String, port: u16) -> Result<String, Str
     }
 
     let address = format!("{}:{port}", host.trim());
+    let started_at = Instant::now();
     let connected = timeout(
         Duration::from_secs(GAME_SERVER_STATUS_TIMEOUT_SECONDS),
         TokioTcpStream::connect(address),
@@ -3742,7 +3750,10 @@ async fn check_game_server_status(host: String, port: u16) -> Result<String, Str
     .await
     .is_ok_and(|result| result.is_ok());
 
-    Ok(if connected { "online" } else { "offline" }.to_string())
+    Ok(GameServerStatus {
+        status: if connected { "online" } else { "offline" }.to_string(),
+        ping_ms: connected.then(|| started_at.elapsed().as_millis().max(1)),
+    })
 }
 
 #[tauri::command]

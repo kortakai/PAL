@@ -23,6 +23,7 @@
 .game-window .hub-tabs button[aria-selected='true'] svg,.game-window .hub-nav-home svg { color:var(--hub-accent); }
 .hub-sidebar-footer { display:grid; gap:8px; margin-top:auto; padding:12px 8px 4px; border-top:1px solid #242e39; }
 .hub-server { display:flex; align-items:center; gap:8px; color:#afbdc8; font-size:11px; text-transform:capitalize; }
+.hub-server small { color:#8293a1; font-size:10px; text-transform:none; }
 .hub-server i { width:8px; height:8px; border-radius:50%; background:#8c9ba8; }
 .hub-server.server-online i { background:#64e4a0; box-shadow:0 0 10px #64e4a077; }
 .hub-server.server-offline i { background:#ed7981; }

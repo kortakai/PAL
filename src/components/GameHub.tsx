@@ -85,7 +85,7 @@ export function GameHub({ game, player, avatarUrl, news, initialTab, reforgedMac
                 onClick={() => setTab(id)}><Icon size={18} />{id === 'settings' && game.id === 'reforged' ? 'Client settings' : label}</button>)}
             </div>
           </nav>
-          <div className="hub-sidebar-footer"><span className={`hub-server server-${game.status}`}><i />{game.status}</span>{game.premium?.status === 'active' && <span className="hub-premium">♛ Premium active</span>}</div>
+          <div className="hub-sidebar-footer"><span className={`hub-server server-${game.status}`}><i />{game.status}{game.pingMs !== undefined && <small>{game.pingMs} ms</small>}</span>{game.premium?.status === 'active' && <span className="hub-premium">♛ Premium active</span>}</div>
         </aside>
         <div className="hub-stage">
           <header className="hub-header">
