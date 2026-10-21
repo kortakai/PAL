@@ -5,7 +5,7 @@ use sha2::{Digest, Sha256};
 use std::{
     collections::{HashMap, HashSet},
     env,
-    fs::{self, File},
+    fs::{self, File, OpenOptions},
     io::{Read, Write},
     net::{TcpListener, TcpStream},
     path::{Component, Path, PathBuf},
@@ -36,6 +36,7 @@ const REFORGED_LAUNCH_AUTHORIZATION_URL: &str =
 const SHADOWS_DOWNLOAD_PATH_PREFIX: &str = "/launcher/shadows/stable/files/";
 const REFORGED_DOWNLOAD_PATH_PREFIX: &str = "/downloads/ar-launcher-stuff/Aethro_Reforged/";
 const REFORGED_INSTALL_CONFIG_FILE: &str = "reforged-install.json";
+const INSTALL_REPAIR_LOG_FILE: &str = "install-repair.log";
 const REFORGED_DEVICE_FILE: &str = "reforged-device.json";
 const REFORGED_CONFIG_RELATIVE_PATH: &str = "WTF/Config.wtf";
 const REFORGED_DATA_REALMLIST_RELATIVE_PATH: &str = "Data/enUS/realmlist.wtf";
@@ -837,6 +838,38 @@ fn reforged_install_config_path(app_handle: &tauri::AppHandle) -> Result<PathBuf
         .app_data_dir()
         .map_err(|e| format!("Unable to locate launcher data folder: {e}"))?;
     Ok(app_data_dir.join(REFORGED_INSTALL_CONFIG_FILE))
+}
+
+fn append_install_repair_log(
+    app_handle: &tauri::AppHandle,
+    game_name: &str,
+    action: &str,
+    message: impl AsRef<str>,
+) {
+    let result = (|| -> Result<(), String> {
+        let app_data_dir = app_handle
+            .path()
+            .app_data_dir()
+            .map_err(|e| format!("Unable to locate launcher data folder: {e}"))?;
+        fs::create_dir_all(&app_data_dir)
+            .map_err(|e| format!("Unable to create launcher data folder: {e}"))?;
+        let log_path = app_data_dir.join(INSTALL_REPAIR_LOG_FILE);
+        let timestamp = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .map(|duration| duration.as_secs())
+            .unwrap_or_default();
+        let mut log = OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&log_path)
+            .map_err(|e| format!("Unable to open {}: {e}", log_path.display()))?;
+        writeln!(log, "[{timestamp}] [{game_name}] [{action}] {}", message.as_ref())
+            .map_err(|e| format!("Unable to write {}: {e}", log_path.display()))
+    })();
+
+    if let Err(error) = result {
+        eprintln!("Install/repair logging failed: {error}");
+    }
 }
 
 fn reforged_device_config_path(app_handle: &tauri::AppHandle) -> Result<PathBuf, String> {
@@ -2533,8 +2566,15 @@ async fn check_shadows_install(app_handle: tauri::AppHandle) -> Result<ModpackCh
 async fn repair_shadows_install(
     app_handle: tauri::AppHandle,
 ) -> Result<ModpackCheckResult, String> {
+    append_install_repair_log(&app_handle, "Shadows", "start", "Install / repair requested");
     let manifest = load_shadows_manifest().await?;
     let install_dir = shadows_install_dir(&app_handle, &manifest)?;
+    append_install_repair_log(
+        &app_handle,
+        "Shadows",
+        "setup",
+        format!("Install directory: {}", install_dir.display()),
+    );
 
     emit_shadows_progress(
         &app_handle,
@@ -2552,6 +2592,15 @@ async fn repair_shadows_install(
     );
 
     let current = check_shadows_manifest_files(&manifest, &install_dir, Some(&app_handle))?;
+    append_install_repair_log(
+        &app_handle,
+        "Shadows",
+        "check",
+        format!(
+            "{} files checked; {} missing, {} changed",
+            current.total_files, current.missing_files, current.changed_files
+        ),
+    );
 
     if current.invalid_manifest_files > 0 {
         emit_shadows_progress(
@@ -2627,6 +2676,12 @@ async fn repair_shadows_install(
 
         install_fabric_launcher_profile(&client, &manifest, &install_dir).await?;
         let final_check = check_shadows_manifest_files(&manifest, &install_dir, Some(&app_handle))?;
+        append_install_repair_log(
+            &app_handle,
+            "Shadows",
+            "complete",
+            format!("Completed with {} files verified", final_check.ok_files),
+        );
         emit_shadows_progress(
             &app_handle,
             if final_check.ready {
@@ -2655,6 +2710,12 @@ async fn repair_shadows_install(
 
     let mut downloaded_bytes = 0_u64;
     for (index, manifest_file) in repair_files.iter().enumerate() {
+        append_install_repair_log(
+            &app_handle,
+            "Shadows",
+            "file-start",
+            format!("Installing {}", manifest_file.path),
+        );
         emit_shadows_progress(
             &app_handle,
             "installing",
@@ -2682,7 +2743,22 @@ async fn repair_shadows_install(
                 total_bytes: total_download_bytes,
             }),
         )
-        .await?;
+        .await
+        .map_err(|error| {
+            append_install_repair_log(
+                &app_handle,
+                "Shadows",
+                "error",
+                format!("{}: {}", manifest_file.path, error),
+            );
+            error
+        })?;
+        append_install_repair_log(
+            &app_handle,
+            "Shadows",
+            "file-complete",
+            format!("Installed {}", manifest_file.path),
+        );
 
         emit_shadows_progress(
             &app_handle,
@@ -2741,6 +2817,12 @@ async fn repair_shadows_install(
     );
 
     let final_check = check_shadows_manifest_files(&manifest, &install_dir, Some(&app_handle))?;
+    append_install_repair_log(
+        &app_handle,
+        "Shadows",
+        if final_check.ready { "complete" } else { "incomplete" },
+        format!("{} files verified", final_check.ok_files),
+    );
     emit_shadows_progress(
         &app_handle,
         if final_check.ready {
@@ -2830,8 +2912,15 @@ async fn check_reforged_manifest_update(
 async fn repair_reforged_install(
     app_handle: tauri::AppHandle,
 ) -> Result<ModpackCheckResult, String> {
+    append_install_repair_log(&app_handle, "Reforged", "start", "Install / repair requested");
     let install_dir = required_reforged_install_dir(&app_handle)?;
     let manifest = load_reforged_manifest().await?;
+    append_install_repair_log(
+        &app_handle,
+        "Reforged",
+        "setup",
+        format!("Install directory: {}", install_dir.display()),
+    );
     let managed_files = active_reforged_manifest_files(&manifest);
     let total_files = 3 + managed_files.len();
 
@@ -2889,6 +2978,15 @@ async fn repair_reforged_install(
     }
 
     let current = check_reforged_realm_list(&install_dir, &manifest, Some(&app_handle))?;
+    append_install_repair_log(
+        &app_handle,
+        "Reforged",
+        "check",
+        format!(
+            "{} files checked; {} missing, {} changed",
+            current.total_files, current.missing_files, current.changed_files
+        ),
+    );
     if current.invalid_manifest_files > 0 {
         emit_reforged_progress(
             &app_handle,
@@ -2927,6 +3025,12 @@ async fn repair_reforged_install(
     let mut repaired_paths = Vec::with_capacity(repair_files.len());
     for (index, manifest_file) in repair_files.iter().enumerate() {
         let current_index = index + 4;
+        append_install_repair_log(
+            &app_handle,
+            "Reforged",
+            "file-start",
+            format!("Installing {}", manifest_file.path),
+        );
         emit_reforged_progress(
             &app_handle,
             "installing",
@@ -2953,7 +3057,22 @@ async fn repair_reforged_install(
                 total_bytes: total_download_bytes,
             }),
         )
-        .await?;
+        .await
+        .map_err(|error| {
+            append_install_repair_log(
+                &app_handle,
+                "Reforged",
+                "error",
+                format!("{}: {}", manifest_file.path, error),
+            );
+            error
+        })?;
+        append_install_repair_log(
+            &app_handle,
+            "Reforged",
+            "file-complete",
+            format!("Installed {}", manifest_file.path),
+        );
         repaired_paths.push(manifest_file.path.clone());
     }
 
@@ -3000,6 +3119,13 @@ async fn repair_reforged_install(
     if final_check.ready {
         save_verified_reforged_manifest(&app_handle, &install_dir, final_check.manifest_sha256.clone())?;
     }
+
+    append_install_repair_log(
+        &app_handle,
+        "Reforged",
+        if final_check.ready { "complete" } else { "incomplete" },
+        format!("{} files verified", final_check.ok_files),
+    );
 
     Ok(final_check)
 }
