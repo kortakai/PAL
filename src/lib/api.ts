@@ -676,6 +676,7 @@ export async function runReforgedStaffAction(session: AuthSession, action: Launc
 
 export async function setReforgedGamePassword(
   session: AuthSession,
+  username: string,
   password: string,
   passwordConfirmation: string
 ): Promise<ReforgedProfile> {
@@ -684,6 +685,7 @@ export async function setReforgedGamePassword(
       method: 'POST',
       token: session.accessToken,
       body: {
+        username,
         password,
         password_confirmation: passwordConfirmation
       }

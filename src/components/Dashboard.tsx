@@ -227,6 +227,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
   const [launchingReforged, setLaunchingReforged] = useState(false);
   const [reforgedError, setReforgedError] = useState<string | null>(null);
   const [reforgedPasswordDialogOpen, setReforgedPasswordDialogOpen] = useState(false);
+  const [reforgedUsername, setReforgedUsername] = useState('');
   const [reforgedPassword, setReforgedPassword] = useState('');
   const [reforgedPasswordConfirmation, setReforgedPasswordConfirmation] = useState('');
   const [savingReforgedPassword, setSavingReforgedPassword] = useState(false);
@@ -1209,6 +1210,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
         if (!profile) return;
 
         if (!profile.account.passwordSet) {
+          setReforgedUsername(profile.account.username === 'Not created yet' ? '' : profile.account.username);
           setReforgedPasswordError(null);
           setReforgedPasswordDialogOpen(true);
           return;
@@ -1243,6 +1245,10 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     event.preventDefault();
     setReforgedPasswordError(null);
 
+    if (!/^[A-Za-z0-9]{3,16}$/.test(reforgedUsername)) {
+      setReforgedPasswordError('Use 3–16 letters and numbers for your Reforged username.');
+      return;
+    }
     if (!/^[A-Za-z0-9]{8,16}$/.test(reforgedPassword)) {
       setReforgedPasswordError('Use 8–16 letters and numbers for your Reforged password.');
       return;
@@ -1255,13 +1261,14 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
     setSavingReforgedPassword(true);
     try {
       const profile = await withFreshSession((activeSession) =>
-        setReforgedGamePassword(activeSession, reforgedPassword, reforgedPasswordConfirmation)
+        setReforgedGamePassword(activeSession, reforgedUsername, reforgedPassword, reforgedPasswordConfirmation)
       );
       if (!profile.account.passwordSet) {
         throw new Error('Your Reforged password could not be confirmed. Please try again.');
       }
 
       setReforgedProfile(profile);
+      setReforgedUsername('');
       setReforgedPassword('');
       setReforgedPasswordConfirmation('');
       setReforgedPasswordDialogOpen(false);
@@ -1274,6 +1281,7 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
   }
 
   function dismissReforgedPasswordPrompt() {
+    setReforgedUsername('');
     setReforgedPassword('');
     setReforgedPasswordConfirmation('');
     setReforgedPasswordError(null);
@@ -1489,8 +1497,12 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
         <section className="hub-dialog" role="dialog" aria-modal="true" aria-labelledby="reforged-password-title">
           <span className="hub-kicker">One last step</span>
           <h2 id="reforged-password-title">Set your Reforged password</h2>
-          <p>Choose the password you will use to log in to Aethro: Reforged. Once it is saved, the launcher will open the game.</p>
+          <p>Choose the game username and password you will use to log in to Aethro: Reforged. Once they are saved, the launcher will open the game.</p>
           <form onSubmit={saveReforgedPassword}>
+            <label htmlFor="reforged-username">Game username
+              <input id="reforged-username" type="text" autoComplete="username" value={reforgedUsername} onChange={event => setReforgedUsername(event.target.value.toUpperCase())} disabled={savingReforgedPassword} required minLength={3} maxLength={16} pattern="[A-Za-z0-9]+" />
+            </label>
+            <span className="hub-dialog-hint">3–16 letters and numbers. This is your Reforged login, not your character name.</span>
             <label htmlFor="reforged-password">Password
               <input id="reforged-password" type="password" autoComplete="new-password" value={reforgedPassword} onChange={event => setReforgedPassword(event.target.value)} disabled={savingReforgedPassword} required minLength={8} maxLength={16} />
             </label>
