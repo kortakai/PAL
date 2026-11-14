@@ -52,6 +52,14 @@ const REFORGED_WOWSILICON_RELATIVE_PATHS: &[&str] = &[
     "libDllLdr.dll",
     "mods/libDllLdr.dll",
 ];
+#[cfg(not(target_os = "macos"))]
+const REFORGED_MACOS_LOADER_RELATIVE_PATHS: &[&str] = &[
+    "mods/winerosetta.dll",
+    "mods/libSiliconPatch.dll",
+    "dlls.txt",
+    "libDllLdr.dll",
+    "mods/libDllLdr.dll",
+];
 const REFORGED_REALMLIST_HOST: &str = "51.222.24.20";
 const REFORGED_DEFAULT_MUSIC_VOLUME: &str = "0.30";
 const BUNDLED_REFORGED_MANIFEST: &str = include_str!("../../manifests/reforged-client.json");
@@ -1411,7 +1419,13 @@ fn active_reforged_manifest_files(manifest: &ReforgedManifest) -> Vec<ShadowsMan
 
 fn is_wowsilicon_managed_file(path: &str) -> bool {
     let normalized = path.replace('\\', "/");
-    REFORGED_WOWSILICON_RELATIVE_PATHS
+
+    #[cfg(target_os = "macos")]
+    let managed_files = REFORGED_WOWSILICON_RELATIVE_PATHS;
+    #[cfg(not(target_os = "macos"))]
+    let managed_files = REFORGED_MACOS_LOADER_RELATIVE_PATHS;
+
+    managed_files
         .iter()
         .any(|managed| normalized.eq_ignore_ascii_case(managed))
 }
@@ -1885,7 +1899,7 @@ fn remove_reforged_wowsilicon_files(install_dir: &Path) -> Result<(), String> {
 
     #[cfg(not(target_os = "macos"))]
     {
-        for relative_path in REFORGED_WOWSILICON_RELATIVE_PATHS {
+        for relative_path in REFORGED_MACOS_LOADER_RELATIVE_PATHS {
             let file_path = safe_join(install_dir, relative_path)?;
             if file_path.is_file() {
                 fs::remove_file(&file_path).map_err(|error| {
