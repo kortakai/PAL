@@ -43,6 +43,15 @@ const REFORGED_DATA_REALMLIST_RELATIVE_PATH: &str = "Data/enUS/realmlist.wtf";
 const REFORGED_D3D9_RELATIVE_PATH: &str = "d3d9.dll";
 #[cfg(target_os = "windows")]
 const REFORGED_DISABLED_D3D9_RELATIVE_PATH: &str = "d3d9.dll.disabled-by-aethro-launcher";
+const REFORGED_WOWSILICON_RELATIVE_PATHS: &[&str] = &[
+    "mods/winerosetta.dll",
+    "mods/libSiliconPatch.dll",
+    "DivxDecoder.dll",
+    "DivxDecoder.dll.bak",
+    "dlls.txt",
+    "libDllLdr.dll",
+    "mods/libDllLdr.dll",
+];
 const REFORGED_REALMLIST_HOST: &str = "51.222.24.20";
 const REFORGED_DEFAULT_MUSIC_VOLUME: &str = "0.30";
 const BUNDLED_REFORGED_MANIFEST: &str = include_str!("../../manifests/reforged-client.json");
@@ -1401,24 +1410,10 @@ fn active_reforged_manifest_files(manifest: &ReforgedManifest) -> Vec<ShadowsMan
 }
 
 fn is_wowsilicon_managed_file(path: &str) -> bool {
-    #[cfg(target_os = "macos")]
-    {
-        let normalized = path.replace('\\', "/");
-        return [
-            "mods/winerosetta.dll",
-            "mods/libSiliconPatch.dll",
-            "DivxDecoder.dll",
-            "DivxDecoder.dll.bak",
-            "dlls.txt",
-            "libDllLdr.dll",
-            "mods/libDllLdr.dll",
-        ]
+    let normalized = path.replace('\\', "/");
+    REFORGED_WOWSILICON_RELATIVE_PATHS
         .iter()
-        .any(|managed| normalized.eq_ignore_ascii_case(managed));
-    }
-
-    #[allow(unreachable_code)]
-    false
+        .any(|managed| normalized.eq_ignore_ascii_case(managed))
 }
 
 fn reforged_manifest_game_id(manifest: &ReforgedManifest) -> &str {
@@ -1872,12 +1867,37 @@ async fn authorize_reforged_launch(
 }
 
 fn prepare_reforged_install_for_launch(install_dir: &Path) -> Result<(), String> {
+    remove_reforged_wowsilicon_files(install_dir)?;
     update_reforged_realm_list(install_dir)?;
     update_reforged_data_realm_list(install_dir)?;
     update_reforged_addon_config(install_dir)?;
     update_reforged_music_volume(install_dir)?;
     remove_obsolete_reforged_addons(install_dir)?;
     enable_required_reforged_addons(install_dir)
+}
+
+fn remove_reforged_wowsilicon_files(install_dir: &Path) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        let _ = install_dir;
+        return Ok(());
+    }
+
+    #[cfg(not(target_os = "macos"))]
+    {
+        for relative_path in REFORGED_WOWSILICON_RELATIVE_PATHS {
+            let file_path = safe_join(install_dir, relative_path)?;
+            if file_path.is_file() {
+                fs::remove_file(&file_path).map_err(|error| {
+                    format!(
+                        "Unable to remove the macOS-only Reforged compatibility file {}: {error}",
+                        file_path.display()
+                    )
+                })?;
+            }
+        }
+        Ok(())
+    }
 }
 
 #[cfg(target_os = "linux")]
