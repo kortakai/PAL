@@ -52,6 +52,15 @@ See `docs/API_CONTRACT.md`.
 npm run tauri build
 ```
 
+### Linux Reforged runtime
+
+The Linux `.deb` and `.rpm` packages declare Wine as a package dependency. Installing the
+launcher through the distribution package installer therefore installs the Wine runtime with
+the launcher, rather than requiring players to configure Lutris or a separate Wine prefix.
+Reforged uses its own launcher-managed Wine prefix and starts `Wow.exe` through Wine
+automatically. The AppImage cannot declare distribution dependencies, so it still requires
+Wine to be installed by the player.
+
 For an Apple Silicon macOS package that includes WoWSilicon, prepare the pinned upstream app and matching GPL-3.0 source before building:
 
 ```bash

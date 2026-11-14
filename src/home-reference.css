@@ -81,13 +81,16 @@
   display: flex;
   height: 64px;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: space-between;
   gap: 18px;
   border-bottom: 1px solid rgba(174, 198, 216, .14);
   margin: 0 -22px 14px;
   padding: 0 22px;
   background: rgba(6, 13, 20, .84);
 }
+.reference-home .launcher-home-realms { display: flex; min-width: 0; align-items: center; gap: 12px; color: #9baab6; font-size: 10px; }
+.reference-home .launcher-home-realm { display: inline-flex; min-width: 0; align-items: center; gap: 5px; white-space: nowrap; }
+.reference-home .launcher-home-utility { display: flex; min-width: 0; align-items: center; justify-content: flex-end; gap: 18px; }
 .reference-home .launcher-home-links { display: flex; align-items: center; gap: 17px; }
 .reference-home .launcher-home-links button {
   display: inline-flex;
@@ -265,7 +268,7 @@
 .blade-reforged-news .blade-card-heading { margin-bottom: 5px; }
 .blade-reforged-news-item { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 12px; border: 0; border-top: 1px solid rgba(144,168,188,.14); border-radius: 0; padding: 8px 1px; color: #dfe7ed; background: transparent; text-align: left; }
 .blade-reforged-news-item:hover { color: #fff; background: rgba(255,255,255,.035); transform: none; }
-.blade-reforged-news-item > span { display: grid; gap: 3px; min-width: 0; }
+.blade-reforged-news-item > span { display: grid; flex: 1; gap: 3px; min-width: 0; }
 .blade-reforged-news-item small { color: #91a2b0; font-size: 9px; }
 .blade-reforged-news-item strong { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
 .blade-reforged-news-item em { overflow: hidden; color: #aab7c2; font-size: 10px; font-style: normal; text-overflow: ellipsis; white-space: nowrap; }
@@ -289,6 +292,9 @@ body:has(.reference-home) .app-version-badge { top: auto; right: 8px; bottom: 5p
   .reference-home .launcher-nav button { width: 54px; justify-content: center; gap: 0; margin-right: 0; padding: 0; font-size: 0; }
   .reference-home .launcher-nav button span { display: none; }
   .reference-home .launcher-home-links { gap: 9px; }
+  .reference-home .launcher-home-realms { gap: 7px; }
+  .reference-home .launcher-home-realm span { display: none; }
+  .reference-home .launcher-home-utility { gap: 9px; }
   .reference-home .launcher-home-links button { font-size: 0; }
   .reference-home .launcher-home-links button svg { width: 17px; height: 17px; }
   .reference-home .launcher-home-links .launcher-logout { font-size: 10px; }

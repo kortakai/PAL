@@ -1880,6 +1880,44 @@ fn prepare_reforged_install_for_launch(install_dir: &Path) -> Result<(), String>
     enable_required_reforged_addons(install_dir)
 }
 
+#[cfg(target_os = "linux")]
+fn reforged_wine_prefix(app_handle: &tauri::AppHandle) -> Result<PathBuf, String> {
+    let prefix = app_handle
+        .path()
+        .app_data_dir()
+        .map_err(|e| format!("Unable to locate launcher data folder: {e}"))?
+        .join("reforged-wineprefix");
+    fs::create_dir_all(&prefix)
+        .map_err(|e| format!("Unable to create the Reforged Wine prefix: {e}"))?;
+    Ok(prefix)
+}
+
+#[cfg(target_os = "linux")]
+fn launch_reforged_with_wine(
+    app_handle: &tauri::AppHandle,
+    install_dir: &Path,
+    executable_path: &Path,
+    launch_args: &[String],
+) -> Result<(), String> {
+    let wine_prefix = reforged_wine_prefix(app_handle)?;
+    Command::new("wine")
+        .env("WINEPREFIX", &wine_prefix)
+        .current_dir(install_dir)
+        .arg(executable_path)
+        .args(launch_args)
+        .spawn()
+        .map_err(|error| {
+            if error.kind() == std::io::ErrorKind::NotFound {
+                "Wine is required to run Aethro: Reforged on Linux. Install Wine (including its 64-bit support) from your distribution, then restart the launcher.".to_string()
+            } else {
+                format!(
+                    "Unable to start Reforged with Wine. Ensure Wine is installed and try again: {error}"
+                )
+            }
+        })?;
+    Ok(())
+}
+
 fn collect_regular_files(root: &Path, files: &mut Vec<PathBuf>) -> Result<(), String> {
     if !root.exists() {
         return Ok(());
@@ -3375,11 +3413,21 @@ async fn open_reforged_client(
         return Err("macOS could not open the Reforged WoWSilicon profile shortcut.".to_string());
     }
 
-    #[cfg(not(any(target_os = "windows", target_os = "macos")))]
+    #[cfg(target_os = "linux")]
     {
-        let _ = executable_path;
-        let _ = launch_args;
-        Err("Aethro: Reforged launching is currently supported on Windows and macOS.".to_string())
+        launch_reforged_with_wine(
+            &app_handle,
+            &install_dir,
+            &executable_path,
+            &launch_args,
+        )?;
+        return Ok("Aethro: Reforged opened through Wine.".to_string());
+    }
+
+    #[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
+    {
+        let _ = (executable_path, launch_args);
+        Err("Aethro: Reforged launching is not available on this operating system.".to_string())
     }
 }
 
