@@ -10,7 +10,7 @@ use std::{
     net::{TcpListener, TcpStream},
     path::{Component, Path, PathBuf},
     process::Command,
-    sync::Arc,
+    sync::{Arc, OnceLock},
     time::{Duration, Instant, SystemTime, UNIX_EPOCH},
 };
 use tauri::{Emitter, Manager};
@@ -25,6 +25,7 @@ const HTTP_TIMEOUT_SECONDS: u64 = 12;
 const DOWNLOAD_CONNECT_TIMEOUT_SECONDS: u64 = 30;
 const DOWNLOAD_TIMEOUT_SECONDS: u64 = 300;
 const REFORGED_DOWNLOAD_TIMEOUT_SECONDS: u64 = 1_800;
+const REFORGED_MANIFEST_CACHE_SECONDS: u64 = 30;
 const DOWNLOAD_MAX_ATTEMPTS: usize = 20;
 const DOWNLOAD_RETRY_DELAY_SECONDS: u64 = 3;
 const DOWNLOAD_MAX_RETRY_DELAY_SECONDS: u64 = 60;
@@ -190,7 +191,7 @@ struct ShadowsManifest {
     files: Vec<ShadowsManifestFile>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ReforgedManifest {
     game_id: Option<String>,
@@ -202,7 +203,7 @@ struct ReforgedManifest {
     source_sha256: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct ReforgedManifestLaunch {
     executable: Option<String>,
@@ -703,7 +704,7 @@ fn detect_from_launcher_profiles(path: &Path) -> Option<LocalMinecraftProfile> {
 fn sha256_file(path: &Path) -> Result<String, String> {
     let mut file = File::open(path).map_err(|e| format!("Unable to open file: {e}"))?;
     let mut hasher = Sha256::new();
-    let mut buffer = [0_u8; 8192];
+    let mut buffer = [0_u8; 128 * 1024];
 
     loop {
         let n = file
@@ -791,6 +792,15 @@ async fn load_reforged_manifest() -> Result<ReforgedManifest, String> {
         Err("Remote Reforged manifest is missing its required file list.".to_string())
     }
 
+    static CACHE: OnceLock<Mutex<Option<(Instant, ReforgedManifest)>>> = OnceLock::new();
+    let cache = CACHE.get_or_init(|| Mutex::new(None));
+    let mut cached_manifest = cache.lock().await;
+    if let Some((cached_at, manifest)) = cached_manifest.as_ref() {
+        if cached_at.elapsed() < Duration::from_secs(REFORGED_MANIFEST_CACHE_SECONDS) {
+            return Ok(manifest.clone());
+        }
+    }
+
     let client = reqwest::Client::builder()
         .timeout(Duration::from_secs(HTTP_TIMEOUT_SECONDS))
         .build()
@@ -801,7 +811,7 @@ async fn load_reforged_manifest() -> Result<ReforgedManifest, String> {
         .as_secs();
     let manifest_url = format!("{REFORGED_MANIFEST_URL}?t={cache_bust}");
 
-    match client.get(&manifest_url).send().await {
+    let manifest = match client.get(&manifest_url).send().await {
         Ok(response) if response.status().is_success() => {
             let text = response
                 .text()
@@ -823,7 +833,10 @@ async fn load_reforged_manifest() -> Result<ReforgedManifest, String> {
             eprintln!("Remote Reforged manifest unavailable: {err}; using bundled fallback.");
             load_bundled_reforged_manifest()
         }
-    }
+    }?;
+
+    *cached_manifest = Some((Instant::now(), manifest.clone()));
+    Ok(manifest)
 }
 
 fn shadows_install_dir(
@@ -1323,9 +1336,19 @@ fn check_manifest_files(
         let actual_size = fs::metadata(&file_path)
             .map_err(|e| format!("Unable to inspect {}: {e}", file_path.display()))?
             .len();
-        let actual_sha256 = sha256_file(&file_path)?;
-        let status = if manifest_file.size_bytes.map_or(true, |expected| expected == actual_size)
-            && actual_sha256.eq_ignore_ascii_case(&manifest_file.sha256)
+        let size_matches = manifest_file
+            .size_bytes
+            .map_or(true, |expected| expected == actual_size);
+        // A size mismatch already proves the file needs replacement. Avoid reading a
+        // potentially multi-gigabyte archive from disk just to reach the same result.
+        let actual_sha256 = if size_matches {
+            Some(sha256_file(&file_path)?)
+        } else {
+            None
+        };
+        let status = if actual_sha256
+            .as_deref()
+            .is_some_and(|actual| actual.eq_ignore_ascii_case(&manifest_file.sha256))
         {
             "ok"
         } else {
@@ -1336,7 +1359,7 @@ fn check_manifest_files(
             path: manifest_file.path.clone(),
             status: status.to_string(),
             expected_sha256: Some(manifest_file.sha256.clone()),
-            actual_sha256: Some(actual_sha256),
+            actual_sha256,
             size_bytes: manifest_file.size_bytes,
         });
         checked_bytes += manifest_file.size_bytes.unwrap_or(0);

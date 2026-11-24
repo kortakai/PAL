@@ -1206,7 +1206,9 @@ export function Dashboard({ session, home, onLogout, onSessionUpdated }: Props) 
 
     try {
       if (!skipPasswordCheck) {
-        const profile = await loadReforgedProfile();
+        const profile = reforgedProfileLoaded && reforgedProfile
+          ? reforgedProfile
+          : await loadReforgedProfile();
         if (!profile) return;
 
         if (!profile.account.passwordSet) {
